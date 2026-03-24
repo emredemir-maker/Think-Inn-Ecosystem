@@ -79,6 +79,15 @@ const TOOLS = [
               items: { type: "STRING" },
               description: "Fikirle ilgili etiketler (maks 5)",
             },
+            neededResearchTopics: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description:
+                "Bu fikrin araştırma desteğini tamamlamak için henüz sistemde olmayan araştırma konuları. " +
+                "Sistemdeki mevcut araştırmalarla karşılaştır; eksik olan konuları listele. " +
+                "Her madde kısa ve spesifik olsun (örn. 'Kullanıcı deneyimi ölçüm metodolojileri'). " +
+                "Tüm konular araştırılmışsa boş dizi [].",
+            },
           },
           required: ["title", "description", "authorName"],
         },
@@ -257,6 +266,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
     }
 
     case "save_idea": {
+      const neededTopics = (args.neededResearchTopics as string[]) || [];
       const [item] = await db
         .insert(ideasTable)
         .values({
@@ -268,6 +278,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
           researchIds: [],
           relatedTo: [],
           roadmap: [],
+          neededResearchTopics: neededTopics,
           status: "active",
         })
         .returning();
@@ -329,14 +340,30 @@ ARAŞTIRMA KAYDETME:
 - Benzer başlıklı araştırma DB'de varsa kullanıcıya sor, yoksa doğrudan kaydet
 
 FİKİR KAYDETME:
-- Kullanıcı bir inovasyon fikri, proje önerisi paylaştığında → önce list_existing_ideas çağır, DB'de yoksa save_idea kullan
+- Kullanıcı bir inovasyon fikri, proje önerisi paylaştığında → önce list_existing_research VE list_existing_ideas çağır; DB'de benzer fikir yoksa save_idea kullan
+- save_idea çağırırken: sistemdeki araştırmalarla fikri karşılaştır, hangi araştırma konuları eksik olduğunu neededResearchTopics'e yaz
 - Eğer DB'de gerçekten çok benzer bir fikir varsa: kaydetme, kullanıcıyı bildir
+
+FİKİR KAYDEDİLDİKTEN SONRA YAPILACAKLAR (ZORUNLU):
+1. Kaydedilen fikri kısaca özetle (1 cümle)
+2. Sisteme bağlanan mevcut araştırmaları listele (varsa): "Bağlı araştırmalar: ..."
+3. Eksik araştırma konularını açıkça belirt (neededResearchTopics'teki maddeler):
+   "Bu fikrin araştırma alt yapısını tamamlamak için şu konuların araştırılması gerekiyor:
+   • [Konu 1]
+   • [Konu 2]
+   ..."
+4. Son olarak şunu söyle: "Bu araştırmalar tamamlandıktan sonra fikir için **mimari şema** ve **fonksiyonel analiz** oluşturabilirim."
+5. Eksik araştırma yoksa (tüm konular kapsanmışsa): "Mevcut araştırmalar yeterli — istersen hemen **mimari şema** veya **fonksiyonel analiz** oluşturabilirim."
+
+ARAŞTIRMA KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
+- Kaydedilen araştırmayı özetle
+- Sistemdeki fikir(ler)le ilişkisini belirt (varsa)
+- Bir sonraki adım için yönlendir
 
 YANIT STİLİ:
 - Kısa, net ve profesyonel
-- Başarıyla kaydettikten sonra ne kaydedildiğini özetle
-- Öneri ve bağlantı kur (bu araştırma şu fikirle ilgili olabilir gibi)
-- Kullanıcıyı bir sonraki adım için yönlendir`;
+- Madde listelerini • ile göster
+- **bold** ile önemli kavramları vurgula`;
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 

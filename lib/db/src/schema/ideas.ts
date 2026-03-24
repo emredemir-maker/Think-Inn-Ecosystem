@@ -15,6 +15,7 @@ export const ideasTable = pgTable("ideas", {
   status: text("status", { enum: ["draft", "active", "merged", "prototype", "archived"] }).notNull().default("active"),
   masterIdeaId: integer("master_idea_id"),
   roadmap: json("roadmap").$type<string[]>().notNull().default([]),
+  neededResearchTopics: json("needed_research_topics").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
