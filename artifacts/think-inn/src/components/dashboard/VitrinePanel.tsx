@@ -273,13 +273,18 @@ export function VitrinePanel() {
                   {layoutMode === "grid" ? (
                     <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                       {filteredResearch.map(r => (
-                        <ResearchCard
+                        <DeletableWrapper
                           key={`res-${r.id}`}
-                          research={r as Research}
-                          onVote={(id, val) => handleVote("research", id, val)}
-                          onClick={() => handleCardClick(r as Research, 'research')}
-                          onShowCanvas={() => handleShowCanvas(r as Research, 'research')}
-                        />
+                          isSuperAdmin={isSuperAdmin}
+                          onDelete={() => handleDelete(r.id, 'research', r.title)}
+                        >
+                          <ResearchCard
+                            research={r as Research}
+                            onVote={(id, val) => handleVote("research", id, val)}
+                            onClick={() => handleCardClick(r as Research, 'research')}
+                            onShowCanvas={() => handleShowCanvas(r as Research, 'research')}
+                          />
+                        </DeletableWrapper>
                       ))}
                     </div>
                   ) : (
@@ -312,13 +317,18 @@ export function VitrinePanel() {
                   {layoutMode === "grid" ? (
                     <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                       {filteredIdeas.map(i => (
-                        <IdeaCard
+                        <DeletableWrapper
                           key={`idea-${i.id}`}
-                          idea={i as Idea}
-                          onVote={(id, val) => handleVote("idea", id, val)}
-                          onClick={() => handleCardClick(i as Idea, 'idea')}
-                          onShowCanvas={() => handleShowCanvas(i as Idea, 'idea')}
-                        />
+                          isSuperAdmin={isSuperAdmin}
+                          onDelete={() => handleDelete(i.id, 'idea', i.title)}
+                        >
+                          <IdeaCard
+                            idea={i as Idea}
+                            onVote={(id, val) => handleVote("idea", id, val)}
+                            onClick={() => handleCardClick(i as Idea, 'idea')}
+                            onShowCanvas={() => handleShowCanvas(i as Idea, 'idea')}
+                          />
+                        </DeletableWrapper>
                       ))}
                     </div>
                   ) : (
@@ -428,6 +438,29 @@ export function VitrinePanel() {
   );
 }
 
+/* ── Deletable Card Wrapper (grid mode) ──────────────────────────── */
+
+function DeletableWrapper({ children, isSuperAdmin, onDelete }: {
+  children: React.ReactNode;
+  isSuperAdmin: boolean;
+  onDelete: () => void;
+}) {
+  return (
+    <div className="relative group/del">
+      {children}
+      {isSuperAdmin && (
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(); }}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg bg-white/90 border border-red-200 text-red-400 hover:bg-red-50 hover:text-red-600 shadow-sm transition-all opacity-0 group-hover/del:opacity-100"
+          title="Sil"
+        >
+          <Trash2 size={13} />
+        </button>
+      )}
+    </div>
+  );
+}
+
 /* ── Accordion List Rows ──────────────────────────────────────────── */
 
 function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSuperAdmin, onDelete }: {
@@ -447,8 +480,8 @@ function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSupe
       className={`bg-white rounded-xl border shadow-sm transition-all ${open ? 'border-indigo-200 shadow-md' : 'border-gray-100 hover:border-indigo-200 hover:shadow-md'}`}
     >
       {/* Header row */}
-      <button
-        className="w-full px-4 py-3 flex items-center gap-4 text-left"
+      <div
+        className="w-full px-4 py-3 flex items-center gap-4 cursor-pointer select-none"
         onClick={() => setOpen(v => !v)}
       >
         <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
@@ -488,7 +521,7 @@ function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSupe
           </button>
         )}
         <ChevronDown size={14} className={`text-gray-300 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
 
       {/* Expanded content */}
       <AnimatePresence initial={false}>
@@ -554,8 +587,8 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
       className={`bg-white rounded-xl border shadow-sm transition-all ${open ? 'border-amber-200 shadow-md' : 'border-gray-100 hover:border-amber-200 hover:shadow-md'}`}
     >
       {/* Header row */}
-      <button
-        className="w-full px-4 py-3 flex items-center gap-4 text-left"
+      <div
+        className="w-full px-4 py-3 flex items-center gap-4 cursor-pointer select-none"
         onClick={() => setOpen(v => !v)}
       >
         <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
@@ -595,7 +628,7 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
           </button>
         )}
         <ChevronDown size={14} className={`text-gray-300 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
 
       {/* Expanded content */}
       <AnimatePresence initial={false}>
