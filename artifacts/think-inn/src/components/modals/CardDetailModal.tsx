@@ -29,9 +29,10 @@ function MarkdownContent({ content, className = "" }: { content: string; classNa
   );
 }
 
-export function CardDetailModal({ item, type, onClose }: {
+export function CardDetailModal({ item, type, allResearch = [], onClose }: {
   item: Research | Idea | null;
   type: 'research' | 'idea' | null;
+  allResearch?: Research[];
   onClose: () => void;
 }) {
   if (!item || !type) return null;
@@ -80,7 +81,7 @@ export function CardDetailModal({ item, type, onClose }: {
             {type === 'research' ? (
               <ResearchDetail research={item as Research} />
             ) : (
-              <IdeaDetail idea={item as Idea} onClose={onClose} />
+              <IdeaDetail idea={item as Idea} allResearch={allResearch} onClose={onClose} />
             )}
           </div>
         </motion.div>
@@ -250,13 +251,30 @@ function EvaluationPanel({ idea }: { idea: Idea }) {
   );
 }
 
-function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
-  const linkedCount = idea.researchIds?.length ?? 0;
+function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: Research[]; onClose: () => void }) {
+  const linkedResearchIds: number[] = idea.researchIds ?? [];
   const requiredTopics: string[] = (idea as any).neededResearchTopics ?? [];
   const optionalTopics: string[] = (idea as any).optionalResearchTopics ?? [];
-  const coveredRequired = Math.min(linkedCount, requiredTopics.length);
-  const allRequiredCovered = requiredTopics.length > 0 && coveredRequired >= requiredTopics.length;
   const hasNoTopics = requiredTopics.length === 0 && optionalTopics.length === 0;
+
+  // Resolve actual linked research objects by ID
+  const linkedResearchItems = linkedResearchIds
+    .map(id => allResearch.find(r => r.id === id))
+    .filter(Boolean) as Research[];
+
+  // A required topic is "covered" if at least one linked research title contains
+  // a significant keyword overlap (simple heuristic, no fake position-based check)
+  function topicIsCovered(topic: string): boolean {
+    const topicWords = topic.toLowerCase().split(/[\s,]+/).filter(w => w.length > 4);
+    return linkedResearchItems.some(r => {
+      const rText = (r.title + ' ' + (r.summary ?? '')).toLowerCase();
+      return topicWords.some(w => rText.includes(w));
+    });
+  }
+
+  const coveredCount = requiredTopics.filter(t => topicIsCovered(t)).length;
+  const allRequiredCovered = requiredTopics.length > 0 && coveredCount >= requiredTopics.length;
+  const canAnalyze = linkedResearchItems.length > 0 || requiredTopics.length === 0;
 
   const handleGenerateAnalysis = () => {
     onClose();
@@ -266,7 +284,7 @@ function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
   return (
     <div className="space-y-6">
 
-      {/* Research Topics Checklist */}
+      {/* Research Panel */}
       <div className="border border-gray-100 rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-5 py-3.5 bg-gray-50 border-b border-gray-100">
           <div className="flex items-center gap-2">
@@ -276,39 +294,63 @@ function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
           {requiredTopics.length > 0 && (
             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
               allRequiredCovered ? 'bg-green-100 text-green-700' :
-              coveredRequired > 0 ? 'bg-amber-100 text-amber-700' :
+              coveredCount > 0 ? 'bg-amber-100 text-amber-700' :
               'bg-red-50 text-red-600'
             }`}>
-              {coveredRequired}/{requiredTopics.length} zorunlu araştırıldı
+              {coveredCount}/{requiredTopics.length} konu karşılandı
             </span>
           )}
         </div>
 
-        {/* Linked research summary */}
-        {linkedCount > 0 && (
-          <div className="px-5 py-3 bg-green-50/40 border-b border-green-100 flex items-center gap-2">
-            <CheckCircle2 size={14} className="text-green-500 shrink-0" />
-            <span className="text-xs text-green-700 font-medium">{linkedCount} araştırma bağlandı</span>
+        {/* Actual linked research — real titles */}
+        {linkedResearchItems.length > 0 && (
+          <div>
+            <div className="px-5 py-2 bg-green-50/60 border-b border-green-100">
+              <span className="text-[10px] font-bold text-green-700 tracking-wider uppercase">Bağlı Araştırmalar</span>
+            </div>
+            <ul className="divide-y divide-gray-50/80">
+              {linkedResearchItems.map(r => (
+                <li key={r.id} className="flex items-start gap-3 px-5 py-3 bg-green-50/20">
+                  <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-800 leading-snug">{r.title}</p>
+                    {r.summary && (
+                      <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{r.summary}</p>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
 
-        {/* Required topics */}
+        {/* Linked IDs that couldn't be resolved (still loading or deleted) */}
+        {linkedResearchIds.length > 0 && linkedResearchItems.length < linkedResearchIds.length && (
+          <div className="px-5 py-2.5 bg-amber-50/40 border-b border-amber-100 flex items-center gap-2">
+            <AlertTriangle size={13} className="text-amber-400 shrink-0" />
+            <span className="text-xs text-amber-600">
+              {linkedResearchIds.length - linkedResearchItems.length} araştırma yüklenemedi
+            </span>
+          </div>
+        )}
+
+        {/* Required topics — keyword-matched to show coverage */}
         {requiredTopics.length > 0 && (
           <div>
             <div className="px-5 py-2 bg-gray-50/80 border-b border-gray-100">
-              <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Zorunlu Araştırmalar</span>
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Zorunlu Araştırma Konuları</span>
             </div>
             <ul className="divide-y divide-gray-50/80">
               {requiredTopics.map((topic, i) => {
-                const covered = i < coveredRequired;
+                const covered = topicIsCovered(topic);
                 return (
-                  <li key={i} className={`flex items-start gap-3 px-5 py-3 ${covered ? 'bg-green-50/30' : 'bg-white'}`}>
+                  <li key={i} className={`flex items-start gap-3 px-5 py-3 ${covered ? 'bg-green-50/20' : 'bg-white'}`}>
                     {covered ? (
                       <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
                     ) : (
                       <Circle size={16} className="text-red-300 mt-0.5 shrink-0" />
                     )}
-                    <span className={`text-sm leading-snug ${covered ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                    <span className={`text-sm leading-snug ${covered ? 'text-gray-400' : 'text-gray-700'}`}>
                       {topic}
                     </span>
                   </li>
@@ -322,7 +364,7 @@ function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
         {optionalTopics.length > 0 && (
           <div>
             <div className="px-5 py-2 bg-gray-50/80 border-t border-b border-gray-100">
-              <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Opsiyonel Araştırmalar</span>
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Opsiyonel Araştırma Konuları</span>
             </div>
             <ul className="divide-y divide-gray-50/80">
               {optionalTopics.map((topic, i) => (
@@ -336,7 +378,7 @@ function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
         )}
 
         {/* Empty state */}
-        {hasNoTopics && (
+        {hasNoTopics && linkedResearchIds.length === 0 && (
           <div className="px-5 py-4 flex items-center gap-2 text-amber-500">
             <AlertTriangle size={15} />
             <span className="text-sm">Araştırma konuları henüz belirlenmedi.</span>
@@ -344,30 +386,22 @@ function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
         )}
 
         {/* Footer */}
-        <div className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 ${
-          allRequiredCovered ? 'bg-green-50/50 border-green-100' : 'bg-gray-50 border-gray-100'
-        }`}>
+        <div className="px-5 py-3.5 border-t border-gray-100 bg-gray-50 flex items-center justify-between gap-3">
           <p className="text-xs text-gray-500 flex-1">
-            {allRequiredCovered
-              ? 'Zorunlu araştırmalar tamamlandı.'
-              : requiredTopics.length > 0
-                ? 'Zorunlu araştırmalar tamamlandığında mimari ve fonksiyonel analiz oluşturulabilir.'
-                : 'Araştırma eklemek için asistana metinleri paylaşın.'}
+            {canAnalyze
+              ? 'Mimari ve fonksiyonel analiz oluşturabilirsiniz.'
+              : 'En az bir araştırma eklendiğinde analiz oluşturulabilir.'}
           </p>
           <button
             onClick={handleGenerateAnalysis}
-            disabled={!allRequiredCovered && requiredTopics.length > 0}
+            disabled={!canAnalyze}
             className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg transition-all shrink-0 ${
-              allRequiredCovered || requiredTopics.length === 0
+              canAnalyze
                 ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >
-            {allRequiredCovered || requiredTopics.length === 0 ? (
-              <Sparkles size={13} />
-            ) : (
-              <Lock size={13} />
-            )}
+            {canAnalyze ? <Sparkles size={13} /> : <Lock size={13} />}
             Analiz Oluştur
           </button>
         </div>

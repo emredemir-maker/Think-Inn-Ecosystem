@@ -36,15 +36,33 @@ export function VitrinePanel() {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("grid");
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [canvasItem, setCanvasItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
-  const [detailItem, setDetailItem] = useState<{ item: Research | Idea; type: 'research' | 'idea' } | null>(null);
+  const [detailItem, setDetailItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: 'research' | 'idea'; title: string } | null>(null);
 
   const { data: researchList, isLoading: isResearchLoading } = useListResearch();
-  const { data: ideaList, isLoading: isIdeasLoading } = useListIdeas();
+
+  // When modal is open for an idea, poll every 3s to catch evaluation completion
+  const needsPolling = detailItem?.type === 'idea';
+
+  const { data: ideaList, isLoading: isIdeasLoading } = useListIdeas({
+    query: { refetchInterval: needsPolling ? 3000 : false }
+  });
   const { mutate: submitVote } = useVote();
   const { mutate: deleteResearch } = useDeleteResearch();
   const { mutate: deleteIdea } = useDeleteIdea();
   const queryClient = useQueryClient();
+
+  // Derive the live modal item from fresh query data (not stale state snapshot)
+  const liveDetailItem = useMemo(() => {
+    if (!detailItem) return null;
+    if (detailItem.type === 'research') {
+      const item = researchList?.find(r => r.id === detailItem.id);
+      return item ? { item, type: 'research' as const } : null;
+    } else {
+      const item = ideaList?.find(i => i.id === detailItem.id);
+      return item ? { item, type: 'idea' as const } : null;
+    }
+  }, [detailItem, researchList, ideaList]);
 
   const handleVote = (targetType: "research" | "idea", targetId: number, value: 1 | -1) => {
     submitVote(
@@ -68,14 +86,13 @@ export function VitrinePanel() {
     else deleteIdea({ id }, { onSuccess });
   };
 
-  const handleCardClick = (item: Research | Idea, type: 'research' | 'idea') => setDetailItem({ item, type });
+  const handleCardClick = (item: Research | Idea, type: 'research' | 'idea') => setDetailItem({ id: item.id, type });
   const handleShowCanvas = (item: Research | Idea, type: 'research' | 'idea') => {
     setCanvasItem({ id: item.id, type });
     setViewMode('graph');
   };
   const handleNodeClick = (id: number, type: 'research' | 'idea') => {
-    const item = type === 'research' ? researchList?.find(r => r.id === id) : ideaList?.find(i => i.id === id);
-    if (item) setDetailItem({ item, type });
+    setDetailItem({ id, type });
   };
   const backToList = () => { setViewMode('list'); setCanvasItem(null); };
   const openGlobalMap = () => setViewMode('global-map');
@@ -443,11 +460,12 @@ export function VitrinePanel() {
       </div>
       )}
 
-      {/* Detail Modal */}
-      {detailItem && (
+      {/* Detail Modal — liveDetailItem is derived from the live query so it auto-updates */}
+      {liveDetailItem && (
         <CardDetailModal
-          item={detailItem.item}
-          type={detailItem.type}
+          item={liveDetailItem.item}
+          type={liveDetailItem.type}
+          allResearch={researchList || []}
           onClose={() => setDetailItem(null)}
         />
       )}
