@@ -105,6 +105,53 @@ const TOOLS = [
         },
       },
       {
+        name: "update_idea",
+        description:
+          "Mevcut bir fikri günceller. " +
+          "Kullanıcı bir fikre araştırma eklemek, bağlamak veya mevcut bir fikrin bilgilerini güncellemek istediğinde kullan. " +
+          "YENİ FİKİR OLUŞTURMA - save_idea; MEVCUT FİKİR GÜNCELLEME - update_idea.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            ideaId: {
+              type: "NUMBER",
+              description: "Güncellenecek fikrin ID'si. list_existing_ideas çıktısından al.",
+            },
+            addResearchIds: {
+              type: "ARRAY",
+              items: { type: "NUMBER" },
+              description:
+                "Bu fikre EKLENECEK araştırma ID'leri. Mevcut bağlantılara eklenir, silmez. " +
+                "Sadece eklemek istenen ID'leri gönder.",
+            },
+            neededResearchTopics: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description: "Güncellenmiş zorunlu araştırma konuları listesi (tümünü yaz, yerini alır).",
+            },
+            optionalResearchTopics: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description: "Güncellenmiş opsiyonel araştırma konuları listesi (tümünü yaz, yerini alır).",
+            },
+            title: {
+              type: "STRING",
+              description: "Yeni başlık (opsiyonel, yalnızca değişecekse gönder).",
+            },
+            description: {
+              type: "STRING",
+              description: "Yeni açıklama (opsiyonel, yalnızca değişecekse gönder).",
+            },
+            tags: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description: "Yeni etiketler (opsiyonel, yalnızca değişecekse gönder).",
+            },
+          },
+          required: ["ideaId"],
+        },
+      },
+      {
         name: "list_existing_research",
         description:
           "Sistemde kayıtlı araştırmaların listesini getirir. " +
@@ -408,6 +455,58 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
       };
     }
 
+    case "update_idea": {
+      const ideaId = args.ideaId as number;
+      if (!ideaId) return { error: "ideaId zorunlu." };
+
+      // Fetch existing idea
+      const [existing] = await db.select().from(ideasTable).where(eq(ideasTable.id, ideaId));
+      if (!existing) return { error: `Fikir bulunamadı: ID ${ideaId}` };
+
+      // Build update object — only update provided fields
+      const updates: Record<string, unknown> = { updatedAt: new Date() };
+
+      // Merge research IDs (add new ones, keep existing)
+      if (args.addResearchIds && (args.addResearchIds as number[]).length > 0) {
+        const rawIds = args.addResearchIds as number[];
+        // Validate against actual DB research IDs
+        const allResearch = await db.select({ id: researchTable.id }).from(researchTable);
+        const validIds = new Set(allResearch.map(r => r.id));
+        const toAdd = rawIds.filter(id => validIds.has(id));
+        const existingIds = existing.researchIds || [];
+        const merged = [...new Set([...existingIds, ...toAdd])];
+        updates.researchIds = merged;
+      }
+
+      if (args.neededResearchTopics !== undefined)
+        updates.neededResearchTopics = args.neededResearchTopics;
+      if (args.optionalResearchTopics !== undefined)
+        updates.optionalResearchTopics = args.optionalResearchTopics;
+      if (args.title) updates.title = args.title;
+      if (args.description) updates.description = args.description;
+      if (args.tags) updates.tags = args.tags;
+
+      const [updated] = await db
+        .update(ideasTable)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .set(updates as any)
+        .where(eq(ideasTable.id, ideaId))
+        .returning();
+
+      actions.push({ action: "idea_saved", data: { id: updated.id, title: updated.title } });
+
+      const addedCount = (updates.researchIds as number[] | undefined)
+        ? ((updates.researchIds as number[]).length - (existing.researchIds || []).length)
+        : 0;
+
+      return {
+        success: true,
+        id: updated.id,
+        message: `"${updated.title}" fikri güncellendi. ${addedCount > 0 ? `${addedCount} araştırma eklendi.` : ''}`,
+        totalLinkedResearch: (updated.researchIds || []).length,
+      };
+    }
+
     case "list_existing_research": {
       const items = await db.select().from(researchTable).orderBy(researchTable.createdAt);
       // response must be an object (not array) for Gemini function_response
@@ -433,6 +532,10 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
           description: i.description?.slice(0, 200),
           tags: i.tags,
           status: i.status,
+          linkedResearchIds: i.researchIds || [],
+          linkedResearchCount: (i.researchIds || []).length,
+          neededResearchTopics: i.neededResearchTopics || [],
+          optionalResearchTopics: i.optionalResearchTopics || [],
         })),
       };
     }
@@ -460,19 +563,29 @@ ARAŞTIRMA KAYDETME:
 - Yazar adı belirtilmemişse "Anonim" kullan
 - Benzer başlıklı araştırma DB'de varsa kullanıcıya sor, yoksa doğrudan kaydet
 
-FİKİR KAYDETME:
-- Kullanıcı bir inovasyon fikri veya proje önerisi paylaştığında → ÖNCE list_existing_research VE list_existing_ideas çağır
-- DB'de çok benzer bir fikir varsa: kaydetme, kullanıcıyı bildir
-- Benzer fikir yoksa hemen save_idea çağır; şunları belirle:
-  a) linkedResearchIds: Sistemdeki araştırmalardan bu fikirle ilgili olanların ID'leri (konu/etiket/özet uyumu)
-  b) neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU, sistemde HENÜZ BULUNMAYAN araştırma konuları (max 4)
-  c) optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3)
+FİKİR İŞLEMLERİ — KRİTİK KURAL:
 
-FİKİR KAYDEDİLDİKTEN SONRA:
-1. Kaydedildiğini kısaca onayla
-2. Bağlanan araştırmaları belirt (yoksa "Mevcut araştırmalarla örtüşme bulunamadı")
+▶ YENİ FİKİR OLUŞTURMA (save_idea):
+- Kullanıcı yeni bir inovasyon fikri veya proje önerisi paylaştığında kullan
+- ÖNCE list_existing_research VE list_existing_ideas çağır; DB'de çok benzer fikir varsa kaydetme
+- Benzer yoksa save_idea çağır: linkedResearchIds (ilgili araştırma ID'leri), neededResearchTopics (max 4 zorunlu), optionalResearchTopics (max 3 opsiyonel)
+
+▶ MEVCUT FİKİR GÜNCELLEME (update_idea) — KESİNLİKLE save_idea DEĞİL:
+Şu durumlarda update_idea çağır:
+  - "Bu fikre araştırmayı bağla / ekle / link et"
+  - "Fikri güncelle / düzenle"
+  - "Bu araştırmayı fikre ekle"
+  - Kullanıcı mevcut bir fikirden bahsederken araştırma bağlamak istediğinde
+Adımlar:
+  1. list_existing_ideas çağır → fikrin ID'sini al
+  2. list_existing_research çağır → eklenecek araştırmanın ID'sini doğrula
+  3. update_idea çağır: { ideaId, addResearchIds: [<ID>] }
+  ASLA save_idea ÇAĞIRMA — bu mükerrer fikir oluşturur!
+
+FİKİR KAYDEDİLDİKTEN / GÜNCELLENDİKTEN SONRA:
+1. İşlemi kısaca onayla
+2. Bağlanan araştırmaları belirt
 3. "Fikir detaylarından kapsamlı değerlendirme raporunu görebilirsin." de
-4. Kullanıcıya bir sonraki adım için yönlendirme yap (ilgili araştırma öner veya ne tür araştırma gerektiğini söyle)
 
 ARAŞTIRMA KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
 - Kaydedilen araştırmayı özetle
