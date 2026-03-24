@@ -112,7 +112,7 @@ export function VitrinePanel() {
   const showIdeas    = activeFilter !== "Araştırma" && activeFilter !== "Mimari";
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#f8f9fa]">
+    <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#f4f6fb]">
 
       {/* ── Graph / Map modes ─────────────────────────────────────── */}
       {viewMode === 'graph' && canvasItem ? (
@@ -136,94 +136,142 @@ export function VitrinePanel() {
         />
       ) : (
 
-      /* ── Komuta Merkezi list mode ─────────────────────────────── */
+      /* ── List mode ─────────────────────────────────────────────── */
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* Command bar */}
-        <div className="px-6 pt-5 pb-3 shrink-0">
-          {/* Title row */}
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h1 className="text-xl font-bold text-[#1a1a2e] tracking-tight">İnovasyon Vitrini</h1>
-              <p className="text-[#6b7280] mt-0.5 text-xs">Keşfedin, değerlendirin ve iş birliği yapın.</p>
-            </div>
-            <div className="flex items-center gap-2">
-              {/* Superadmin toggle */}
-              <button
-                onClick={() => setIsSuperAdmin(v => !v)}
-                title={isSuperAdmin ? "Süper Admin modundan çık" : "Süper Admin modu"}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                  isSuperAdmin
-                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                    : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'
-                }`}
-              >
-                {isSuperAdmin ? <ShieldOff size={12} /> : <Shield size={12} />}
-                {isSuperAdmin ? 'Admin Modu' : 'Admin'}
-              </button>
-              <button
-                onClick={openGlobalMap}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300"
-              >
-                <Map size={14} /> Genel Harita
-              </button>
-            </div>
-          </div>
+        {/* ── Hero Banner ──────────────────────────────────────────── */}
+        <div className="relative shrink-0 overflow-hidden">
+          {/* Background gradient + pattern */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 via-indigo-700 to-purple-800" />
+          <div className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px),
+                                radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+              backgroundSize: '40px 40px',
+            }}
+          />
+          {/* Glowing orbs */}
+          <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-purple-500/30 blur-3xl" />
+          <div className="absolute -bottom-8 left-1/4 w-36 h-36 rounded-full bg-indigo-400/20 blur-2xl" />
 
-          {/* Search bar */}
-          <div className={`relative transition-all duration-150 ${searchFocused ? 'scale-[1.005]' : ''}`}>
-            <div className={`flex items-center gap-3 bg-white rounded-2xl border px-4 py-2.5 transition-all ${searchFocused ? 'border-indigo-400 shadow-md shadow-indigo-100/60' : 'border-gray-200 shadow-sm'}`}>
-              <Search size={16} className={`flex-shrink-0 transition-colors ${searchFocused ? 'text-indigo-500' : 'text-gray-400'}`} />
-              <input
-                className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none"
-                placeholder="Araştırma, fikir veya konu ara..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setSearchFocused(false)}
-              />
-              {searchQuery ? (
-                <button onClick={() => setSearchQuery("")} className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
-                  <X size={14} />
+          <div className="relative px-6 pt-5 pb-4">
+            {/* Title + controls row */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <motion.h1
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xl font-extrabold text-white tracking-tight"
+                >
+                  İnovasyon Vitrini
+                </motion.h1>
+                <p className="text-indigo-200 mt-0.5 text-xs font-medium">
+                  Keşfedin, değerlendirin ve iş birliği yapın
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsSuperAdmin(v => !v)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all backdrop-blur-sm ${
+                    isSuperAdmin
+                      ? 'bg-red-500/20 text-red-200 border-red-400/40 hover:bg-red-500/30'
+                      : 'bg-white/10 text-white/70 border-white/20 hover:bg-white/20 hover:text-white'
+                  }`}
+                >
+                  {isSuperAdmin ? <ShieldOff size={12} /> : <Shield size={12} />}
+                  {isSuperAdmin ? 'Admin' : 'Admin'}
                 </button>
-              ) : (
-                <div className="flex items-center gap-0.5 text-[10px] text-gray-300 font-mono border border-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
-                  <Command size={9} />K
-                </div>
-              )}
+                <button
+                  onClick={openGlobalMap}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/15 backdrop-blur-sm text-white border border-white/25 hover:bg-white/25 transition-all"
+                >
+                  <Map size={13} /> Genel Harita
+                </button>
+              </div>
+            </div>
+
+            {/* Stats row */}
+            {!searchQuery && activeFilter === "Tümü" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="grid grid-cols-3 gap-3 mb-4"
+              >
+                {[
+                  { icon: FileText,   label: "Araştırma", val: researchList?.length ?? 0,     from: "from-blue-400",   to: "to-indigo-500" },
+                  { icon: Lightbulb,  label: "Fikir",     val: ideaList?.length ?? 0,         from: "from-amber-400",  to: "to-orange-500" },
+                  { icon: TrendingUp, label: "Toplam Oy", val: [...(researchList ?? []), ...(ideaList ?? [])].reduce((s, i) => s + (i.voteCount ?? 0), 0), from: "from-emerald-400", to: "to-teal-500" },
+                ].map(({ icon: Icon, label, val, from, to }) => (
+                  <div key={label} className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 px-4 py-3 flex items-center gap-3">
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center bg-gradient-to-br ${from} ${to} shadow-lg`}>
+                      <Icon size={15} className="text-white" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-black text-white leading-none">{val}</div>
+                      <div className="text-[10px] text-indigo-200 mt-0.5 font-medium">{label}</div>
+                    </div>
+                  </div>
+                ))}
+              </motion.div>
+            )}
+
+            {/* Search bar */}
+            <div className={`relative transition-all duration-200 ${searchFocused ? 'scale-[1.01]' : ''}`}>
+              <div className={`flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-xl border px-4 py-2.5 transition-all shadow-lg ${
+                searchFocused ? 'border-white shadow-white/20' : 'border-white/50'
+              }`}>
+                <Search size={15} className={`flex-shrink-0 transition-colors ${searchFocused ? 'text-indigo-600' : 'text-gray-400'}`} />
+                <input
+                  className="flex-1 bg-transparent text-sm text-gray-800 placeholder-gray-400 outline-none font-medium"
+                  placeholder="Araştırma, fikir veya konu ara..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  onBlur={() => setSearchFocused(false)}
+                />
+                {searchQuery ? (
+                  <button onClick={() => setSearchQuery("")} className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors">
+                    <X size={14} />
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-0.5 text-[10px] text-gray-300 font-mono border border-gray-200 px-1.5 py-0.5 rounded flex-shrink-0">
+                    <Command size={9} />K
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Quick filters + layout toggle */}
-          <div className="flex items-center gap-1.5 mt-2.5">
-            <Filter size={11} className="text-gray-400 flex-shrink-0" />
+          {/* Filter chips + layout toggle */}
+          <div className="relative flex items-center gap-1.5 px-6 pb-3">
+            <Filter size={11} className="text-indigo-300 flex-shrink-0" />
             <div className="flex items-center gap-1 flex-wrap flex-1">
               {QUICK_FILTERS.map(f => (
                 <button key={f} onClick={() => setActiveFilter(f)}
-                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all ${
+                  className={`text-xs px-3 py-1 rounded-full font-semibold transition-all ${
                     activeFilter === f
-                      ? 'bg-indigo-600 text-white shadow-sm'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:border-indigo-300 hover:text-indigo-600'
+                      ? 'bg-white text-indigo-700 shadow-md shadow-indigo-900/20'
+                      : 'bg-white/15 text-white/80 hover:bg-white/25 hover:text-white border border-white/20'
                   }`}>
                   {f}
                 </button>
               ))}
             </div>
             {(searchQuery || activeFilter !== "Tümü") && activeFilter !== "Mimari" && (
-              <span className="text-xs text-gray-400 flex-shrink-0">{totalResults} sonuç</span>
+              <span className="text-xs text-indigo-200 flex-shrink-0 font-medium">{totalResults} sonuç</span>
             )}
-            {/* Layout toggle */}
-            <div className="flex items-center bg-white border border-gray-200 rounded-lg p-0.5 ml-1 flex-shrink-0">
+            <div className="flex items-center bg-white/10 border border-white/20 rounded-lg p-0.5 ml-1 flex-shrink-0 backdrop-blur-sm">
               <button
                 onClick={() => setLayoutMode("grid")}
-                className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-indigo-600 text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                className={`p-1 rounded transition-all ${layoutMode === "grid" ? "bg-white text-indigo-700 shadow-sm" : "text-white/60 hover:text-white"}`}
                 title="Kart Görünümü"
               >
                 <LayoutGrid size={13} />
               </button>
               <button
                 onClick={() => setLayoutMode("list")}
-                className={`p-1 rounded transition-all ${layoutMode === "list" ? "bg-indigo-600 text-white shadow-sm" : "text-gray-400 hover:text-gray-600"}`}
+                className={`p-1 rounded transition-all ${layoutMode === "list" ? "bg-white text-indigo-700 shadow-sm" : "text-white/60 hover:text-white"}`}
                 title="Liste Görünümü"
               >
                 <LayoutList size={13} />
@@ -233,42 +281,28 @@ export function VitrinePanel() {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6">
+        <div className="flex-1 overflow-y-auto px-6 pb-6 pt-4">
           {isLoading ? (
-            <div className="w-full h-48 flex flex-col items-center justify-center">
-              <Loader2 className="animate-spin mb-3 text-indigo-600" size={24} />
-              <span className="text-sm font-medium text-gray-500">Yükleniyor...</span>
+            <div className="w-full h-48 flex flex-col items-center justify-center gap-3">
+              <div className="relative">
+                <div className="w-12 h-12 rounded-full border-2 border-indigo-100" />
+                <Loader2 className="animate-spin text-indigo-600 absolute inset-0 m-auto" size={20} />
+              </div>
+              <span className="text-sm font-medium text-gray-400">Yükleniyor...</span>
             </div>
           ) : (
             <>
-              {/* Stats summary */}
-              {!searchQuery && activeFilter === "Tümü" && (
-                <div className="grid grid-cols-3 gap-3 mb-5">
-                  {[
-                    { icon: FileText,   label: "Araştırma", val: researchList?.length ?? 0, color: "indigo" },
-                    { icon: Lightbulb,  label: "Fikir",     val: ideaList?.length ?? 0,     color: "amber"  },
-                    { icon: TrendingUp, label: "Toplam Oy", val: [...(researchList ?? []), ...(ideaList ?? [])].reduce((s, i) => s + (i.voteCount ?? 0), 0), color: "green" },
-                  ].map(({ icon: Icon, label, val, color }) => (
-                    <div key={label} className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-3 shadow-sm">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-${color}-50`}>
-                        <Icon size={15} className={`text-${color}-600`} />
-                      </div>
-                      <div>
-                        <div className="text-lg font-bold text-gray-900 leading-none">{val}</div>
-                        <div className="text-[10px] text-gray-500 mt-0.5">{label}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
 
               {/* Research section */}
               {showResearch && filteredResearch.length > 0 && (
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <FileText size={12} className="text-indigo-500" />
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Araştırmalar</span>
-                    <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">{filteredResearch.length}</span>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                      <FileText size={12} className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold text-gray-800">Araştırmalar</span>
+                    <span className="text-[11px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">{filteredResearch.length}</span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-indigo-100 to-transparent" />
                   </div>
 
                   {layoutMode === "grid" ? (
@@ -309,10 +343,13 @@ export function VitrinePanel() {
               {/* Ideas section */}
               {showIdeas && filteredIdeas.length > 0 && (
                 <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Lightbulb size={12} className="text-amber-500" />
-                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Fikirler</span>
-                    <span className="text-[10px] bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded-full font-bold">{filteredIdeas.length}</span>
+                  <div className="flex items-center gap-2.5 mb-4">
+                    <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-sm">
+                      <Lightbulb size={12} className="text-white" />
+                    </div>
+                    <span className="text-sm font-bold text-gray-800">Fikirler</span>
+                    <span className="text-[11px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">{filteredIdeas.length}</span>
+                    <div className="flex-1 h-px bg-gradient-to-r from-amber-100 to-transparent" />
                   </div>
 
                   {layoutMode === "grid" ? (
@@ -353,33 +390,50 @@ export function VitrinePanel() {
               {/* Architecture placeholder */}
               {activeFilter === "Mimari" && (
                 <EmptySection
-                  icon={<Building2 size={36} className="text-gray-300" />}
+                  icon={<Building2 size={36} className="text-indigo-300" />}
                   title="Mimari Yapı"
                   desc="Mimari şemalar henüz eklenmemiş. Asistandan oluşturmasını isteyin."
+                  gradient="from-indigo-50 to-blue-50"
                 />
               )}
 
               {/* Empty states */}
               {activeFilter !== "Mimari" && showResearch && showIdeas && filteredResearch.length === 0 && filteredIdeas.length === 0 && (
-                <div className="py-14 text-center border border-dashed border-gray-200 bg-white rounded-2xl">
-                  <Sparkles size={28} className="text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-400 font-medium text-sm mb-1">
-                    {searchQuery ? `"${searchQuery}" için sonuç bulunamadı.` : "Henüz içerik eklenmemiş."}
-                  </p>
+                <div className="py-16 flex flex-col items-center justify-center gap-4 bg-white rounded-2xl border border-dashed border-gray-200">
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                      <Sparkles size={28} className="text-indigo-400" />
+                    </div>
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-indigo-400"
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-gray-600 font-semibold text-sm mb-1">
+                      {searchQuery ? `"${searchQuery}" için sonuç bulunamadı` : "Henüz içerik eklenmemiş"}
+                    </p>
+                    <p className="text-gray-400 text-xs">
+                      {searchQuery ? "Farklı bir arama terimi deneyin." : "Asistana bir araştırma veya fikir anlatın."}
+                    </p>
+                  </div>
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="text-xs text-indigo-500 hover:text-indigo-700 mt-1 font-medium">
+                    <button onClick={() => setSearchQuery("")} className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold bg-indigo-50 px-4 py-1.5 rounded-full transition-colors">
                       Aramayı temizle
                     </button>
                   )}
                 </div>
               )}
               {showResearch && !showIdeas && filteredResearch.length === 0 && activeFilter !== "Mimari" && (
-                <div className="py-10 text-center border border-dashed border-gray-200 bg-white rounded-2xl">
+                <div className="py-10 text-center bg-white rounded-2xl border border-dashed border-gray-200">
+                  <FileText size={24} className="text-gray-300 mx-auto mb-2" />
                   <p className="text-gray-400 text-sm">{searchQuery ? "Araştırma bulunamadı." : "Henüz araştırma eklenmemiş."}</p>
                 </div>
               )}
               {showIdeas && !showResearch && filteredIdeas.length === 0 && activeFilter !== "Mimari" && (
-                <div className="py-10 text-center border border-dashed border-gray-200 bg-white rounded-2xl">
+                <div className="py-10 text-center bg-white rounded-2xl border border-dashed border-gray-200">
+                  <Lightbulb size={24} className="text-gray-300 mx-auto mb-2" />
                   <p className="text-gray-400 text-sm">{searchQuery ? "Fikir bulunamadı." : "Henüz fikir eklenmemiş."}</p>
                 </div>
               )}
@@ -710,12 +764,18 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
   );
 }
 
-function EmptySection({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function EmptySection({ icon, title, desc, gradient = "from-gray-50 to-slate-50" }: {
+  icon: React.ReactNode; title: string; desc: string; gradient?: string;
+}) {
   return (
-    <div className="py-14 px-8 text-center border border-dashed border-gray-200 bg-white rounded-2xl w-full">
-      <div className="flex justify-center mb-3">{icon}</div>
-      <h3 className="text-sm font-semibold text-gray-600 mb-1">{title}</h3>
-      <p className="text-gray-400 text-xs">{desc}</p>
+    <div className={`py-14 px-8 text-center border border-dashed border-gray-200 bg-gradient-to-br ${gradient} rounded-2xl w-full`}>
+      <div className="flex justify-center mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-white/70 flex items-center justify-center shadow-sm">
+          {icon}
+        </div>
+      </div>
+      <h3 className="text-sm font-bold text-gray-700 mb-1.5">{title}</h3>
+      <p className="text-gray-400 text-xs leading-relaxed">{desc}</p>
     </div>
   );
 }
