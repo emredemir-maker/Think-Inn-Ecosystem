@@ -1,6 +1,6 @@
 import React from "react";
 import { Research } from "@workspace/api-client-react";
-import { ChevronUp, ChevronDown, User, Calendar, Network } from "lucide-react";
+import { ThumbsUp, ThumbsDown, User, Calendar, Network } from "lucide-react";
 import { CyberBadge } from "../ui/CyberBadge";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -42,33 +42,13 @@ export function ResearchCard({
       </div>
 
       <div className="p-4 flex flex-col gap-3 flex-1">
-        <div className="flex justify-between items-start gap-4">
-          <h3 className="text-base font-semibold text-[#1a1a2e] line-clamp-2">
-            {research.title}
-          </h3>
-          <div
-            className="flex flex-col items-center bg-gray-50 rounded-lg p-1 shrink-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={(e) => { e.stopPropagation(); onVote(research.id, 1); }}
-              className="text-gray-400 hover:text-primary transition-colors p-1"
-            >
-              <ChevronUp size={15} />
-            </button>
-            <span className="text-sm font-semibold text-[#1a1a2e]">{research.voteCount}</span>
-            <button
-              onClick={(e) => { e.stopPropagation(); onVote(research.id, -1); }}
-              className="text-gray-400 hover:text-destructive transition-colors p-1"
-            >
-              <ChevronDown size={15} />
-            </button>
-          </div>
-        </div>
+        <h3 className="text-base font-semibold text-[#1a1a2e] line-clamp-2">
+          {research.title}
+        </h3>
 
         <p className="text-xs text-[#6b7280] line-clamp-2">{research.summary}</p>
 
-        <div className="flex flex-wrap gap-1.5 mt-auto">
+        <div className="flex flex-wrap gap-1.5">
           {research.tags?.map((tag) => (
             <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-2 py-0.5 rounded-full">
               {tag}
@@ -76,26 +56,41 @@ export function ResearchCard({
           ))}
         </div>
 
-        <div className="pt-3 border-t border-border flex justify-between items-center text-xs text-[#6b7280]">
-          <div className="flex items-center gap-1.5">
+        <div className="mt-auto pt-3 border-t border-border flex justify-between items-center">
+          <div className="flex items-center gap-1.5 text-xs text-[#6b7280]">
             <User size={13} className="text-primary" />
             <span className="font-medium text-[#1a1a2e]">{research.authorName}</span>
+            <span className="text-gray-300">·</span>
+            <Calendar size={11} />
+            <span>{format(new Date(research.createdAt), 'dd MMM', { locale: tr })}</span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="flex items-center gap-1">
-              <Calendar size={12} />
-              {format(new Date(research.createdAt), 'dd MMM yyyy', { locale: tr })}
-            </span>
+
+          <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
             {onShowCanvas && (
               <button
-                onClick={(e) => { e.stopPropagation(); onShowCanvas(); }}
-                className="flex items-center gap-1 text-primary hover:text-primary/80 font-medium transition-colors"
-                title="Canvasta Göster"
+                onClick={e => { e.stopPropagation(); onShowCanvas(); }}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 font-medium transition-colors px-2 py-1 rounded-lg hover:bg-indigo-50"
               >
-                <Network size={13} />
+                <Network size={12} />
                 <span>Harita</span>
               </button>
             )}
+            <div className="flex items-center gap-1 bg-gray-50 rounded-xl p-1">
+              <button
+                onClick={e => { e.stopPropagation(); onVote(research.id, 1); }}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all shadow-sm"
+              >
+                <ThumbsUp size={12} />
+                <span>{research.voteCount}</span>
+              </button>
+              <button
+                onClick={e => { e.stopPropagation(); onVote(research.id, -1); }}
+                className="p-1 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
+                title="Beğenme"
+              >
+                <ThumbsDown size={12} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

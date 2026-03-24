@@ -10,9 +10,10 @@ import {
   FileText, Lightbulb, Loader2, Search,
   Building2, Map, Sparkles, Filter,
   X, Command, TrendingUp, LayoutGrid, LayoutList,
-  Network, ChevronRight, ChevronDown,
+  Network, ChevronDown,
   CheckCircle2, AlertTriangle, Calendar,
-  Users, Shield, ShieldOff, Trash2
+  Users, Shield, ShieldOff, Trash2,
+  ThumbsUp, ThumbsDown
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CardDetailModal } from "../modals/CardDetailModal";
@@ -506,10 +507,20 @@ function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSupe
           </div>
         </div>
         {/* Vote */}
-        <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0" onClick={e => e.stopPropagation()}>
-          <button onClick={e => { e.stopPropagation(); onVote(research.id, 1); }} className="hover:text-indigo-500 transition-colors p-0.5">▲</button>
-          <span className="font-semibold text-gray-700 w-4 text-center">{research.voteCount}</span>
-          <button onClick={e => { e.stopPropagation(); onVote(research.id, -1); }} className="hover:text-red-400 transition-colors p-0.5">▼</button>
+        <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={e => { e.stopPropagation(); onVote(research.id, 1); }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all shadow-sm"
+          >
+            <ThumbsUp size={11} />
+            <span>{research.voteCount}</span>
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); onVote(research.id, -1); }}
+            className="p-1.5 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-400 transition-all"
+          >
+            <ThumbsDown size={11} />
+          </button>
         </div>
         {isSuperAdmin && (
           <button
@@ -613,10 +624,20 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
           </div>
         </div>
         {/* Vote */}
-        <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0" onClick={e => e.stopPropagation()}>
-          <button onClick={e => { e.stopPropagation(); onVote(idea.id, 1); }} className="hover:text-amber-500 transition-colors p-0.5">▲</button>
-          <span className="font-semibold text-gray-700 w-4 text-center">{idea.voteCount}</span>
-          <button onClick={e => { e.stopPropagation(); onVote(idea.id, -1); }} className="hover:text-red-400 transition-colors p-0.5">▼</button>
+        <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={e => { e.stopPropagation(); onVote(idea.id, 1); }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-amber-600 hover:bg-amber-50 hover:border-amber-300 transition-all shadow-sm"
+          >
+            <ThumbsUp size={11} />
+            <span>{idea.voteCount}</span>
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); onVote(idea.id, -1); }}
+            className="p-1.5 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-400 transition-all"
+          >
+            <ThumbsDown size={11} />
+          </button>
         </div>
         {isSuperAdmin && (
           <button
