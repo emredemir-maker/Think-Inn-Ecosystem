@@ -19,9 +19,9 @@ export function VitrinePanel() {
   const { mutate: submitVote } = useVote();
   const queryClient = useQueryClient();
 
-  const [selectedItem, setSelectedItem] = useState<{ id: number, type: 'research' | 'idea' } | null>(null);
+  const [canvasItem, setCanvasItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'graph'>('list');
-  const [detailItem, setDetailItem] = useState<{ item: Research | Idea, type: 'research' | 'idea' } | null>(null);
+  const [detailItem, setDetailItem] = useState<{ item: Research | Idea; type: 'research' | 'idea' } | null>(null);
 
   const handleVote = (targetType: "research" | "idea", targetId: number, value: 1 | -1) => {
     submitVote(
@@ -34,21 +34,23 @@ export function VitrinePanel() {
     );
   };
 
+  // Card body click → only open detail modal (stay in list view)
   const handleCardClick = (item: Research | Idea, type: 'research' | 'idea') => {
-    setSelectedItem({ id: item.id, type });
-    setViewMode('graph');
     setDetailItem({ item, type });
   };
 
+  // "Harita" button → switch to canvas/graph view
+  const handleShowCanvas = (item: Research | Idea, type: 'research' | 'idea') => {
+    setCanvasItem({ id: item.id, type });
+    setViewMode('graph');
+  };
+
+  // Clicking a node in graph → open its detail modal
   const handleNodeClick = (id: number, type: 'research' | 'idea') => {
     const item = type === 'research'
       ? researchList?.find(r => r.id === id)
       : ideaList?.find(i => i.id === id);
-
-    if (item) {
-      setSelectedItem({ id, type });
-      setDetailItem({ item, type });
-    }
+    if (item) setDetailItem({ item, type });
   };
 
   const isLoading = isResearchLoading || isIdeasLoading;
@@ -77,6 +79,11 @@ export function VitrinePanel() {
     );
   }, [ideaList, searchQuery]);
 
+  const backToList = () => {
+    setViewMode('list');
+    setCanvasItem(null);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#f8f9fa]">
       {/* Header */}
@@ -88,38 +95,42 @@ export function VitrinePanel() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search bar */}
-            <div className="relative">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-              <input
-                type="text"
-                placeholder="Ara..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9 pr-4 py-2 text-sm bg-white border border-border rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-48 placeholder:text-gray-400"
-              />
-            </div>
+            {viewMode === 'list' && (
+              <div className="relative">
+                <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Ara..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-4 py-2 text-sm bg-white border border-border rounded-full focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary w-48 placeholder:text-gray-400"
+                />
+              </div>
+            )}
 
-            {/* Tabs */}
             <div className="flex bg-gray-100 p-1 rounded-full">
-              <TabButton active={activeTab === "all"} onClick={() => { setActiveTab("all"); setViewMode('list'); }} icon={<LayoutGrid size={15} />}>Tümü</TabButton>
-              <TabButton active={activeTab === "research"} onClick={() => { setActiveTab("research"); setViewMode('list'); }} icon={<FileText size={15} />}>Araştırmalar</TabButton>
-              <TabButton active={activeTab === "ideas"} onClick={() => { setActiveTab("ideas"); setViewMode('list'); }} icon={<Lightbulb size={15} />}>Fikirler</TabButton>
-              <TabButton active={activeTab === "diagrams"} onClick={() => { setActiveTab("diagrams"); setViewMode('list'); }} icon={<Share2 size={15} />}>Diyagramlar</TabButton>
+              <TabButton active={activeTab === "all"} onClick={() => { setActiveTab("all"); backToList(); }} icon={<LayoutGrid size={15} />}>Tümü</TabButton>
+              <TabButton active={activeTab === "research"} onClick={() => { setActiveTab("research"); backToList(); }} icon={<FileText size={15} />}>Araştırmalar</TabButton>
+              <TabButton active={activeTab === "ideas"} onClick={() => { setActiveTab("ideas"); backToList(); }} icon={<Lightbulb size={15} />}>Fikirler</TabButton>
+              <TabButton active={activeTab === "diagrams"} onClick={() => { setActiveTab("diagrams"); backToList(); }} icon={<Share2 size={15} />}>Diyagramlar</TabButton>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content Area */}
-      {viewMode === 'graph' && selectedItem ? (
+      {/* Content */}
+      {viewMode === 'graph' && canvasItem ? (
         <RelationGraph
-          selectedId={selectedItem.id}
-          selectedType={selectedItem.type}
+          selectedId={canvasItem.id}
+          selectedType={canvasItem.type}
           allResearch={researchList || []}
           allIdeas={ideaList || []}
-          onBack={() => setViewMode('list')}
+          onBack={backToList}
           onNodeClick={handleNodeClick}
+          onRelationChange={() => {
+            queryClient.invalidateQueries({ queryKey: ['/api/ideas'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/research'] });
+          }}
         />
       ) : (
         <div className="flex-1 overflow-hidden">
@@ -137,9 +148,8 @@ export function VitrinePanel() {
               </div>
             </div>
           ) : activeTab === "all" ? (
-            /* Two-column layout for "all" tab */
             <div className="h-full flex gap-0 overflow-hidden">
-              {/* Bilgi Bankası — left column */}
+              {/* Bilgi Bankası */}
               <div className="flex-1 flex flex-col overflow-hidden border-r border-border">
                 <div className="px-6 py-3 bg-white border-b border-border shrink-0 flex items-center gap-2">
                   <BookOpen size={14} className="text-indigo-600" />
@@ -155,12 +165,13 @@ export function VitrinePanel() {
                       research={research}
                       onVote={(id, val) => handleVote("research", id, val)}
                       onClick={() => handleCardClick(research, 'research')}
+                      onShowCanvas={() => handleShowCanvas(research, 'research')}
                     />
                   ))}
                 </div>
               </div>
 
-              {/* Fikir Havuzu — right column */}
+              {/* Fikir Havuzu */}
               <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="px-6 py-3 bg-white border-b border-border shrink-0 flex items-center gap-2">
                   <Sparkles size={14} className="text-amber-500" />
@@ -176,42 +187,40 @@ export function VitrinePanel() {
                       idea={idea}
                       onVote={(id, val) => handleVote("idea", id, val)}
                       onClick={() => handleCardClick(idea, 'idea')}
+                      onShowCanvas={() => handleShowCanvas(idea, 'idea')}
                     />
                   ))}
                 </div>
               </div>
             </div>
           ) : (
-            /* Single-category filtered view */
             <div className="flex-1 overflow-y-auto p-8">
               <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
                 {activeTab === "research" && (
-                  filteredResearch.length === 0 ? (
-                    <div className="col-span-full">
-                      <EmptyState message={searchQuery ? "Araştırma bulunamadı." : "Henüz araştırma eklenmemiş."} />
-                    </div>
-                  ) : filteredResearch.map(research => (
-                    <ResearchCard
-                      key={`res-${research.id}`}
-                      research={research}
-                      onVote={(id, val) => handleVote("research", id, val)}
-                      onClick={() => handleCardClick(research, 'research')}
-                    />
-                  ))
+                  filteredResearch.length === 0
+                    ? <div className="col-span-full"><EmptyState message={searchQuery ? "Araştırma bulunamadı." : "Henüz araştırma eklenmemiş."} /></div>
+                    : filteredResearch.map(research => (
+                      <ResearchCard
+                        key={`res-${research.id}`}
+                        research={research}
+                        onVote={(id, val) => handleVote("research", id, val)}
+                        onClick={() => handleCardClick(research, 'research')}
+                        onShowCanvas={() => handleShowCanvas(research, 'research')}
+                      />
+                    ))
                 )}
                 {activeTab === "ideas" && (
-                  filteredIdeas.length === 0 ? (
-                    <div className="col-span-full">
-                      <EmptyState message={searchQuery ? "Fikir bulunamadı." : "Henüz fikir eklenmemiş."} />
-                    </div>
-                  ) : filteredIdeas.map(idea => (
-                    <IdeaCard
-                      key={`idea-${idea.id}`}
-                      idea={idea}
-                      onVote={(id, val) => handleVote("idea", id, val)}
-                      onClick={() => handleCardClick(idea, 'idea')}
-                    />
-                  ))
+                  filteredIdeas.length === 0
+                    ? <div className="col-span-full"><EmptyState message={searchQuery ? "Fikir bulunamadı." : "Henüz fikir eklenmemiş."} /></div>
+                    : filteredIdeas.map(idea => (
+                      <IdeaCard
+                        key={`idea-${idea.id}`}
+                        idea={idea}
+                        onVote={(id, val) => handleVote("idea", id, val)}
+                        onClick={() => handleCardClick(idea, 'idea')}
+                        onShowCanvas={() => handleShowCanvas(idea, 'idea')}
+                      />
+                    ))
                 )}
               </div>
             </div>
@@ -239,7 +248,7 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
-function TabButton({ active, onClick, children, icon }: { active: boolean, onClick: () => void, children: React.ReactNode, icon: React.ReactNode }) {
+function TabButton({ active, onClick, children, icon }: { active: boolean; onClick: () => void; children: React.ReactNode; icon: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
