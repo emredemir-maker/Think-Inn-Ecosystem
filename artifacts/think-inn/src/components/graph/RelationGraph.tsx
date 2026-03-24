@@ -196,7 +196,10 @@ export function RelationGraph({
     if ((e.target as HTMLElement).closest('[data-connect]')) return;
     if ((e.target as HTMLElement).closest('[data-detail]')) return;
     e.stopPropagation();
-    e.currentTarget.setPointerCapture(e.pointerId);
+
+    // Capture currentTarget immediately — it becomes null after the handler returns
+    const el = e.currentTarget;
+    el.setPointerCapture(e.pointerId);
 
     const startX = e.clientX;
     const startY = e.clientY;
@@ -216,12 +219,12 @@ export function RelationGraph({
     };
 
     const onUp = () => {
-      e.currentTarget.removeEventListener('pointermove', onMove);
-      e.currentTarget.removeEventListener('pointerup', onUp);
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerup', onUp);
     };
 
-    e.currentTarget.addEventListener('pointermove', onMove);
-    e.currentTarget.addEventListener('pointerup', onUp);
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerup', onUp);
   };
 
   // ── Connect button: start drawing edge ────────────────────────────
