@@ -1,20 +1,25 @@
 import React, { useState, useMemo } from "react";
-import { useListResearch, useListIdeas, useVote, Research, Idea } from "@workspace/api-client-react";
+import {
+  useListResearch, useListIdeas, useVote,
+  useDeleteResearch, useDeleteIdea,
+  Research, Idea
+} from "@workspace/api-client-react";
 import { ResearchCard } from "../cards/ResearchCard";
 import { IdeaCard } from "../cards/IdeaCard";
 import {
   FileText, Lightbulb, Loader2, Search,
-  Building2, BarChart3, Map, Sparkles, Filter,
+  Building2, Map, Sparkles, Filter,
   X, Command, TrendingUp, LayoutGrid, LayoutList,
-  ThumbsUp, Users, Network, ChevronRight,
-  CheckCircle2, AlertTriangle, Calendar
+  Network, ChevronRight, ChevronDown,
+  CheckCircle2, AlertTriangle, Calendar,
+  Users, Shield, ShieldOff, Trash2
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CardDetailModal } from "../modals/CardDetailModal";
 import { RelationGraph } from "../graph/RelationGraph";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 type QuickFilter = "Tümü" | "Araştırma" | "Fikir" | "Mimari" | "Bu hafta";
 type ViewMode = "list" | "graph" | "global-map";
@@ -28,12 +33,16 @@ export function VitrinePanel() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("grid");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [canvasItem, setCanvasItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
   const [detailItem, setDetailItem] = useState<{ item: Research | Idea; type: 'research' | 'idea' } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: 'research' | 'idea'; title: string } | null>(null);
 
   const { data: researchList, isLoading: isResearchLoading } = useListResearch();
   const { data: ideaList, isLoading: isIdeasLoading } = useListIdeas();
   const { mutate: submitVote } = useVote();
+  const { mutate: deleteResearch } = useDeleteResearch();
+  const { mutate: deleteIdea } = useDeleteIdea();
   const queryClient = useQueryClient();
 
   const handleVote = (targetType: "research" | "idea", targetId: number, value: 1 | -1) => {
@@ -41,6 +50,21 @@ export function VitrinePanel() {
       { data: { targetType, targetId, voterName: "CurrentUser", value } },
       { onSuccess: () => queryClient.invalidateQueries({ queryKey: [`/api/${targetType === 'research' ? 'research' : 'ideas'}`] }) }
     );
+  };
+
+  const handleDelete = (id: number, type: 'research' | 'idea', title: string) => {
+    setDeleteConfirm({ id, type, title });
+  };
+
+  const confirmDelete = () => {
+    if (!deleteConfirm) return;
+    const { id, type } = deleteConfirm;
+    const onSuccess = () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${type === 'research' ? 'research' : 'ideas'}`] });
+      setDeleteConfirm(null);
+    };
+    if (type === 'research') deleteResearch({ id }, { onSuccess });
+    else deleteIdea({ id }, { onSuccess });
   };
 
   const handleCardClick = (item: Research | Idea, type: 'research' | 'idea') => setDetailItem({ item, type });
@@ -122,12 +146,27 @@ export function VitrinePanel() {
               <h1 className="text-xl font-bold text-[#1a1a2e] tracking-tight">İnovasyon Vitrini</h1>
               <p className="text-[#6b7280] mt-0.5 text-xs">Keşfedin, değerlendirin ve iş birliği yapın.</p>
             </div>
-            <button
-              onClick={openGlobalMap}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300"
-            >
-              <Map size={14} /> Genel Harita
-            </button>
+            <div className="flex items-center gap-2">
+              {/* Superadmin toggle */}
+              <button
+                onClick={() => setIsSuperAdmin(v => !v)}
+                title={isSuperAdmin ? "Süper Admin modundan çık" : "Süper Admin modu"}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                  isSuperAdmin
+                    ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                    : 'bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-600'
+                }`}
+              >
+                {isSuperAdmin ? <ShieldOff size={12} /> : <Shield size={12} />}
+                {isSuperAdmin ? 'Admin Modu' : 'Admin'}
+              </button>
+              <button
+                onClick={openGlobalMap}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium border transition-all bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300"
+              >
+                <Map size={14} /> Genel Harita
+              </button>
+            </div>
           </div>
 
           {/* Search bar */}
@@ -169,12 +208,9 @@ export function VitrinePanel() {
                 </button>
               ))}
             </div>
-
-            {/* Result count */}
             {(searchQuery || activeFilter !== "Tümü") && activeFilter !== "Mimari" && (
               <span className="text-xs text-gray-400 flex-shrink-0">{totalResults} sonuç</span>
             )}
-
             {/* Layout toggle */}
             <div className="flex items-center bg-white border border-gray-200 rounded-lg p-0.5 ml-1 flex-shrink-0">
               <button
@@ -249,12 +285,14 @@ export function VitrinePanel() {
                   ) : (
                     <div className="space-y-1.5">
                       {filteredResearch.map(r => (
-                        <ResearchRow
+                        <AccordionResearchRow
                           key={`res-row-${r.id}`}
                           research={r as Research}
                           onVote={(id, val) => handleVote("research", id, val)}
-                          onClick={() => handleCardClick(r as Research, 'research')}
+                          onDetail={() => handleCardClick(r as Research, 'research')}
                           onShowCanvas={() => handleShowCanvas(r as Research, 'research')}
+                          isSuperAdmin={isSuperAdmin}
+                          onDelete={() => handleDelete(r.id, 'research', r.title)}
                         />
                       ))}
                     </div>
@@ -286,12 +324,14 @@ export function VitrinePanel() {
                   ) : (
                     <div className="space-y-1.5">
                       {filteredIdeas.map(i => (
-                        <IdeaRow
+                        <AccordionIdeaRow
                           key={`idea-row-${i.id}`}
                           idea={i as Idea}
                           onVote={(id, val) => handleVote("idea", id, val)}
-                          onClick={() => handleCardClick(i as Idea, 'idea')}
+                          onDetail={() => handleCardClick(i as Idea, 'idea')}
                           onShowCanvas={() => handleShowCanvas(i as Idea, 'idea')}
+                          isSuperAdmin={isSuperAdmin}
+                          onDelete={() => handleDelete(i.id, 'idea', i.title)}
                         />
                       ))}
                     </div>
@@ -308,7 +348,7 @@ export function VitrinePanel() {
                 />
               )}
 
-              {/* Empty state */}
+              {/* Empty states */}
               {activeFilter !== "Mimari" && showResearch && showIdeas && filteredResearch.length === 0 && filteredIdeas.length === 0 && (
                 <div className="py-14 text-center border border-dashed border-gray-200 bg-white rounded-2xl">
                   <Sparkles size={28} className="text-gray-300 mx-auto mb-3" />
@@ -346,133 +386,266 @@ export function VitrinePanel() {
           onClose={() => setDetailItem(null)}
         />
       )}
+
+      {/* Delete Confirm Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-2xl shadow-2xl border border-red-100 p-6 w-full max-w-sm mx-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                <Trash2 size={18} className="text-red-500" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-gray-900">Sil: {deleteConfirm.type === 'research' ? 'Araştırma' : 'Fikir'}</h3>
+                <p className="text-xs text-gray-400">Bu işlem geri alınamaz</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-5">
+              <span className="font-semibold text-gray-800">"{deleteConfirm.title}"</span> başlıklı içeriği kalıcı olarak silmek istiyor musunuz?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-4 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 font-medium hover:bg-gray-50 transition-colors"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors"
+              >
+                Evet, Sil
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ── Compact List Rows ────────────────────────────────────────────── */
+/* ── Accordion List Rows ──────────────────────────────────────────── */
 
-function ResearchRow({ research, onVote, onClick, onShowCanvas }: {
+function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSuperAdmin, onDelete }: {
   research: Research;
   onVote: (id: number, val: 1 | -1) => void;
-  onClick?: () => void;
+  onDetail?: () => void;
   onShowCanvas?: () => void;
+  isSuperAdmin?: boolean;
+  onDelete?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <motion.div
-      layout initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-      onClick={onClick}
-      className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-4 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all cursor-pointer group"
+      layout
+      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+      className={`bg-white rounded-xl border shadow-sm transition-all ${open ? 'border-indigo-200 shadow-md' : 'border-gray-100 hover:border-indigo-200 hover:shadow-md'}`}
     >
-      {/* Icon */}
-      <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-        <FileText size={14} className="text-indigo-500" />
-      </div>
-
-      {/* Main info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{research.title}</p>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="text-xs text-gray-500 flex-shrink-0">{research.authorName}</span>
-          {research.createdAt && (
-            <>
-              <span className="text-gray-200">·</span>
-              <span className="text-xs text-gray-400 flex items-center gap-1 flex-shrink-0">
-                <Calendar size={9} />
-                {format(new Date(research.createdAt), 'dd MMM yyyy', { locale: tr })}
-              </span>
-            </>
-          )}
-          {research.tags?.slice(0, 3).map(t => (
-            <span key={t} className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium flex-shrink-0">{t}</span>
-          ))}
+      {/* Header row */}
+      <button
+        className="w-full px-4 py-3 flex items-center gap-4 text-left"
+        onClick={() => setOpen(v => !v)}
+      >
+        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+          <FileText size={14} className="text-indigo-500" />
         </div>
-      </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">{research.title}</p>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="text-xs text-gray-500 flex-shrink-0">{research.authorName}</span>
+            {research.createdAt && (
+              <>
+                <span className="text-gray-200">·</span>
+                <span className="text-xs text-gray-400 flex items-center gap-1 flex-shrink-0">
+                  <Calendar size={9} />
+                  {format(new Date(research.createdAt), 'dd MMM yyyy', { locale: tr })}
+                </span>
+              </>
+            )}
+            {research.tags?.slice(0, 3).map(t => (
+              <span key={t} className="text-[10px] bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded font-medium flex-shrink-0">{t}</span>
+            ))}
+          </div>
+        </div>
         {/* Vote */}
-        <div className="flex items-center gap-1 text-xs text-gray-400" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0" onClick={e => e.stopPropagation()}>
           <button onClick={e => { e.stopPropagation(); onVote(research.id, 1); }} className="hover:text-indigo-500 transition-colors p-0.5">▲</button>
           <span className="font-semibold text-gray-700 w-4 text-center">{research.voteCount}</span>
           <button onClick={e => { e.stopPropagation(); onVote(research.id, -1); }} className="hover:text-red-400 transition-colors p-0.5">▼</button>
         </div>
-        {/* Harita */}
-        {onShowCanvas && (
+        {isSuperAdmin && (
           <button
-            onClick={e => { e.stopPropagation(); onShowCanvas(); }}
-            className="flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 font-medium transition-colors opacity-0 group-hover:opacity-100"
+            onClick={e => { e.stopPropagation(); onDelete?.(); }}
+            className="flex-shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            title="Sil"
           >
-            <Network size={12} />Harita
+            <Trash2 size={13} />
           </button>
         )}
-        <ChevronRight size={14} className="text-gray-300 group-hover:text-indigo-400 transition-colors" />
-      </div>
+        <ChevronDown size={14} className={`text-gray-300 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Expanded content */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-0 border-t border-gray-50">
+              {research.summary && (
+                <p className="text-sm text-gray-600 mt-3 mb-3 leading-relaxed">{research.summary}</p>
+              )}
+              {research.tags && research.tags.length > 3 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {research.tags.map(t => (
+                    <span key={t} className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-medium">{t}</span>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={onDetail}
+                  className="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+                >
+                  Tam Detay
+                </button>
+                {onShowCanvas && (
+                  <button
+                    onClick={onShowCanvas}
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 border border-indigo-200 text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors"
+                  >
+                    <Network size={11} /> Harita
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
-function IdeaRow({ idea, onVote, onClick, onShowCanvas }: {
+function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, onDelete }: {
   idea: Idea;
   onVote: (id: number, val: 1 | -1) => void;
-  onClick?: () => void;
+  onDetail?: () => void;
   onShowCanvas?: () => void;
+  isSuperAdmin?: boolean;
+  onDelete?: () => void;
 }) {
+  const [open, setOpen] = useState(false);
   const hasResearch = idea.researchIds && idea.researchIds.length > 0;
+
   return (
     <motion.div
-      layout initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-      onClick={onClick}
-      className="bg-white rounded-xl border border-gray-100 px-4 py-3 flex items-center gap-4 shadow-sm hover:border-amber-200 hover:shadow-md transition-all cursor-pointer group"
+      layout
+      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+      className={`bg-white rounded-xl border shadow-sm transition-all ${open ? 'border-amber-200 shadow-md' : 'border-gray-100 hover:border-amber-200 hover:shadow-md'}`}
     >
-      {/* Icon */}
-      <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
-        <Lightbulb size={14} className="text-amber-500" />
-      </div>
-
-      {/* Main info */}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-900 truncate">{idea.title}</p>
-        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-          <span className="text-xs text-gray-500 flex-shrink-0">{idea.authorName}</span>
-          {idea.collaborators && idea.collaborators.length > 0 && (
-            <>
-              <span className="text-gray-200">·</span>
-              <span className="text-xs text-gray-400 flex items-center gap-1 flex-shrink-0"><Users size={9} />{idea.collaborators.length}</span>
-            </>
-          )}
-          {hasResearch ? (
-            <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-medium flex items-center gap-1 flex-shrink-0">
-              <CheckCircle2 size={9} />{idea.researchIds.length} Araştırma
-            </span>
-          ) : (
-            <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-medium flex items-center gap-1 flex-shrink-0">
-              <AlertTriangle size={9} />Araştırmasız
-            </span>
-          )}
-          {idea.tags?.slice(0, 2).map(t => (
-            <span key={t} className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-medium flex-shrink-0">{t}</span>
-          ))}
+      {/* Header row */}
+      <button
+        className="w-full px-4 py-3 flex items-center gap-4 text-left"
+        onClick={() => setOpen(v => !v)}
+      >
+        <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+          <Lightbulb size={14} className="text-amber-500" />
         </div>
-      </div>
-
-      {/* Right side */}
-      <div className="flex items-center gap-3 flex-shrink-0">
-        <div className="flex items-center gap-1 text-xs text-gray-400" onClick={e => e.stopPropagation()}>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-gray-900 truncate">{idea.title}</p>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span className="text-xs text-gray-500 flex-shrink-0">{idea.authorName}</span>
+            {hasResearch ? (
+              <span className="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-medium flex items-center gap-1 flex-shrink-0">
+                <CheckCircle2 size={9} />{idea.researchIds.length} Araştırma
+              </span>
+            ) : (
+              <span className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-medium flex items-center gap-1 flex-shrink-0">
+                <AlertTriangle size={9} />Araştırmasız
+              </span>
+            )}
+            {idea.tags?.slice(0, 2).map(t => (
+              <span key={t} className="text-[10px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-medium flex-shrink-0">{t}</span>
+            ))}
+          </div>
+        </div>
+        {/* Vote */}
+        <div className="flex items-center gap-1 text-xs text-gray-400 flex-shrink-0" onClick={e => e.stopPropagation()}>
           <button onClick={e => { e.stopPropagation(); onVote(idea.id, 1); }} className="hover:text-amber-500 transition-colors p-0.5">▲</button>
           <span className="font-semibold text-gray-700 w-4 text-center">{idea.voteCount}</span>
           <button onClick={e => { e.stopPropagation(); onVote(idea.id, -1); }} className="hover:text-red-400 transition-colors p-0.5">▼</button>
         </div>
-        {onShowCanvas && (
+        {isSuperAdmin && (
           <button
-            onClick={e => { e.stopPropagation(); onShowCanvas(); }}
-            className="flex items-center gap-1 text-[11px] text-indigo-500 hover:text-indigo-700 font-medium transition-colors opacity-0 group-hover:opacity-100"
+            onClick={e => { e.stopPropagation(); onDelete?.(); }}
+            className="flex-shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            title="Sil"
           >
-            <Network size={12} />Harita
+            <Trash2 size={13} />
           </button>
         )}
-        <ChevronRight size={14} className="text-gray-300 group-hover:text-amber-400 transition-colors" />
-      </div>
+        <ChevronDown size={14} className={`text-gray-300 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Expanded content */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pt-0 border-t border-gray-50">
+              {idea.description && (
+                <p className="text-sm text-gray-600 mt-3 mb-3 leading-relaxed line-clamp-4">{idea.description}</p>
+              )}
+              {idea.collaborators && idea.collaborators.length > 0 && (
+                <div className="flex items-center gap-1.5 mb-3 text-xs text-gray-500">
+                  <Users size={11} className="text-indigo-400" />
+                  <span className="font-medium">Ekip:</span>
+                  {idea.collaborators.join(', ')}
+                </div>
+              )}
+              {idea.tags && idea.tags.length > 2 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {idea.tags.map(t => (
+                    <span key={t} className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded font-medium">{t}</span>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={onDetail}
+                  className="text-xs px-3 py-1.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors"
+                >
+                  Tam Detay
+                </button>
+                {onShowCanvas && (
+                  <button
+                    onClick={onShowCanvas}
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 border border-amber-200 text-amber-600 rounded-lg font-medium hover:bg-amber-50 transition-colors"
+                  >
+                    <Network size={11} /> Harita
+                  </button>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
