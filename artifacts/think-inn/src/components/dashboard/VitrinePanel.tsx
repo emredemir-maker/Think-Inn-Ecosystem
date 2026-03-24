@@ -13,10 +13,11 @@ import {
   Network, ChevronDown,
   CheckCircle2, AlertTriangle, Calendar,
   Users, Shield, ShieldOff, Trash2,
-  ThumbsUp
+  ThumbsUp, Plus
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CardDetailModal } from "../modals/CardDetailModal";
+import { AddResearchModal } from "../modals/AddResearchModal";
 import { RelationGraph } from "../graph/RelationGraph";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -38,6 +39,7 @@ export function VitrinePanel() {
   const [canvasItem, setCanvasItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
   const [detailItem, setDetailItem] = useState<{ item: Research | Idea; type: 'research' | 'idea' } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: number; type: 'research' | 'idea'; title: string } | null>(null);
+  const [showAddResearch, setShowAddResearch] = useState(false);
 
   const { data: researchList, isLoading: isResearchLoading } = useListResearch();
   const { data: ideaList, isLoading: isIdeasLoading } = useListIdeas();
@@ -263,15 +265,33 @@ export function VitrinePanel() {
               )}
 
               {/* Research section */}
-              {showResearch && filteredResearch.length > 0 && (
+              {showResearch && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-3">
                     <FileText size={12} className="text-indigo-500" />
                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Araştırmalar</span>
-                    <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">{filteredResearch.length}</span>
+                    {filteredResearch.length > 0 && (
+                      <span className="text-[10px] bg-indigo-100 text-indigo-600 px-1.5 py-0.5 rounded-full font-bold">{filteredResearch.length}</span>
+                    )}
+                    <button
+                      onClick={() => setShowAddResearch(true)}
+                      className="ml-auto flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
+                    >
+                      <Plus size={11} /> Ekle
+                    </button>
                   </div>
 
-                  {layoutMode === "grid" ? (
+                  {filteredResearch.length === 0 ? (
+                    <div
+                      onClick={() => setShowAddResearch(true)}
+                      className="py-8 text-center border-2 border-dashed border-indigo-100 bg-indigo-50/40 rounded-2xl cursor-pointer hover:border-indigo-300 hover:bg-indigo-50 transition-all group"
+                    >
+                      <Plus size={20} className="text-indigo-300 mx-auto mb-2 group-hover:text-indigo-500 transition-colors" />
+                      <p className="text-xs font-medium text-indigo-400 group-hover:text-indigo-600">
+                        {searchQuery ? `"${searchQuery}" için araştırma bulunamadı` : "İlk araştırmayı eklemek için tıklayın"}
+                      </p>
+                    </div>
+                  ) : layoutMode === "grid" ? (
                     <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                       {filteredResearch.map(r => (
                         <DeletableWrapper
@@ -387,6 +407,11 @@ export function VitrinePanel() {
           )}
         </div>
       </div>
+      )}
+
+      {/* Add Research Modal */}
+      {showAddResearch && (
+        <AddResearchModal onClose={() => setShowAddResearch(false)} />
       )}
 
       {/* Detail Modal */}
