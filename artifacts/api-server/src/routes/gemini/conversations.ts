@@ -8,6 +8,7 @@ import {
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
+import { generateImage } from "@workspace/integrations-gemini-ai/image";
 import { setImmediate } from "timers";
 
 const router = Router();
@@ -119,21 +120,75 @@ async function executeTool(
 ): Promise<unknown> {
   switch (name) {
     case "save_research": {
+      const rawTitle = (args.title as string) || "Başlıksız Araştırma";
+      const rawSummary = (args.summary as string) || "";
+      const rawFindings = (args.findings as string) || "";
+      const rawTechnical = (args.technicalAnalysis as string) || "";
+      const rawContent = [rawSummary, rawFindings].filter(Boolean).join("\n\n");
+
+      // ── Step 1: Reformat & proofread content using Gemini ───────────────────
+      let fmtSummary = rawSummary;
+      let fmtFindings = rawFindings;
+      let fmtTechnical = rawTechnical;
+
+      try {
+        const formatPrompt = `Aşağıdaki araştırma içeriğini profesyonel ve akademik formatta yeniden düzenle.
+
+Başlık: ${rawTitle}
+Özet: ${rawSummary}
+Bulgular/İçerik: ${rawFindings}
+Teknik Analiz: ${rawTechnical}
+
+Yapman gerekenler:
+1. Türkçe dil bilgisi ve yazım hatalarını düzelt
+2. Cümleleri daha akıcı, net ve profesyonel hale getir
+3. Gereksiz tekrarları kaldır
+4. Bölümleri düzenli madde/paragraf yapısına getir
+5. Akademik üslup kullan — kısaltma ve argo kullanma
+
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
+{"summary":"...","findings":"...","technicalAnalysis":"..."}`;
+
+        const formatRes = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: formatPrompt }] }],
+          config: { maxOutputTokens: 3072 },
+        });
+        const match = formatRes.text?.match(/\{[\s\S]*\}/);
+        if (match) {
+          const fmt = JSON.parse(match[0]);
+          fmtSummary = fmt.summary || rawSummary;
+          fmtFindings = fmt.findings || rawFindings;
+          fmtTechnical = fmt.technicalAnalysis || rawTechnical;
+        }
+      } catch (_) { /* use raw content if formatting fails */ }
+
+      // ── Step 2: Generate cover image ────────────────────────────────────────
+      let coverImageB64: string | null = null;
+      let coverImageMimeType: string | null = null;
+
+      try {
+        const imgPrompt = `Professional research paper cover visual for a study titled "${rawTitle}". Abstract, minimal, corporate design using blue and indigo color palette. No text or labels. Clean geometric patterns or subtle data visualization motifs.`;
+        const imgResult = await generateImage(imgPrompt);
+        coverImageB64 = imgResult.b64_json;
+        coverImageMimeType = imgResult.mimeType;
+      } catch (_) { /* continue without image if generation fails */ }
+
+      // ── Step 3: Save to DB ───────────────────────────────────────────────────
       const [item] = await db
         .insert(researchTable)
         .values({
-          title: (args.title as string) || "Başlıksız Araştırma",
-          summary: (args.summary as string) || "",
-          findings: (args.findings as string) || "",
-          technicalAnalysis: (args.technicalAnalysis as string) || "",
-          rawContent:
-            [(args.summary as string), (args.findings as string)]
-              .filter(Boolean)
-              .join("\n\n") || "",
+          title: rawTitle,
+          summary: fmtSummary,
+          findings: fmtFindings,
+          technicalAnalysis: fmtTechnical,
+          rawContent,
           authorName: (args.authorName as string) || "Anonim",
           tags: (args.tags as string[]) || [],
           relatedTo: [],
           status: "published",
+          coverImageB64,
+          coverImageMimeType,
         })
         .returning();
 
