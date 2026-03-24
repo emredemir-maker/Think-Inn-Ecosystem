@@ -1,0 +1,25 @@
+Şu ana kadar Think-Inn Kurumsal İnovasyon Ekosistemi uygulamamız için geliştirdiğimiz tüm temel özellikleri ve yetenekleri aşağıda listeliyorum:
+1. Yapay Zeka Orkestratör Ajanı ("The Core")
+Sistemin kalbi olan ve kullanıcıyla sohbet üzerinden etkileşime giren akıllı asistan modülü:
+Akıllı Araştırma Analizi: Kullanıcının girdiği ham metinleri, makaleleri veya notları analiz ederek profesyonel bir formatta (Özet, Teknik Analiz, Bulgular) "Araştırma" düğümleri oluşturma.
+Mükerrer İçerik Kontrolü ve Birleştirme (Merge): Sisteme yeni bir bilgi girildiğinde önce mevcut veritabanını tarama; eğer benzer bir araştırma varsa yeni kayıt açmak yerine mevcut olanla birleştirerek bilgi kirliliğini önleme.
+Fikir Kapısı (No Research, No Entry): Altı boş fikirlerin sisteme girilmesini engelleme. Bir fikrin kabul edilmesi için mutlaka sistemdeki bir araştırmaya dayanmasını zorunlu kılma. Araştırma yoksa kullanıcıyı yönlendirme.
+Otomatik İlişkilendirme: Kullanıcının talebi doğrultusunda araştırmalar ve fikirler arasında anlamsal bağlar kurma.
+Topluluk Yönetimi: Sohbet üzerinden fikirlere oy verme (upvote) veya projelere işbirlikçi olarak katılma işlemlerini gerçekleştirme.
+Modern Arayüz: Uygulamanın genel aydınlık (light) temasıyla uyumlu, Markdown destekli, şık ve okunabilir sohbet tasarımı.
+2. Canvas (Harita) Görünümü
+Verilerin ve aralarındaki ilişkilerin görselleştirildiği interaktif çalışma alanı:
+Düğüm (Node) Tipleri: Araştırma (Research), Fikir (Idea), Ana Fikir (Master Idea) ve Yol Haritası (Roadmap) için özel renk, ikon ve tasarımlar.
+İnteraktif Bağlantılar: Düğümler üzerindeki bağlantı noktalarından sürükle-bırak yaparak manuel ilişki (edge) kurabilme.
+Detay Paneli: Herhangi bir düğüme tıklandığında sağ tarafta açılan; içeriğin tamamını, yazarını, tarihini ve detaylarını gösteren bilgi paneli.
+Otomatik Düzen: Düğümlerin ekranda karmaşa yaratmadan hiyerarşik olarak otomatik dizilmesi (Dagre algoritması ile).
+Navigasyon: Mini harita (minimap), yakınlaştırma/uzaklaştırma (zoom) ve ekranı kaydırma özellikleri.
+3. Liste Görünümü
+Tüm ekosistemin daha yapılandırılmış ve okunabilir bir formatta sunulduğu modül:
+Kategorize Edilmiş Sütunlar: Ekranın "Bilgi Bankası" (Araştırmalar) ve "Fikir Havuzu" (Fikirler) olarak iki ana kolona ayrılması.
+Gerçek Zamanlı Arama: En üstteki arama çubuğu ile tüm başlıklar ve içerikler arasında anında filtreleme yapabilme.
+Özet Kartları: Her bir içeriğin oy sayısını, işbirlikçi sayısını, oluşturulma tarihini ve içeriğin bir kısmını gösteren, ekrana tam sığan optimize edilmiş kart tasarımları.
+Kolay Gezinme: Taşıma ve kesilme sorunları giderilmiş, dikeyde rahatça kaydırılabilen (scroll) yapı.
+4. Genel Altyapı
+Sekmeli Yapı: Canvas ve Liste görünümleri arasında anında ve sorunsuz geçiş yapabilme.
+Responsive ve Modern Tasarım: Tailwind CSS kullanılarak hazırlanmış, göze hitap eden, tipografisi güçlü kurumsal arayüz.
