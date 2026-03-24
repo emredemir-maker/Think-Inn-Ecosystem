@@ -59,34 +59,46 @@ const TOOLS = [
         name: "save_idea",
         description:
           "Kullanıcının önerdiği fikri sisteme kaydeder. " +
-          "Kullanıcı bir yenilik fikri, proje önerisi veya girişim fikri paylaştığında çağır.",
+          "Kullanıcı bir yenilik fikri, proje önerisi veya girişim fikri paylaştığında çağır. " +
+          "ZORUNLU: list_existing_research çıktısını kullanarak ilgili araştırmaları bağla ve eksik konuları belirt.",
         parameters: {
           type: "OBJECT",
           properties: {
             title: { type: "STRING", description: "Fikrin kısa başlığı" },
             description: {
               type: "STRING",
-              description:
-                "Fikrin detaylı açıklaması: ne, neden, nasıl sorularını yanıtla",
+              description: "Fikrin detaylı açıklaması: ne, neden, nasıl sorularını yanıtla",
             },
             authorName: {
               type: "STRING",
-              description:
-                "Fikri öneren kişi. Bilinmiyorsa 'Anonim' kullan.",
+              description: "Fikri öneren kişi. Bilinmiyorsa 'Anonim' kullan.",
             },
             tags: {
               type: "ARRAY",
               items: { type: "STRING" },
               description: "Fikirle ilgili etiketler (maks 5)",
             },
+            linkedResearchIds: {
+              type: "ARRAY",
+              items: { type: "NUMBER" },
+              description:
+                "list_existing_research sonucundan bu fikirle DOĞRUDAN ilgili araştırmaların ID'leri. " +
+                "Konu, etiket ve özet benzerliğine göre seç. İlgisi yoksa boş dizi [].",
+            },
             neededResearchTopics: {
               type: "ARRAY",
               items: { type: "STRING" },
               description:
-                "Bu fikrin araştırma desteğini tamamlamak için henüz sistemde olmayan araştırma konuları. " +
-                "Sistemdeki mevcut araştırmalarla karşılaştır; eksik olan konuları listele. " +
-                "Her madde kısa ve spesifik olsun (örn. 'Kullanıcı deneyimi ölçüm metodolojileri'). " +
-                "Tüm konular araştırılmışsa boş dizi [].",
+                "Bu fikrin hayata geçirilmesi için ZORUNLU olan ama henüz sistemde bulunmayan araştırma konuları. " +
+                "Fikrin temel bileşenlerini kapsayan, spesifik başlıklar yaz. " +
+                "Zaten linkedResearchIds ile bağlanan konuları tekrar yazma.",
+            },
+            optionalResearchTopics: {
+              type: "ARRAY",
+              items: { type: "STRING" },
+              description:
+                "Fikri güçlendirecek ama zorunlu olmayan ek araştırma konuları. " +
+                "Nice-to-have araştırmalar. Zaten sistemde olanlara veya neededResearchTopics'e yazılanlara tekrar yazma.",
             },
           },
           required: ["title", "description", "authorName"],
@@ -267,6 +279,17 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
     case "save_idea": {
       const neededTopics = (args.neededResearchTopics as string[]) || [];
+      const optionalTopics = (args.optionalResearchTopics as string[]) || [];
+      const rawLinkedIds = (args.linkedResearchIds as number[]) || [];
+
+      // Validate linked IDs against actual DB research IDs to avoid phantom links
+      let validLinkedIds: number[] = [];
+      if (rawLinkedIds.length > 0) {
+        const existing = await db.select({ id: researchTable.id }).from(researchTable);
+        const existingIds = new Set(existing.map(r => r.id));
+        validLinkedIds = rawLinkedIds.filter(id => existingIds.has(id));
+      }
+
       const [item] = await db
         .insert(ideasTable)
         .values({
@@ -275,16 +298,22 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
           authorName: (args.authorName as string) || "Anonim",
           tags: (args.tags as string[]) || [],
           collaborators: [],
-          researchIds: [],
+          researchIds: validLinkedIds,
           relatedTo: [],
           roadmap: [],
           neededResearchTopics: neededTopics,
+          optionalResearchTopics: optionalTopics,
           status: "active",
         })
         .returning();
 
       actions.push({ action: "idea_saved", data: { id: item.id, title: item.title } });
-      return { success: true, id: item.id, message: `"${item.title}" fikri kaydedildi.` };
+      return {
+        success: true,
+        id: item.id,
+        linkedResearchCount: validLinkedIds.length,
+        message: `"${item.title}" fikri kaydedildi. ${validLinkedIds.length} araştırma bağlandı.`,
+      };
     }
 
     case "list_existing_research": {
@@ -340,20 +369,25 @@ ARAŞTIRMA KAYDETME:
 - Benzer başlıklı araştırma DB'de varsa kullanıcıya sor, yoksa doğrudan kaydet
 
 FİKİR KAYDETME:
-- Kullanıcı bir inovasyon fikri, proje önerisi paylaştığında → önce list_existing_research VE list_existing_ideas çağır; DB'de benzer fikir yoksa save_idea kullan
-- save_idea çağırırken: sistemdeki araştırmalarla fikri karşılaştır, hangi araştırma konuları eksik olduğunu neededResearchTopics'e yaz
+- Kullanıcı bir inovasyon fikri, proje önerisi paylaştığında → ÖNCE list_existing_research VE list_existing_ideas çağır
+- DB'de benzer fikir yoksa save_idea çağır
+- save_idea çağırırken MUTLAKA şunları belirle:
+  a) linkedResearchIds: Sistemdeki araştırmalardan bu fikirle konu/etiket/özet açısından ilgili olanların ID'lerini bağla
+  b) neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU, henüz sistemde BULUNMAYAN araştırma konuları (zaten bağladıklarını tekrar yazma)
+  c) optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek nice-to-have araştırma konuları
 - Eğer DB'de gerçekten çok benzer bir fikir varsa: kaydetme, kullanıcıyı bildir
 
 FİKİR KAYDEDİLDİKTEN SONRA YAPILACAKLAR (ZORUNLU):
 1. Kaydedilen fikri kısaca özetle (1 cümle)
-2. Sisteme bağlanan mevcut araştırmaları listele (varsa): "Bağlı araştırmalar: ..."
-3. Eksik araştırma konularını açıkça belirt (neededResearchTopics'teki maddeler):
-   "Bu fikrin araştırma alt yapısını tamamlamak için şu konuların araştırılması gerekiyor:
+2. Bağlanan araştırmaları belirt: "✓ Bağlanan araştırmalar: [başlıklar]" (yoksa "Mevcut araştırmalarla örtüşme bulunamadı")
+3. Zorunlu eksik konuları listele:
+   "📌 Önce şu konular araştırılmalı (zorunlu):
    • [Konu 1]
-   • [Konu 2]
-   ..."
-4. Son olarak şunu söyle: "Bu araştırmalar sisteme eklendikten sonra fikir için **mimari şema** ve **fonksiyonel analiz** oluşturabilirim."
-5. Eksik araştırma yoksa (tüm konular zaten araştırılmışsa): "Sistemdeki araştırmalar bu fikri desteklemek için yeterli görünüyor. İstersen **mimari şema** veya **fonksiyonel analiz** oluşturabilirim."
+   • [Konu 2]"
+4. Opsiyonel konuları belirt (varsa):
+   "💡 Ek olarak araştırılabilir (opsiyonel):
+   • [Konu 1]"
+5. Son olarak: "Zorunlu araştırmalar tamamlandıktan sonra bu fikir için **mimari şema** ve **fonksiyonel analiz** oluşturabilirim."
 
 ARAŞTIRMA KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
 - Kaydedilen araştırmayı özetle

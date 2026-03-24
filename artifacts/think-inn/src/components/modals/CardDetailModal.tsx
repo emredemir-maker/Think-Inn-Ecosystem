@@ -1,12 +1,16 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen, Sparkles, Lock } from 'lucide-react';
 import { Research, Idea } from '@workspace/api-client-react';
 import { CyberBadge } from '../ui/CyberBadge';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+function sendToChat(message: string) {
+  window.dispatchEvent(new CustomEvent('think-inn:send-message', { detail: { message } }));
+}
 
 function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
   return (
@@ -76,7 +80,7 @@ export function CardDetailModal({ item, type, onClose }: {
             {type === 'research' ? (
               <ResearchDetail research={item as Research} />
             ) : (
-              <IdeaDetail idea={item as Idea} />
+              <IdeaDetail idea={item as Idea} onClose={onClose} />
             )}
           </div>
         </motion.div>
@@ -138,15 +142,21 @@ function ResearchDetail({ research }: { research: Research }) {
   );
 }
 
-function IdeaDetail({ idea }: { idea: Idea }) {
+function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
   const linkedCount = idea.researchIds?.length ?? 0;
-  const topics: string[] = (idea as any).neededResearchTopics ?? [];
-  const totalTopics = topics.length;
-  const coveredCount = Math.min(linkedCount, totalTopics);
-  const allCovered = totalTopics > 0 && coveredCount >= totalTopics;
+  const requiredTopics: string[] = (idea as any).neededResearchTopics ?? [];
+  const optionalTopics: string[] = (idea as any).optionalResearchTopics ?? [];
+  const coveredRequired = Math.min(linkedCount, requiredTopics.length);
+  const allRequiredCovered = requiredTopics.length > 0 && coveredRequired >= requiredTopics.length;
+  const hasNoTopics = requiredTopics.length === 0 && optionalTopics.length === 0;
+
+  const handleGenerateAnalysis = () => {
+    onClose();
+    sendToChat(`"${idea.title}" fikri için mimari şema ve fonksiyonel analiz oluştur.`);
+  };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
 
       {/* Research Topics Checklist */}
       <div className="border border-gray-100 rounded-xl overflow-hidden">
@@ -155,69 +165,103 @@ function IdeaDetail({ idea }: { idea: Idea }) {
             <BookOpen size={15} className="text-gray-500" />
             <span className="text-sm font-semibold text-gray-800">Araştırma Konuları</span>
           </div>
-          {totalTopics > 0 && (
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              allCovered
-                ? 'bg-green-100 text-green-700'
-                : coveredCount > 0
-                  ? 'bg-amber-100 text-amber-700'
-                  : 'bg-gray-100 text-gray-600'
+          {requiredTopics.length > 0 && (
+            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
+              allRequiredCovered ? 'bg-green-100 text-green-700' :
+              coveredRequired > 0 ? 'bg-amber-100 text-amber-700' :
+              'bg-red-50 text-red-600'
             }`}>
-              {coveredCount}/{totalTopics} araştırıldı
+              {coveredRequired}/{requiredTopics.length} zorunlu araştırıldı
             </span>
           )}
         </div>
 
-        {totalTopics > 0 ? (
-          <ul className="divide-y divide-gray-50">
-            {topics.map((topic, i) => {
-              const covered = i < coveredCount;
-              return (
-                <li key={i} className={`flex items-start gap-3 px-5 py-3.5 transition-colors ${
-                  covered ? 'bg-green-50/40' : 'bg-white'
-                }`}>
-                  {covered ? (
-                    <CheckCircle2 size={17} className="text-green-500 mt-0.5 shrink-0" />
-                  ) : (
-                    <Circle size={17} className="text-gray-300 mt-0.5 shrink-0" />
-                  )}
-                  <span className={`text-sm leading-snug ${covered ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
-                    {topic}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <div className="px-5 py-4">
-            {linkedCount > 0 ? (
-              <div className="flex items-center gap-2 text-green-600">
-                <CheckCircle2 size={16} />
-                <span className="text-sm font-medium">{linkedCount} araştırma bağlı</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 text-amber-500">
-                <AlertTriangle size={16} />
-                <span className="text-sm">Araştırma konuları henüz belirlenmedi.</span>
-              </div>
-            )}
+        {/* Linked research summary */}
+        {linkedCount > 0 && (
+          <div className="px-5 py-3 bg-green-50/40 border-b border-green-100 flex items-center gap-2">
+            <CheckCircle2 size={14} className="text-green-500 shrink-0" />
+            <span className="text-xs text-green-700 font-medium">{linkedCount} araştırma bağlandı</span>
           </div>
         )}
 
-        <div className={`px-5 py-3 border-t ${allCovered ? 'border-green-100 bg-green-50/40' : 'border-gray-100 bg-gray-50/60'}`}>
-          {allCovered ? (
-            <p className="text-xs text-green-700">
-              Tüm konular araştırıldı — asistana mimari şema veya fonksiyonel analiz isteyebilirsiniz.
-            </p>
-          ) : totalTopics > 0 ? (
-            <p className="text-xs text-gray-500">
-              Kalan konular araştırıldıktan sonra asistandan mimari şema ve fonksiyonel analiz talep edebilirsiniz.
-            </p>
-          ) : (
-            <p className="text-xs text-gray-500">
-              Araştırma eklemek için asistana bu fikir hakkındaki araştırma metinlerini paylaşın.
-            </p>
-          )}
+        {/* Required topics */}
+        {requiredTopics.length > 0 && (
+          <div>
+            <div className="px-5 py-2 bg-gray-50/80 border-b border-gray-100">
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Zorunlu Araştırmalar</span>
+            </div>
+            <ul className="divide-y divide-gray-50/80">
+              {requiredTopics.map((topic, i) => {
+                const covered = i < coveredRequired;
+                return (
+                  <li key={i} className={`flex items-start gap-3 px-5 py-3 ${covered ? 'bg-green-50/30' : 'bg-white'}`}>
+                    {covered ? (
+                      <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <Circle size={16} className="text-red-300 mt-0.5 shrink-0" />
+                    )}
+                    <span className={`text-sm leading-snug ${covered ? 'text-gray-400 line-through' : 'text-gray-700'}`}>
+                      {topic}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Optional topics */}
+        {optionalTopics.length > 0 && (
+          <div>
+            <div className="px-5 py-2 bg-gray-50/80 border-t border-b border-gray-100">
+              <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Opsiyonel Araştırmalar</span>
+            </div>
+            <ul className="divide-y divide-gray-50/80">
+              {optionalTopics.map((topic, i) => (
+                <li key={i} className="flex items-start gap-3 px-5 py-3 bg-white">
+                  <Circle size={16} className="text-blue-200 mt-0.5 shrink-0" />
+                  <span className="text-sm leading-snug text-gray-500">{topic}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Empty state */}
+        {hasNoTopics && (
+          <div className="px-5 py-4 flex items-center gap-2 text-amber-500">
+            <AlertTriangle size={15} />
+            <span className="text-sm">Araştırma konuları henüz belirlenmedi.</span>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 ${
+          allRequiredCovered ? 'bg-green-50/50 border-green-100' : 'bg-gray-50 border-gray-100'
+        }`}>
+          <p className="text-xs text-gray-500 flex-1">
+            {allRequiredCovered
+              ? 'Zorunlu araştırmalar tamamlandı.'
+              : requiredTopics.length > 0
+                ? 'Zorunlu araştırmalar tamamlandığında mimari ve fonksiyonel analiz oluşturulabilir.'
+                : 'Araştırma eklemek için asistana metinleri paylaşın.'}
+          </p>
+          <button
+            onClick={handleGenerateAnalysis}
+            disabled={!allRequiredCovered && requiredTopics.length > 0}
+            className={`flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg transition-all shrink-0 ${
+              allRequiredCovered || requiredTopics.length === 0
+                ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {allRequiredCovered || requiredTopics.length === 0 ? (
+              <Sparkles size={13} />
+            ) : (
+              <Lock size={13} />
+            )}
+            Analiz Oluştur
+          </button>
         </div>
       </div>
 

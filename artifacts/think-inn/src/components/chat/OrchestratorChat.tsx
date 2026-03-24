@@ -34,6 +34,18 @@ export function OrchestratorChat() {
     }
   }, [messages, isTyping]);
 
+  // Listen for messages dispatched from other components (e.g. modal "Analiz Oluştur" button)
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const msg = (e as CustomEvent<{ message: string }>).detail?.message;
+      if (msg && conversationId && !isTyping) {
+        sendMessage(msg);
+      }
+    };
+    window.addEventListener('think-inn:send-message', handler);
+    return () => window.removeEventListener('think-inn:send-message', handler);
+  }, [conversationId, isTyping, sendMessage]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || isTyping) return;

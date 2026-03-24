@@ -16,6 +16,7 @@ export const ideasTable = pgTable("ideas", {
   masterIdeaId: integer("master_idea_id"),
   roadmap: json("roadmap").$type<string[]>().notNull().default([]),
   neededResearchTopics: json("needed_research_topics").$type<string[]>().notNull().default([]),
+  optionalResearchTopics: json("optional_research_topics").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
