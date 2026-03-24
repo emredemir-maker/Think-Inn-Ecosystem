@@ -13,8 +13,8 @@ export function HUDLayout({ children }: { children: ReactNode }) {
           <span className="font-semibold text-lg text-[#1a1a2e] tracking-tight">Think-Inn</span>
         </div>
         <div className="flex items-center gap-6 text-sm text-[#6b7280]">
-          <span className="flex items-center gap-1.5"><Activity size={14} className="text-green-500" /> System: Nominal</span>
-          <span className="flex items-center gap-1.5"><Zap size={14} className="text-primary" /> Active</span>
+          <span className="flex items-center gap-1.5"><Activity size={14} className="text-green-500" /> Sistem: Aktif</span>
+          <span className="flex items-center gap-1.5"><Zap size={14} className="text-primary" /> Çevrimiçi</span>
         </div>
       </header>
 

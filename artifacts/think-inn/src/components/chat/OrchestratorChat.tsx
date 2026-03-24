@@ -50,13 +50,13 @@ export function OrchestratorChat() {
             <Bot size={20} />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-[#1a1a2e]">Innovation Assistant</h2>
+            <h2 className="text-sm font-semibold text-[#1a1a2e]">İnovasyon Asistanı</h2>
             <p className="text-xs text-green-600 font-medium flex items-center gap-1.5">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
               </span>
-              Online
+              Çevrimiçi
             </p>
           </div>
         </div>
@@ -69,9 +69,9 @@ export function OrchestratorChat() {
             <div className="bg-primary/5 p-4 rounded-full">
               <Bot size={40} className="text-primary" />
             </div>
-            <h3 className="text-lg font-medium text-[#1a1a2e]">How can I help?</h3>
+            <h3 className="text-lg font-medium text-[#1a1a2e]">Nasıl yardımcı olabilirim?</h3>
             <p className="text-sm text-[#6b7280] max-w-[80%]">
-              Enter an idea or research topic. I can help analyze, structure, and format it for the ecosystem.
+              Bir fikir veya araştırma konusu girin. Analiz etmeme, yapılandırmama ve ekosisteme eklenmesine yardımcı olabilirim.
             </p>
           </div>
         )}
@@ -83,9 +83,9 @@ export function OrchestratorChat() {
           >
             <div className="flex items-center gap-1.5 mb-1.5 text-xs text-[#6b7280] font-medium px-1">
               {msg.role === "user" ? (
-                <><span>You</span><User size={12} /></>
+                <><span>Siz</span><User size={12} /></>
               ) : (
-                <><Bot size={12} className="text-primary" /><span className="text-primary">Assistant</span></>
+                <><Bot size={12} className="text-primary" /><span className="text-primary">Asistan</span></>
               )}
             </div>
             <div 
@@ -127,12 +127,12 @@ export function OrchestratorChat() {
                 handleSubmit(e);
               }
             }}
-            placeholder="Type your message..."
+            placeholder="Mesajınızı yazın..."
             className="w-full bg-gray-50 border border-border text-[#1a1a2e] rounded-xl p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none h-24 placeholder:text-gray-400 transition-shadow"
             disabled={isTyping || isLoadingConvos}
           />
           <div className="flex justify-between items-center px-1">
-            <span className="text-xs text-gray-400">Shift + Enter for new line</span>
+            <span className="text-xs text-gray-400">Shift+Enter yeni satır</span>
             <CyberButton 
               type="submit" 
               size="sm" 
@@ -140,7 +140,7 @@ export function OrchestratorChat() {
               className="px-5 rounded-full"
             >
               {isTyping ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              <span className="ml-1.5">{isTyping ? "Sending..." : "Send"}</span>
+              <span className="ml-1.5">{isTyping ? "Gönderiliyor..." : "Gönder"}</span>
             </CyberButton>
           </div>
         </form>

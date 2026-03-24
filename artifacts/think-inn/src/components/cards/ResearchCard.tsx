@@ -4,8 +4,9 @@ import { ChevronUp, ChevronDown, User, Calendar } from "lucide-react";
 import { CyberBadge } from "../ui/CyberBadge";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
-export function ResearchCard({ research, onVote }: { research: Research, onVote: (id: number, val: 1 | -1) => void }) {
+export function ResearchCard({ research, onVote, onClick }: { research: Research, onVote: (id: number, val: 1 | -1) => void, onClick?: () => void }) {
   
   const hasImage = !!research.coverImageB64;
   const imageSrc = hasImage 
@@ -17,7 +18,8 @@ export function ResearchCard({ research, onVote }: { research: Research, onVote:
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white rounded-xl shadow-sm border border-border flex flex-col group overflow-hidden hover:shadow-md transition-shadow"
+      onClick={onClick}
+      className="bg-white rounded-xl shadow-sm border border-border flex flex-col group overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
     >
       <div className="h-40 w-full relative overflow-hidden bg-gray-100">
         {hasImage ? (
@@ -39,12 +41,12 @@ export function ResearchCard({ research, onVote }: { research: Research, onVote:
           <h3 className="text-lg font-semibold text-[#1a1a2e] line-clamp-2">
             {research.title}
           </h3>
-          <div className="flex flex-col items-center bg-gray-50 rounded-lg p-1 shrink-0">
-            <button onClick={() => onVote(research.id, 1)} className="text-gray-400 hover:text-primary transition-colors p-1">
+          <div className="flex flex-col items-center bg-gray-50 rounded-lg p-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <button onClick={(e) => { e.stopPropagation(); onVote(research.id, 1); }} className="text-gray-400 hover:text-primary transition-colors p-1">
               <ChevronUp size={16} />
             </button>
             <span className="text-sm font-semibold text-[#1a1a2e]">{research.voteCount}</span>
-            <button onClick={() => onVote(research.id, -1)} className="text-gray-400 hover:text-destructive transition-colors p-1">
+            <button onClick={(e) => { e.stopPropagation(); onVote(research.id, -1); }} className="text-gray-400 hover:text-destructive transition-colors p-1">
               <ChevronDown size={16} />
             </button>
           </div>
@@ -69,7 +71,7 @@ export function ResearchCard({ research, onVote }: { research: Research, onVote:
           </div>
           <div className="flex items-center gap-1.5">
             <Calendar size={14} />
-            {format(new Date(research.createdAt), 'MMM dd, yyyy')}
+            {format(new Date(research.createdAt), 'dd MMM yyyy', { locale: tr })}
           </div>
         </div>
       </div>

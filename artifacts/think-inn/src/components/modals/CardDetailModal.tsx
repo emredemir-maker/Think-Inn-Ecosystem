@@ -1,0 +1,184 @@
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
+import { Research, Idea } from '@workspace/api-client-react';
+import { CyberBadge } from '../ui/CyberBadge';
+import { format } from 'date-fns';
+import { tr } from 'date-fns/locale';
+
+export function CardDetailModal({ item, type, onClose }: {
+  item: Research | Idea | null;
+  type: 'research' | 'idea' | null;
+  onClose: () => void;
+}) {
+  if (!item || !type) return null;
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex justify-end">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/20 backdrop-blur-sm"
+        />
+        <motion.div
+          initial={{ x: '100%' }}
+          animate={{ x: 0 }}
+          exit={{ x: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+          className="relative w-full max-w-2xl h-full bg-white shadow-2xl flex flex-col z-10 overflow-hidden"
+        >
+          <div className="flex items-center justify-between p-6 border-b border-gray-100">
+            <CyberBadge variant={type === 'research' ? 'purple' : 'cyan'}>
+              {item.status}
+            </CyberBadge>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6">
+            <h1 className="text-3xl font-bold text-[#1a1a2e] mb-4">{item.title}</h1>
+            
+            <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-100">
+              <div className="flex items-center gap-1.5">
+                <Users size={16} />
+                <span className="font-medium text-[#1a1a2e]">{item.authorName}</span>
+              </div>
+              <span>•</span>
+              <span>{format(new Date(item.createdAt), 'dd MMM yyyy', { locale: tr })}</span>
+            </div>
+
+            {type === 'research' ? (
+              <ResearchDetail research={item as Research} />
+            ) : (
+              <IdeaDetail idea={item as Idea} />
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}
+
+function ResearchDetail({ research }: { research: Research }) {
+  const hasImage = !!research.coverImageB64;
+  const imageSrc = hasImage 
+    ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}` 
+    : null;
+
+  return (
+    <div className="space-y-8">
+      {imageSrc && (
+        <div className="w-full h-64 rounded-xl overflow-hidden mb-8">
+          <img src={imageSrc} alt={research.title} className="w-full h-full object-cover" />
+        </div>
+      )}
+
+      <div className="space-y-6">
+        <section className="pl-4 border-l-4 border-indigo-500">
+          <h3 className="text-xs font-bold text-indigo-500 tracking-wider mb-2">[ÖZET]</h3>
+          <p className="text-gray-700 leading-relaxed">{research.summary}</p>
+        </section>
+
+        {research.technicalAnalysis && (
+          <section className="pl-4 border-l-4 border-blue-500">
+            <h3 className="text-xs font-bold text-blue-500 tracking-wider mb-2">[TEKNİK ANALİZ]</h3>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{research.technicalAnalysis}</p>
+          </section>
+        )}
+
+        {research.findings && (
+          <section className="pl-4 border-l-4 border-emerald-500">
+            <h3 className="text-xs font-bold text-emerald-500 tracking-wider mb-2">[BULGULAR]</h3>
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{research.findings}</p>
+          </section>
+        )}
+      </div>
+
+      <div className="pt-6 mt-8 border-t border-gray-100">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">Etiketler</h4>
+        <div className="flex flex-wrap gap-2">
+          {research.tags?.map(tag => (
+            <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-3 py-1.5 rounded-full">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function IdeaDetail({ idea }: { idea: Idea }) {
+  const hasResearch = idea.researchIds && idea.researchIds.length > 0;
+
+  return (
+    <div className="space-y-8">
+      <div className="bg-gray-50 rounded-xl p-6 mb-8">
+        <div className="flex items-center gap-2 mb-4">
+          <h4 className="text-sm font-semibold text-gray-900">Doğrulama Durumu</h4>
+        </div>
+        {hasResearch ? (
+          <div className="flex items-center gap-2 text-green-600 font-medium bg-green-50/50 p-3 rounded-lg border border-green-100">
+            <CheckCircle2 size={18} />
+            <span>{idea.researchIds.length} Araştırma Bağlı</span>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 text-amber-600 font-medium bg-amber-50/50 p-3 rounded-lg border border-amber-100">
+            <AlertTriangle size={18} />
+            <span>Araştırma Gerekli</span>
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h4 className="text-lg font-semibold text-gray-900 mb-3">Açıklama</h4>
+        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
+      </div>
+
+      {idea.roadmap && idea.roadmap.length > 0 && (
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">Yapılacaklar</h4>
+          <ol className="list-decimal pl-5 text-gray-700 space-y-2">
+            {idea.roadmap.map((step, i) => (
+              <li key={i}>{step}</li>
+            ))}
+          </ol>
+        </div>
+      )}
+
+      {idea.collaborators && idea.collaborators.length > 0 && (
+        <div>
+          <h4 className="text-lg font-semibold text-gray-900 mb-3">İş Birlikçiler</h4>
+          <div className="flex flex-wrap gap-2">
+            {idea.collaborators.map((collaborator, i) => (
+              <div key={i} className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm">
+                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
+                  {collaborator.charAt(0)}
+                </div>
+                <span>{collaborator}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="pt-6 mt-8 border-t border-gray-100">
+        <h4 className="text-sm font-semibold text-gray-900 mb-3">Etiketler</h4>
+        <div className="flex flex-wrap gap-2">
+          {idea.tags?.map(tag => (
+            <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-3 py-1.5 rounded-full">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
