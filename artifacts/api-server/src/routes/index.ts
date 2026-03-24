@@ -7,6 +7,7 @@ import ideasRouter from "./ideas";
 import commentsRouter from "./comments";
 import votesRouter from "./votes";
 import diagramsRouter from "./diagrams";
+import validateConnectionRouter from "./validate-connection";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use("/ideas", ideasRouter);
 router.use("/comments", commentsRouter);
 router.use("/votes", votesRouter);
 router.use("/diagrams", diagramsRouter);
+router.use("/validate-connection", validateConnectionRouter);
 
 export default router;
