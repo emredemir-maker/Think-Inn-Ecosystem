@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Idea } from "@workspace/api-client-react";
-import { Users, ThumbsUp, ThumbsDown, CheckCircle2, AlertTriangle, Network } from "lucide-react";
+import { Users, ThumbsUp, CheckCircle2, AlertTriangle, Network } from "lucide-react";
 import { CyberBadge } from "../ui/CyberBadge";
 import { motion } from "framer-motion";
 
@@ -15,6 +15,8 @@ export function IdeaCard({
   onClick?: () => void;
   onShowCanvas?: () => void;
 }) {
+  const [voted, setVoted] = useState(false);
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "active": return "cyan";
@@ -25,6 +27,17 @@ export function IdeaCard({
   };
 
   const hasResearch = idea.researchIds && idea.researchIds.length > 0;
+
+  const handleVoteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (voted) {
+      onVote(idea.id, -1);
+      setVoted(false);
+    } else {
+      onVote(idea.id, 1);
+      setVoted(true);
+    }
+  };
 
   return (
     <motion.div
@@ -82,22 +95,17 @@ export function IdeaCard({
               <span>Harita</span>
             </button>
           )}
-          <div className="flex items-center gap-1 bg-gray-50 rounded-xl p-1">
-            <button
-              onClick={e => { e.stopPropagation(); onVote(idea.id, 1); }}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-amber-600 hover:bg-amber-50 hover:border-amber-300 transition-all shadow-sm"
-            >
-              <ThumbsUp size={12} />
-              <span>{idea.voteCount}</span>
-            </button>
-            <button
-              onClick={e => { e.stopPropagation(); onVote(idea.id, -1); }}
-              className="p-1 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
-              title="Beğenme"
-            >
-              <ThumbsDown size={12} />
-            </button>
-          </div>
+          <button
+            onClick={handleVoteClick}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all shadow-sm ${
+              voted
+                ? 'bg-amber-500 border-amber-500 text-white shadow-amber-200'
+                : 'bg-white border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50'
+            }`}
+          >
+            <ThumbsUp size={12} className={voted ? 'fill-white' : ''} />
+            <span>{Math.max(0, idea.voteCount)}</span>
+          </button>
         </div>
       </div>
 

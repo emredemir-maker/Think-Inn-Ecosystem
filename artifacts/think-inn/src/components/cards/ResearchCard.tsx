@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Research } from "@workspace/api-client-react";
-import { ThumbsUp, ThumbsDown, User, Calendar, Network } from "lucide-react";
+import { ThumbsUp, User, Calendar, Network } from "lucide-react";
 import { CyberBadge } from "../ui/CyberBadge";
 import { motion } from "framer-motion";
 import { format } from "date-fns";
@@ -17,10 +17,22 @@ export function ResearchCard({
   onClick?: () => void;
   onShowCanvas?: () => void;
 }) {
+  const [voted, setVoted] = useState(false);
   const hasImage = !!research.coverImageB64;
   const imageSrc = hasImage
     ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}`
     : null;
+
+  const handleVoteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (voted) {
+      onVote(research.id, -1);
+      setVoted(false);
+    } else {
+      onVote(research.id, 1);
+      setVoted(true);
+    }
+  };
 
   return (
     <motion.div
@@ -75,22 +87,17 @@ export function ResearchCard({
                 <span>Harita</span>
               </button>
             )}
-            <div className="flex items-center gap-1 bg-gray-50 rounded-xl p-1">
-              <button
-                onClick={e => { e.stopPropagation(); onVote(research.id, 1); }}
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all shadow-sm"
-              >
-                <ThumbsUp size={12} />
-                <span>{research.voteCount}</span>
-              </button>
-              <button
-                onClick={e => { e.stopPropagation(); onVote(research.id, -1); }}
-                className="p-1 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all"
-                title="Beğenme"
-              >
-                <ThumbsDown size={12} />
-              </button>
-            </div>
+            <button
+              onClick={handleVoteClick}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all shadow-sm ${
+                voted
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-indigo-200'
+                  : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
+              }`}
+            >
+              <ThumbsUp size={12} className={voted ? 'fill-white' : ''} />
+              <span>{Math.max(0, research.voteCount)}</span>
+            </button>
           </div>
         </div>
       </div>

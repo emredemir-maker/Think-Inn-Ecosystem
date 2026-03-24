@@ -13,7 +13,7 @@ import {
   Network, ChevronDown,
   CheckCircle2, AlertTriangle, Calendar,
   Users, Shield, ShieldOff, Trash2,
-  ThumbsUp, ThumbsDown
+  ThumbsUp
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { CardDetailModal } from "../modals/CardDetailModal";
@@ -473,6 +473,13 @@ function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSupe
   onDelete?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [voted, setVoted] = useState(false);
+
+  const handleVote = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (voted) { onVote(research.id, -1); setVoted(false); }
+    else { onVote(research.id, 1); setVoted(true); }
+  };
 
   return (
     <motion.div
@@ -507,21 +514,17 @@ function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSupe
           </div>
         </div>
         {/* Vote */}
-        <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
-          <button
-            onClick={e => { e.stopPropagation(); onVote(research.id, 1); }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-300 transition-all shadow-sm"
-          >
-            <ThumbsUp size={11} />
-            <span>{research.voteCount}</span>
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onVote(research.id, -1); }}
-            className="p-1.5 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-400 transition-all"
-          >
-            <ThumbsDown size={11} />
-          </button>
-        </div>
+        <button
+          onClick={handleVote}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all shadow-sm flex-shrink-0 ${
+            voted
+              ? 'bg-indigo-600 border-indigo-600 text-white'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50'
+          }`}
+        >
+          <ThumbsUp size={11} className={voted ? 'fill-white' : ''} />
+          <span>{Math.max(0, research.voteCount)}</span>
+        </button>
         {isSuperAdmin && (
           <button
             onClick={e => { e.stopPropagation(); onDelete?.(); }}
@@ -589,7 +592,14 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
   onDelete?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [voted, setVoted] = useState(false);
   const hasResearch = idea.researchIds && idea.researchIds.length > 0;
+
+  const handleVote = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (voted) { onVote(idea.id, -1); setVoted(false); }
+    else { onVote(idea.id, 1); setVoted(true); }
+  };
 
   return (
     <motion.div
@@ -624,21 +634,17 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
           </div>
         </div>
         {/* Vote */}
-        <div className="flex items-center gap-1 flex-shrink-0" onClick={e => e.stopPropagation()}>
-          <button
-            onClick={e => { e.stopPropagation(); onVote(idea.id, 1); }}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-amber-600 hover:bg-amber-50 hover:border-amber-300 transition-all shadow-sm"
-          >
-            <ThumbsUp size={11} />
-            <span>{idea.voteCount}</span>
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onVote(idea.id, -1); }}
-            className="p-1.5 rounded-lg text-gray-300 hover:bg-red-50 hover:text-red-400 transition-all"
-          >
-            <ThumbsDown size={11} />
-          </button>
-        </div>
+        <button
+          onClick={handleVote}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all shadow-sm flex-shrink-0 ${
+            voted
+              ? 'bg-amber-500 border-amber-500 text-white'
+              : 'bg-white border-gray-200 text-gray-500 hover:border-amber-300 hover:text-amber-600 hover:bg-amber-50'
+          }`}
+        >
+          <ThumbsUp size={11} className={voted ? 'fill-white' : ''} />
+          <span>{Math.max(0, idea.voteCount)}</span>
+        </button>
         {isSuperAdmin && (
           <button
             onClick={e => { e.stopPropagation(); onDelete?.(); }}

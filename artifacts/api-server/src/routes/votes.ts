@@ -61,7 +61,8 @@ router.post("/", async (req, res) => {
         )
       );
 
-    const totalVotes = allVotes.reduce((sum, v) => sum + v.value, 0);
+    const rawTotal = allVotes.reduce((sum, v) => sum + v.value, 0);
+    const totalVotes = Math.max(0, rawTotal);
 
     if (targetType === "research") {
       await db
