@@ -194,23 +194,31 @@ async function executeTool(
 
     case "list_existing_research": {
       const items = await db.select().from(researchTable).orderBy(researchTable.createdAt);
-      return items.map((r) => ({
-        id: r.id,
-        title: r.title,
-        summary: r.summary?.slice(0, 200),
-        tags: r.tags,
-      }));
+      // response must be an object (not array) for Gemini function_response
+      return {
+        count: items.length,
+        items: items.map((r) => ({
+          id: r.id,
+          title: r.title,
+          summary: r.summary?.slice(0, 200),
+          tags: r.tags,
+        })),
+      };
     }
 
     case "list_existing_ideas": {
       const items = await db.select().from(ideasTable).orderBy(ideasTable.createdAt);
-      return items.map((i) => ({
-        id: i.id,
-        title: i.title,
-        description: i.description?.slice(0, 200),
-        tags: i.tags,
-        status: i.status,
-      }));
+      // response must be an object (not array) for Gemini function_response
+      return {
+        count: items.length,
+        items: items.map((i) => ({
+          id: i.id,
+          title: i.title,
+          description: i.description?.slice(0, 200),
+          tags: i.tags,
+          status: i.status,
+        })),
+      };
     }
 
     default:
