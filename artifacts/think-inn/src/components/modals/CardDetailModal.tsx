@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen, Sparkles, Lock } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen, Sparkles, Lock, TrendingUp, Lightbulb, Loader2 } from 'lucide-react';
 import { Research, Idea } from '@workspace/api-client-react';
 import { CyberBadge } from '../ui/CyberBadge';
 import { format } from 'date-fns';
@@ -142,6 +142,114 @@ function ResearchDetail({ research }: { research: Research }) {
   );
 }
 
+type EvalScores = {
+  commercialFeasibility: number;
+  marketNeed: number;
+  technicalDifficulty: number;
+  trendAlignment: number;
+  riskGovernance: number;
+  summary: string;
+  pivotSuggestion?: string;
+};
+
+const SCORE_AXES = [
+  { key: 'commercialFeasibility', label: 'Ticari Fizibilite', icon: '🏦' },
+  { key: 'marketNeed', label: 'Pazar İhtiyacı', icon: '📊' },
+  { key: 'technicalDifficulty', label: 'Teknik Zorluk', icon: '⚙️' },
+  { key: 'trendAlignment', label: 'Trend Uyumu', icon: '📈' },
+  { key: 'riskGovernance', label: 'Risk & Yönetişim', icon: '🔐' },
+] as const;
+
+function ScoreBar({ score }: { score: number }) {
+  const color = score >= 7 ? 'bg-green-500' : score >= 5 ? 'bg-amber-400' : 'bg-red-400';
+  return (
+    <div className="flex items-center gap-2 flex-1">
+      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all ${color}`} style={{ width: `${score * 10}%` }} />
+      </div>
+      <span className={`text-xs font-bold tabular-nums w-6 text-right ${
+        score >= 7 ? 'text-green-600' : score >= 5 ? 'text-amber-600' : 'text-red-500'
+      }`}>{score}</span>
+    </div>
+  );
+}
+
+function EvaluationPanel({ idea }: { idea: Idea }) {
+  const scores = (idea as any).evaluationScores as EvalScores | null;
+  const evaluatedAt = (idea as any).evaluatedAt;
+
+  if (!evaluatedAt && !scores) {
+    return (
+      <div className="border border-indigo-100 rounded-xl overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 bg-indigo-50/50 border-b border-indigo-100">
+          <TrendingUp size={15} className="text-indigo-500" />
+          <span className="text-sm font-semibold text-indigo-700">Otonom Değerlendirme</span>
+        </div>
+        <div className="px-5 py-5 flex items-center gap-3 text-gray-500">
+          <Loader2 size={16} className="animate-spin text-indigo-400 shrink-0" />
+          <span className="text-sm">Değerlendirme ajanı analiz yapıyor, kısa süre sonra hazır olacak...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!scores) return null;
+
+  const avgScore = Object.values({
+    a: scores.commercialFeasibility,
+    b: scores.marketNeed,
+    c: scores.technicalDifficulty,
+    d: scores.trendAlignment,
+    e: scores.riskGovernance,
+  }).reduce((s, v) => s + v, 0) / 5;
+
+  return (
+    <div className="border border-indigo-100 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3.5 bg-indigo-50/50 border-b border-indigo-100">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={15} className="text-indigo-500" />
+          <span className="text-sm font-semibold text-indigo-700">Otonom Değerlendirme</span>
+        </div>
+        <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
+          avgScore >= 7 ? 'bg-green-100 text-green-700' :
+          avgScore >= 5 ? 'bg-amber-100 text-amber-700' :
+          'bg-red-50 text-red-600'
+        }`}>
+          Ort. {avgScore.toFixed(1)}/10
+        </span>
+      </div>
+
+      <div className="px-5 py-4 space-y-3">
+        {SCORE_AXES.map(({ key, label, icon }) => (
+          <div key={key} className="flex items-center gap-3">
+            <span className="text-sm w-4">{icon}</span>
+            <span className="text-xs text-gray-600 w-32 shrink-0">{label}</span>
+            <ScoreBar score={scores[key]} />
+          </div>
+        ))}
+      </div>
+
+      {scores.summary && (
+        <div className="px-5 pb-4">
+          <p className="text-xs text-gray-500 leading-relaxed italic">{scores.summary}</p>
+        </div>
+      )}
+
+      {scores.pivotSuggestion && (
+        <div className="px-5 pb-4 pt-0">
+          <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 flex gap-2.5">
+            <Lightbulb size={14} className="text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-[10px] font-bold text-amber-600 tracking-wider uppercase mb-1">Pivot Önerisi</p>
+              <p className="text-xs text-amber-800 leading-relaxed">{scores.pivotSuggestion}</p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
   const linkedCount = idea.researchIds?.length ?? 0;
   const requiredTopics: string[] = (idea as any).neededResearchTopics ?? [];
@@ -264,6 +372,9 @@ function IdeaDetail({ idea, onClose }: { idea: Idea; onClose: () => void }) {
           </button>
         </div>
       </div>
+
+      {/* Autonomous Evaluation Panel */}
+      <EvaluationPanel idea={idea} />
 
       <div>
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Açıklama</h4>

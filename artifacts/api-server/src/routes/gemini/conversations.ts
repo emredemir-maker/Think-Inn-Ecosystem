@@ -128,6 +128,94 @@ const TOOLS = [
   },
 ];
 
+// ─── Background Autonomous Evaluation Agent ───────────────────────────────────
+
+async function backgroundEvaluateIdea(ideaId: number, title: string, description: string) {
+  try {
+    const allResearch = await db.select().from(researchTable);
+    const researchContext = allResearch.length > 0
+      ? allResearch.map(r => `- ${r.title}: ${r.summary?.slice(0, 200)}`).join("\n")
+      : "(Sistemde henüz araştırma bulunmuyor)";
+
+    const evalPrompt = `Sen kurumsal inovasyon ekosistemi için bir değerlendirme ajanısın. Aşağıdaki fikri analiz et ve JSON döndür.
+
+FİKİR:
+Başlık: ${title}
+Açıklama: ${description}
+
+SİSTEMDEKİ MEVCUT ARAŞTIRMALAR:
+${researchContext}
+
+Şu kurallara göre değerlendir:
+1. Ticari Fizibilite (0-10): Gelir modeli, ölçeklenebilirlik, pazar büyüklüğü
+2. Pazar İhtiyacı (0-10): Gerçek bir acı noktası mı çözüyor, pazar talebi var mı?
+3. Teknik Zorluk (0-10): 10=çok kolay, 0=imkansız. Mevcut teknoloji ile yapılabilirlik
+4. Trend Uyumu (0-10): 2025-2027 pazar ve teknoloji trendleriyle örtüşme
+5. Risk & AI Yönetişimi (0-10): KVKK, veri gizliliği, etik AI kullanımı açısından risk düzeyi (10=risksiz)
+
+Her eksen için kısa gerekçe yaz.
+
+Ayrıca:
+- neededResearchTopics: Bu fikrin hayata geçmesi için ZORUNLU araştırma konuları (mevcut araştırmalar arasında EKSİK olanlar, max 5 konu)
+- optionalResearchTopics: Fikri güçlendirecek ama zorunlu olmayan opsiyonel konular (max 3 konu)
+- pivotSuggestion: Herhangi bir eksen <6 ise fikri kurtaracak SOMUT bir pivot önerisi (yoksa null)
+- summary: 2-3 cümlelik özet değerlendirme
+
+JSON formatı (SADECE JSON döndür, başka metin yok):
+{
+  "commercialFeasibility": 7,
+  "marketNeed": 8,
+  "technicalDifficulty": 6,
+  "trendAlignment": 9,
+  "riskGovernance": 7,
+  "neededResearchTopics": ["konu1", "konu2"],
+  "optionalResearchTopics": ["konu1"],
+  "pivotSuggestion": null,
+  "summary": "Değerlendirme özeti..."
+}`;
+
+    const res = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: evalPrompt }] }],
+      config: { maxOutputTokens: 1024, temperature: 0.3 },
+    });
+
+    const match = res.text?.match(/\{[\s\S]*\}/);
+    if (!match) return;
+
+    const eval_ = JSON.parse(match[0]) as {
+      commercialFeasibility: number;
+      marketNeed: number;
+      technicalDifficulty: number;
+      trendAlignment: number;
+      riskGovernance: number;
+      neededResearchTopics: string[];
+      optionalResearchTopics: string[];
+      pivotSuggestion: string | null;
+      summary: string;
+    };
+
+    await db
+      .update(ideasTable)
+      .set({
+        neededResearchTopics: eval_.neededResearchTopics || [],
+        optionalResearchTopics: eval_.optionalResearchTopics || [],
+        evaluationScores: {
+          commercialFeasibility: eval_.commercialFeasibility,
+          marketNeed: eval_.marketNeed,
+          technicalDifficulty: eval_.technicalDifficulty,
+          trendAlignment: eval_.trendAlignment,
+          riskGovernance: eval_.riskGovernance,
+          summary: eval_.summary,
+          pivotSuggestion: eval_.pivotSuggestion ?? undefined,
+        },
+        evaluatedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(ideasTable.id, ideaId));
+  } catch (_) { /* non-blocking — silently fail */ }
+}
+
 // ─── Tool execution ───────────────────────────────────────────────────────────
 
 type ActionEvent =
@@ -308,6 +396,10 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
         .returning();
 
       actions.push({ action: "idea_saved", data: { id: item.id, title: item.title } });
+
+      // ── Background autonomous evaluation (non-blocking) ──────────────────────
+      setImmediate(() => backgroundEvaluateIdea(item.id, item.title, item.description || ""));
+
       return {
         success: true,
         id: item.id,
@@ -368,51 +460,19 @@ ARAŞTIRMA KAYDETME:
 - Yazar adı belirtilmemişse "Anonim" kullan
 - Benzer başlıklı araştırma DB'de varsa kullanıcıya sor, yoksa doğrudan kaydet
 
-FİKİR DEĞERLENDİRME VE KAYDETME — 2 AŞAMALI SÜREÇ:
+FİKİR KAYDETME:
+- Kullanıcı bir inovasyon fikri veya proje önerisi paylaştığında → ÖNCE list_existing_research VE list_existing_ideas çağır
+- DB'de çok benzer bir fikir varsa: kaydetme, kullanıcıyı bildir
+- Benzer fikir yoksa hemen save_idea çağır; şunları belirle:
+  a) linkedResearchIds: Sistemdeki araştırmalardan bu fikirle ilgili olanların ID'leri (konu/etiket/özet uyumu)
+  b) neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU, sistemde HENÜZ BULUNMAYAN araştırma konuları (max 4)
+  c) optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3)
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AŞAMA 1: ANALİZ (save_idea ÇAĞIRMA — önce bunu yap)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Kullanıcı bir fikir paylaştığında ÖNCE list_existing_research VE list_existing_ideas çağır, ardından şu analizi sun:
-
-a) PUANLAMA — Fikri 5 eksende 0-10 arası puanla ve her puan için kısa gerekçe yaz:
-   | Eksen | Puan | Gerekçe |
-   |-------|------|---------|
-   | 🏦 Ticari Fizibilite | X/10 | ... |
-   | 📊 Pazar İhtiyacı | X/10 | ... |
-   | ⚙️ Teknik Zorluk | X/10 | ... (yüksek puan = kolay) |
-   | 📈 Trend Analizi | X/10 | ... |
-   | 🔐 Risk & AI Yönetişimi | X/10 | ... (KVKK, veri güvenliği, AI riski) |
-
-b) ELEŞTİREL DEĞERLENDİRME — Fikrin güçlü ve zayıf yönlerini açık sözlülükle yaz.
-   - Asla "Sadece Hayır" deme. Riskliyse veya düşük puanlıysa (herhangi bir eksen <6):
-     "💡 PİVOT VE KURTARMA ÖNERİSİ" başlığı altında fikri kurtaracak değişim önerileri sun.
-   - Pazar trendlerine veya teknik çözümlere (Local LLM, farklı mimari vb.) odaklan.
-
-c) ONAY KAPISI — Analizden sonra MUTLAKA dur ve şunu sor:
-   "Durum bu. [Pivot/Devam önerini] temel alarak fikri sisteme kaydetmemi ister misin?
-   Evet ise lütfen şunu belirt: **Proje İsmi** ve **Tercih Edilen Tech Stack** (örn. Supabase, React, Next.js vb.)"
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-AŞAMA 2: KAYDETME (Kullanıcı onay verdikten SONRA)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Kullanıcı "evet", "kaydet", "devam et" veya proje adı/tech stack bilgisi verdikten sonra save_idea çağır.
-save_idea çağırırken MUTLAKA şunları belirle:
-  a) linkedResearchIds: Sistemdeki araştırmalardan konu/etiket/özet açısından ilgili olanların ID'leri
-  b) neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU, henüz sistemde BULUNMAYAN araştırma konuları
-  c) optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek ek araştırma konuları
-DB'de çok benzer bir fikir varsa: kaydetme, kullanıcıyı bildir.
-
-FİKİR KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
-1. Kaydedildiğini onayla (1 cümle)
-2. Bağlanan araştırmaları belirt: "✓ Bağlanan araştırmalar: [başlıklar]" (yoksa "Mevcut araştırmalarla örtüşme bulunamadı")
-3. Zorunlu eksik konuları listele: "📌 Önce şu konular araştırılmalı (zorunlu): • [Konu 1] ..."
-4. Opsiyonel konuları belirt (varsa): "💡 Ek olarak: • [Konu 1] ..."
-5. Son: "Zorunlu araştırmalar tamamlandıktan sonra **mimari şema** ve **fonksiyonel analiz** oluşturabilirim."
-
-GENEL İLKELER:
-- Asla varsayım yapma: Teknoloji tercihleri, proje adı → mutlaka kullanıcıya sor
-- Güvenlik öncelikli: Veri güvenliği, KVKK uyumluluğu ve AI yönetişimi risklerini her zaman vurgula
+FİKİR KAYDEDİLDİKTEN SONRA:
+1. Kaydedildiğini kısaca onayla
+2. Bağlanan araştırmaları belirt (yoksa "Mevcut araştırmalarla örtüşme bulunamadı")
+3. "Fikir detaylarından kapsamlı değerlendirme raporunu görebilirsin." de
+4. Kullanıcıya bir sonraki adım için yönlendirme yap (ilgili araştırma öner veya ne tür araştırma gerektiğini söyle)
 
 ARAŞTIRMA KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
 - Kaydedilen araştırmayı özetle

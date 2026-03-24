@@ -17,6 +17,16 @@ export const ideasTable = pgTable("ideas", {
   roadmap: json("roadmap").$type<string[]>().notNull().default([]),
   neededResearchTopics: json("needed_research_topics").$type<string[]>().notNull().default([]),
   optionalResearchTopics: json("optional_research_topics").$type<string[]>().notNull().default([]),
+  evaluationScores: json("evaluation_scores").$type<{
+    commercialFeasibility: number;
+    marketNeed: number;
+    technicalDifficulty: number;
+    trendAlignment: number;
+    riskGovernance: number;
+    summary: string;
+    pivotSuggestion?: string;
+  } | null>().default(null),
+  evaluatedAt: timestamp("evaluated_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
