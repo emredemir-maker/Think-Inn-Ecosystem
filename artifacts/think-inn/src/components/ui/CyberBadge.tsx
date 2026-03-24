@@ -19,13 +19,13 @@ export function CyberBadge({
   return (
     <div
       className={cn(
-        "inline-flex items-center justify-center px-2 py-0.5 text-[10px] font-display uppercase tracking-wider border hud-clip",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors",
         {
-          "bg-primary/10 text-primary border-primary/50 shadow-[0_0_5px_rgba(0,255,255,0.2)]": variant === "cyan",
-          "bg-accent/10 text-accent border-accent/50 shadow-[0_0_5px_rgba(200,0,255,0.2)]": variant === "purple",
-          "bg-green-500/10 text-green-400 border-green-500/50 shadow-[0_0_5px_rgba(0,255,100,0.2)]": variant === "green",
-          "bg-destructive/10 text-destructive border-destructive/50 shadow-[0_0_5px_rgba(255,0,0,0.2)]": variant === "red",
-          "bg-transparent text-muted-foreground border-border": variant === "outline",
+          "bg-blue-50 text-blue-700": variant === "cyan",
+          "bg-indigo-50 text-indigo-700": variant === "purple",
+          "bg-green-50 text-green-700": variant === "green",
+          "bg-red-50 text-red-700": variant === "red",
+          "border border-border text-foreground": variant === "outline",
         },
         className
       )}

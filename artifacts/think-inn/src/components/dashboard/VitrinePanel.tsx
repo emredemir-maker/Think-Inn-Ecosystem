@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useListResearch, useListIdeas, useVote } from "@workspace/api-client-react";
 import { ResearchCard } from "../cards/ResearchCard";
 import { IdeaCard } from "../cards/IdeaCard";
-import { CyberButton } from "../ui/CyberButton";
 import { LayoutGrid, FileText, Lightbulb, Share2, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -31,32 +30,32 @@ export function VitrinePanel() {
   const isLoading = isResearchLoading || isIdeasLoading;
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6 relative">
-      {/* Vitrine Header & Tabs */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-primary/20 pb-4">
+    <div className="flex-1 flex flex-col h-full overflow-hidden p-8 gap-8 relative bg-[#f8f9fa]">
+      {/* Header & Tabs */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-border pb-6 shrink-0">
         <div>
-          <h1 className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent neon-text">
-            İNOVASYON VİTRİNİ
+          <h1 className="text-3xl font-bold text-[#1a1a2e] tracking-tight">
+            Innovation Showcase
           </h1>
-          <p className="text-sm text-muted-foreground font-mono mt-1">
-            Ecosystem Data Stream / Live
+          <p className="text-[#6b7280] mt-1.5 font-medium">
+            Discover, evaluate, and collaborate on corporate initiatives.
           </p>
         </div>
         
-        <div className="flex bg-card border border-primary/20 hud-clip p-1 gap-1">
-          <TabButton active={activeTab === "all"} onClick={() => setActiveTab("all")} icon={<LayoutGrid size={14} />}>TÜMÜ</TabButton>
-          <TabButton active={activeTab === "research"} onClick={() => setActiveTab("research")} icon={<FileText size={14} />}>ARAŞTIRMALAR</TabButton>
-          <TabButton active={activeTab === "ideas"} onClick={() => setActiveTab("ideas")} icon={<Lightbulb size={14} />}>FİKİRLER</TabButton>
-          <TabButton active={activeTab === "diagrams"} onClick={() => setActiveTab("diagrams")} icon={<Share2 size={14} />}>DİYAGRAMLAR</TabButton>
+        <div className="flex bg-gray-100 p-1 rounded-full">
+          <TabButton active={activeTab === "all"} onClick={() => setActiveTab("all")} icon={<LayoutGrid size={16} />}>All</TabButton>
+          <TabButton active={activeTab === "research"} onClick={() => setActiveTab("research")} icon={<FileText size={16} />}>Research</TabButton>
+          <TabButton active={activeTab === "ideas"} onClick={() => setActiveTab("ideas")} icon={<Lightbulb size={16} />}>Ideas</TabButton>
+          <TabButton active={activeTab === "diagrams"} onClick={() => setActiveTab("diagrams")} icon={<Share2 size={16} />}>Diagrams</TabButton>
         </div>
       </div>
 
       {/* Content Grid */}
-      <div className="flex-1 overflow-y-auto pr-2 pb-20">
+      <div className="flex-1 overflow-y-auto pb-8">
         {isLoading ? (
           <div className="w-full h-64 flex flex-col items-center justify-center text-primary">
             <Loader2 className="animate-spin mb-4" size={32} />
-            <span className="font-display tracking-widest text-sm animate-pulse">FETCHING DATA...</span>
+            <span className="font-medium">Loading content...</span>
           </div>
         ) : (
           <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
@@ -77,18 +76,18 @@ export function VitrinePanel() {
             ))}
             
             {activeTab === "diagrams" && (
-              <div className="col-span-full py-12 text-center border border-dashed border-primary/20 bg-primary/5 hud-clip">
-                <Share2 size={48} className="mx-auto text-primary/30 mb-4" />
-                <h3 className="text-lg font-display text-primary/70">DİYAGRAM MODÜLÜ</h3>
-                <p className="text-sm text-muted-foreground">Aktif bir diyagram bulunamadı. Orkestratörden oluşturmasını isteyin.</p>
+              <div className="col-span-full py-16 text-center border border-dashed border-border bg-white rounded-2xl">
+                <Share2 size={48} className="mx-auto text-gray-300 mb-4" />
+                <h3 className="text-xl font-semibold text-[#1a1a2e]">Diagrams Module</h3>
+                <p className="text-[#6b7280] mt-2">No active diagrams found. Ask the Assistant to generate one.</p>
               </div>
             )}
 
             {/* Empty State */}
             {(!researchList?.length && !ideaList?.length && activeTab === "all") && (
-              <div className="col-span-full py-20 text-center border border-dashed border-primary/30 bg-background/50 hud-clip">
-                <p className="text-primary font-display tracking-widest text-lg">VERİ BULUNAMADI</p>
-                <p className="text-muted-foreground text-sm mt-2">Sisteme yeni bir araştırma veya fikir eklemek için Orkestratör ile sohbete başlayın.</p>
+              <div className="col-span-full py-24 text-center border border-dashed border-border bg-white rounded-2xl">
+                <p className="text-[#1a1a2e] font-semibold text-lg">No data available</p>
+                <p className="text-[#6b7280] mt-2">Start a conversation with the Assistant to add new research or ideas.</p>
               </div>
             )}
           </div>
@@ -102,10 +101,10 @@ function TabButton({ active, onClick, children, icon }: { active: boolean, onCli
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 px-4 py-2 text-xs font-display tracking-wider transition-all hud-clip ${
+      className={`flex items-center gap-2 px-5 py-2 text-sm font-medium rounded-full transition-all ${
         active 
-          ? "bg-primary/20 text-primary border border-primary/50 shadow-[0_0_10px_rgba(0,255,255,0.2)]" 
-          : "text-muted-foreground hover:text-primary hover:bg-primary/5 border border-transparent"
+          ? "bg-white text-primary shadow-sm" 
+          : "text-[#6b7280] hover:text-[#1a1a2e] hover:bg-gray-200/50"
       }`}
     >
       {icon}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Cpu, User, Loader2, Maximize2 } from "lucide-react";
+import { Send, Bot, User, Loader2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useChatStream, ChatMessage } from "@/hooks/use-chat-stream";
+import { useChatStream } from "@/hooks/use-chat-stream";
 import { useCreateGeminiConversation, useListGeminiConversations } from "@workspace/api-client-react";
 import { CyberButton } from "../ui/CyberButton";
 
@@ -16,7 +16,6 @@ export function OrchestratorChat() {
   const { messages, sendMessage, isTyping, error } = useChatStream(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Initialize conversation
   useEffect(() => {
     if (conversations && !conversationId) {
       if (conversations.length > 0) {
@@ -29,7 +28,6 @@ export function OrchestratorChat() {
     }
   }, [conversations, conversationId, createConvo]);
 
-  // Auto-scroll
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -44,60 +42,65 @@ export function OrchestratorChat() {
   };
 
   return (
-    <div className="w-[400px] lg:w-[450px] border-l border-primary/30 bg-card/95 backdrop-blur-md flex flex-col relative z-20 shadow-[-10px_0_30px_rgba(0,255,255,0.05)]">
+    <div className="w-full lg:w-[450px] border-l border-border bg-white flex flex-col relative z-20 shadow-sm h-full">
       {/* Chat Header */}
-      <div className="h-14 border-b border-primary/20 flex items-center justify-between px-4 bg-background/50">
-        <div className="flex items-center gap-2">
-          <Cpu className="text-primary animate-pulse" size={18} />
-          <h2 className="text-sm font-bold text-primary tracking-widest">ORCHESTRATOR_AI</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
-          <span className="text-[10px] text-primary/70 font-mono">ONLINE</span>
+      <div className="h-16 border-b border-border flex items-center justify-between px-6 bg-white shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/10 p-2 rounded-lg text-primary">
+            <Bot size={20} />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-[#1a1a2e]">Innovation Assistant</h2>
+            <p className="text-xs text-green-600 font-medium flex items-center gap-1.5">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+              </span>
+              Online
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Messages Area */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/50">
         {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center opacity-50 space-y-4">
-            <Cpu size={48} className="text-primary" />
-            <p className="text-sm text-primary font-display tracking-widest">AWAITING INPUT_</p>
-            <p className="text-xs text-muted-foreground font-mono max-w-[80%]">
-              Girmek istediğiniz fikri veya araştırmayı yazın. 
-              Benzerlik analizi ve formatlama otomatik yapılacaktır.
+          <div className="h-full flex flex-col items-center justify-center text-center opacity-70 space-y-4">
+            <div className="bg-primary/5 p-4 rounded-full">
+              <Bot size={40} className="text-primary" />
+            </div>
+            <h3 className="text-lg font-medium text-[#1a1a2e]">How can I help?</h3>
+            <p className="text-sm text-[#6b7280] max-w-[80%]">
+              Enter an idea or research topic. I can help analyze, structure, and format it for the ecosystem.
             </p>
           </div>
         )}
 
-        {messages.map((msg, i) => (
+        {messages.map((msg) => (
           <div 
             key={msg.id} 
             className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
           >
-            <div className="flex items-center gap-2 mb-1 opacity-50 text-[10px] font-mono">
+            <div className="flex items-center gap-1.5 mb-1.5 text-xs text-[#6b7280] font-medium px-1">
               {msg.role === "user" ? (
-                <><span>USER</span><User size={10} /></>
+                <><span>You</span><User size={12} /></>
               ) : (
-                <><Cpu size={10} className="text-primary" /><span className="text-primary">ORCHESTRATOR</span></>
+                <><Bot size={12} className="text-primary" /><span className="text-primary">Assistant</span></>
               )}
             </div>
             <div 
-              className={`p-3 text-sm relative max-w-[90%] ${
+              className={`p-4 text-sm rounded-2xl max-w-[90%] shadow-sm ${
                 msg.role === "user" 
-                  ? "bg-secondary/50 border border-primary/30 text-foreground hud-clip-reverse" 
-                  : "bg-primary/5 border border-primary/10 text-primary/90 hud-clip"
+                  ? "bg-primary text-white rounded-tr-sm" 
+                  : "bg-white border border-border text-[#1a1a2e] rounded-tl-sm"
               }`}
             >
               {msg.role === "assistant" ? (
-                <div className="prose prose-invert prose-p:leading-snug prose-sm max-w-none prose-headings:text-primary prose-a:text-accent prose-strong:text-primary">
+                <div className="prose prose-sm max-w-none prose-p:leading-relaxed prose-headings:text-[#1a1a2e] prose-a:text-primary">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {msg.content || (msg.isStreaming ? "..." : "")}
                   </ReactMarkdown>
-                  {msg.isStreaming && <span className="inline-block w-2 h-4 bg-primary animate-pulse ml-1 align-middle" />}
+                  {msg.isStreaming && <span className="inline-block w-1.5 h-4 bg-primary animate-pulse ml-1 align-middle" />}
                 </div>
               ) : (
                 <p className="whitespace-pre-wrap">{msg.content}</p>
@@ -106,15 +109,15 @@ export function OrchestratorChat() {
           </div>
         ))}
         {error && (
-          <div className="text-xs text-destructive border border-destructive/30 bg-destructive/10 p-2 text-center">
+          <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 text-center">
             {error}
           </div>
         )}
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-background/80 border-t border-primary/20 backdrop-blur-md">
-        <form onSubmit={handleSubmit} className="relative flex flex-col gap-2">
+      <div className="p-4 bg-white border-t border-border shrink-0">
+        <form onSubmit={handleSubmit} className="relative flex flex-col gap-3">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -124,20 +127,20 @@ export function OrchestratorChat() {
                 handleSubmit(e);
               }
             }}
-            placeholder="İletişim kurun..."
-            className="w-full bg-secondary/30 border border-primary/30 text-foreground p-3 text-sm focus:outline-none focus:border-primary/80 focus:ring-1 focus:ring-primary/50 resize-none h-24 placeholder:text-muted-foreground/50 font-sans hud-clip transition-all"
+            placeholder="Type your message..."
+            className="w-full bg-gray-50 border border-border text-[#1a1a2e] rounded-xl p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none h-24 placeholder:text-gray-400 transition-shadow"
             disabled={isTyping || isLoadingConvos}
           />
-          <div className="flex justify-between items-center">
-            <span className="text-[10px] text-muted-foreground font-mono opacity-50">Shift+Enter for new line</span>
+          <div className="flex justify-between items-center px-1">
+            <span className="text-xs text-gray-400">Shift + Enter for new line</span>
             <CyberButton 
               type="submit" 
               size="sm" 
               disabled={!input.trim() || isTyping || !conversationId}
-              className="px-6"
+              className="px-5 rounded-full"
             >
-              {isTyping ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              <span className="ml-1">{isTyping ? "PROCESSING" : "TRANSMIT"}</span>
+              {isTyping ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+              <span className="ml-1.5">{isTyping ? "Sending..." : "Send"}</span>
             </CyberButton>
           </div>
         </form>
