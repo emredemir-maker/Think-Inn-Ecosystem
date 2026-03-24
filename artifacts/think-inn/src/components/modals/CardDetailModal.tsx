@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, AlertTriangle, Users } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen } from 'lucide-react';
 import { Research, Idea } from '@workspace/api-client-react';
 import { CyberBadge } from '../ui/CyberBadge';
 import { format } from 'date-fns';
@@ -139,49 +139,86 @@ function ResearchDetail({ research }: { research: Research }) {
 }
 
 function IdeaDetail({ idea }: { idea: Idea }) {
-  const hasResearch = idea.researchIds && idea.researchIds.length > 0;
+  const linkedCount = idea.researchIds?.length ?? 0;
+  const topics: string[] = (idea as any).neededResearchTopics ?? [];
+  const totalTopics = topics.length;
+  const coveredCount = Math.min(linkedCount, totalTopics);
+  const allCovered = totalTopics > 0 && coveredCount >= totalTopics;
 
   return (
     <div className="space-y-8">
-      <div className="bg-gray-50 rounded-xl p-6 mb-8 space-y-4">
-        <h4 className="text-sm font-semibold text-gray-900">Araştırma Durumu</h4>
 
-        {hasResearch ? (
-          <div className="flex items-center gap-2 text-green-600 font-medium bg-green-50/50 p-3 rounded-lg border border-green-100">
-            <CheckCircle2 size={18} />
-            <span>{idea.researchIds.length} Araştırma Bağlı</span>
+      {/* Research Topics Checklist */}
+      <div className="border border-gray-100 rounded-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-gray-50 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <BookOpen size={15} className="text-gray-500" />
+            <span className="text-sm font-semibold text-gray-800">Araştırma Konuları</span>
           </div>
-        ) : null}
+          {totalTopics > 0 && (
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              allCovered
+                ? 'bg-green-100 text-green-700'
+                : coveredCount > 0
+                  ? 'bg-amber-100 text-amber-700'
+                  : 'bg-gray-100 text-gray-600'
+            }`}>
+              {coveredCount}/{totalTopics} araştırıldı
+            </span>
+          )}
+        </div>
 
-        {(idea as any).neededResearchTopics?.length > 0 ? (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-amber-600 font-medium">
-              <AlertTriangle size={16} />
-              <span className="text-sm">Araştırılması Gereken Konular</span>
-            </div>
-            <ul className="space-y-2 mt-2">
-              {((idea as any).neededResearchTopics as string[]).map((topic, i) => (
-                <li key={i} className="flex items-start gap-2.5 bg-amber-50/60 border border-amber-100 rounded-lg px-3 py-2.5">
-                  <span className="mt-0.5 w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center shrink-0">{i + 1}</span>
-                  <span className="text-sm text-gray-700">{topic}</span>
+        {totalTopics > 0 ? (
+          <ul className="divide-y divide-gray-50">
+            {topics.map((topic, i) => {
+              const covered = i < coveredCount;
+              return (
+                <li key={i} className={`flex items-start gap-3 px-5 py-3.5 transition-colors ${
+                  covered ? 'bg-green-50/40' : 'bg-white'
+                }`}>
+                  {covered ? (
+                    <CheckCircle2 size={17} className="text-green-500 mt-0.5 shrink-0" />
+                  ) : (
+                    <Circle size={17} className="text-gray-300 mt-0.5 shrink-0" />
+                  )}
+                  <span className={`text-sm leading-snug ${covered ? 'text-gray-500 line-through' : 'text-gray-700'}`}>
+                    {topic}
+                  </span>
                 </li>
-              ))}
-            </ul>
-            <p className="text-xs text-gray-500 mt-3 italic">
-              Bu konular araştırıldıktan sonra mimari şema ve fonksiyonel analiz oluşturulabilir.
-            </p>
-          </div>
-        ) : !hasResearch ? (
-          <div className="flex items-center gap-2 text-amber-600 font-medium bg-amber-50/50 p-3 rounded-lg border border-amber-100">
-            <AlertTriangle size={18} />
-            <span>Araştırma Gerekli</span>
-          </div>
+              );
+            })}
+          </ul>
         ) : (
-          <div className="flex items-center gap-2 text-green-600 text-sm bg-green-50/50 p-3 rounded-lg border border-green-100">
-            <CheckCircle2 size={16} />
-            <span>Tüm araştırma konuları kapsanmış — mimari şema ve fonksiyonel analiz hazır.</span>
+          <div className="px-5 py-4">
+            {linkedCount > 0 ? (
+              <div className="flex items-center gap-2 text-green-600">
+                <CheckCircle2 size={16} />
+                <span className="text-sm font-medium">{linkedCount} araştırma bağlı</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-amber-500">
+                <AlertTriangle size={16} />
+                <span className="text-sm">Araştırma konuları henüz belirlenmedi.</span>
+              </div>
+            )}
           </div>
         )}
+
+        <div className={`px-5 py-3 border-t ${allCovered ? 'border-green-100 bg-green-50/40' : 'border-gray-100 bg-gray-50/60'}`}>
+          {allCovered ? (
+            <p className="text-xs text-green-700">
+              Tüm konular araştırıldı — asistana mimari şema veya fonksiyonel analiz isteyebilirsiniz.
+            </p>
+          ) : totalTopics > 0 ? (
+            <p className="text-xs text-gray-500">
+              Kalan konular araştırıldıktan sonra asistandan mimari şema ve fonksiyonel analiz talep edebilirsiniz.
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500">
+              Araştırma eklemek için asistana bu fikir hakkındaki araştırma metinlerini paylaşın.
+            </p>
+          )}
+        </div>
       </div>
 
       <div>

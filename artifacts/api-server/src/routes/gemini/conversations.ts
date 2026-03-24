@@ -352,8 +352,8 @@ FİKİR KAYDEDİLDİKTEN SONRA YAPILACAKLAR (ZORUNLU):
    • [Konu 1]
    • [Konu 2]
    ..."
-4. Son olarak şunu söyle: "Bu araştırmalar tamamlandıktan sonra fikir için **mimari şema** ve **fonksiyonel analiz** oluşturabilirim."
-5. Eksik araştırma yoksa (tüm konular kapsanmışsa): "Mevcut araştırmalar yeterli — istersen hemen **mimari şema** veya **fonksiyonel analiz** oluşturabilirim."
+4. Son olarak şunu söyle: "Bu araştırmalar sisteme eklendikten sonra fikir için **mimari şema** ve **fonksiyonel analiz** oluşturabilirim."
+5. Eksik araştırma yoksa (tüm konular zaten araştırılmışsa): "Sistemdeki araştırmalar bu fikri desteklemek için yeterli görünüyor. İstersen **mimari şema** veya **fonksiyonel analiz** oluşturabilirim."
 
 ARAŞTIRMA KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
 - Kaydedilen araştırmayı özetle
