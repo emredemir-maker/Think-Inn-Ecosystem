@@ -253,6 +253,8 @@ function EvaluationPanel({ idea }: { idea: Idea }) {
 
 function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: Research[]; onClose: () => void }) {
   const linkedResearchIds: number[] = idea.researchIds ?? [];
+  // neededResearchTopics = AI-determined uncovered topics (updated on each evaluation)
+  // Covered topics are removed by the background evaluation agent — no client-side guessing
   const requiredTopics: string[] = (idea as any).neededResearchTopics ?? [];
   const optionalTopics: string[] = (idea as any).optionalResearchTopics ?? [];
   const hasNoTopics = requiredTopics.length === 0 && optionalTopics.length === 0;
@@ -262,18 +264,6 @@ function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: R
     .map(id => allResearch.find(r => r.id === id))
     .filter(Boolean) as Research[];
 
-  // A required topic is "covered" if at least one linked research title contains
-  // a significant keyword overlap (simple heuristic, no fake position-based check)
-  function topicIsCovered(topic: string): boolean {
-    const topicWords = topic.toLowerCase().split(/[\s,]+/).filter(w => w.length > 4);
-    return linkedResearchItems.some(r => {
-      const rText = (r.title + ' ' + (r.summary ?? '')).toLowerCase();
-      return topicWords.some(w => rText.includes(w));
-    });
-  }
-
-  const coveredCount = requiredTopics.filter(t => topicIsCovered(t)).length;
-  const allRequiredCovered = requiredTopics.length > 0 && coveredCount >= requiredTopics.length;
   const canAnalyze = linkedResearchItems.length > 0 || requiredTopics.length === 0;
 
   const handleGenerateAnalysis = () => {
@@ -293,11 +283,14 @@ function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: R
           </div>
           {requiredTopics.length > 0 && (
             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-              allRequiredCovered ? 'bg-green-100 text-green-700' :
-              coveredCount > 0 ? 'bg-amber-100 text-amber-700' :
-              'bg-red-50 text-red-600'
+              requiredTopics.length === 0 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
             }`}>
-              {coveredCount}/{requiredTopics.length} konu karşılandı
+              {requiredTopics.length} açık zorunlu konu
+            </span>
+          )}
+          {requiredTopics.length === 0 && linkedResearchItems.length > 0 && (
+            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">
+              Tüm konular karşılandı
             </span>
           )}
         </div>
@@ -341,21 +334,12 @@ function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: R
               <span className="text-[10px] font-bold text-gray-500 tracking-wider uppercase">Zorunlu Araştırma Konuları</span>
             </div>
             <ul className="divide-y divide-gray-50/80">
-              {requiredTopics.map((topic, i) => {
-                const covered = topicIsCovered(topic);
-                return (
-                  <li key={i} className={`flex items-start gap-3 px-5 py-3 ${covered ? 'bg-green-50/20' : 'bg-white'}`}>
-                    {covered ? (
-                      <CheckCircle2 size={16} className="text-green-500 mt-0.5 shrink-0" />
-                    ) : (
-                      <Circle size={16} className="text-red-300 mt-0.5 shrink-0" />
-                    )}
-                    <span className={`text-sm leading-snug ${covered ? 'text-gray-400' : 'text-gray-700'}`}>
-                      {topic}
-                    </span>
-                  </li>
-                );
-              })}
+              {requiredTopics.map((topic, i) => (
+                <li key={i} className="flex items-start gap-3 px-5 py-3 bg-white">
+                  <Circle size={16} className="text-red-300 mt-0.5 shrink-0" />
+                  <span className="text-sm leading-snug text-gray-700">{topic}</span>
+                </li>
+              ))}
             </ul>
           </div>
         )}

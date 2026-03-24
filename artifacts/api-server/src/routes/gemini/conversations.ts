@@ -177,12 +177,22 @@ const TOOLS = [
 
 // ─── Background Autonomous Evaluation Agent ───────────────────────────────────
 
-async function backgroundEvaluateIdea(ideaId: number, title: string, description: string) {
+async function backgroundEvaluateIdea(
+  ideaId: number,
+  title: string,
+  description: string,
+  linkedResearchIds: number[] = [],
+) {
   try {
     const allResearch = await db.select().from(researchTable);
-    const researchContext = allResearch.length > 0
-      ? allResearch.map(r => `- ${r.title}: ${r.summary?.slice(0, 200)}`).join("\n")
-      : "(Sistemde henüz araştırma bulunmuyor)";
+
+    // Only linked research is used for coverage; fetch full content (title + summary + findings)
+    const linkedResearch = allResearch.filter(r => linkedResearchIds.includes(r.id));
+    const linkedContext = linkedResearch.length > 0
+      ? linkedResearch.map(r =>
+          `[${r.title}]\nÖzet: ${r.summary ?? ''}\nBulgular: ${(r.findings ?? '').slice(0, 400)}`
+        ).join("\n\n")
+      : "(Bu fikre henüz araştırma bağlanmamış)";
 
     const evalPrompt = `Sen kurumsal inovasyon ekosistemi için bir değerlendirme ajanısın. Aşağıdaki fikri analiz et ve JSON döndür.
 
@@ -190,8 +200,8 @@ FİKİR:
 Başlık: ${title}
 Açıklama: ${description}
 
-SİSTEMDEKİ MEVCUT ARAŞTIRMALAR:
-${researchContext}
+BU FİKRE BAĞLI ARAŞTIRMALAR (içeriklerini dikkate al):
+${linkedContext}
 
 Şu kurallara göre değerlendir:
 1. Ticari Fizibilite (0-10): Gelir modeli, ölçeklenebilirlik, pazar büyüklüğü
@@ -200,11 +210,11 @@ ${researchContext}
 4. Trend Uyumu (0-10): 2025-2027 pazar ve teknoloji trendleriyle örtüşme
 5. Risk & AI Yönetişimi (0-10): KVKK, veri gizliliği, etik AI kullanımı açısından risk düzeyi (10=risksiz)
 
-Her eksen için kısa gerekçe yaz.
-
-Ayrıca:
-- neededResearchTopics: Bu fikrin hayata geçmesi için ZORUNLU araştırma konuları (mevcut araştırmalar arasında EKSİK olanlar, max 5 konu)
-- optionalResearchTopics: Fikri güçlendirecek ama zorunlu olmayan opsiyonel konular (max 3 konu)
+ARAŞTIRMA KAPSAM DEĞERLENDİRMESİ — KRİTİK:
+- neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU ama yukarıdaki BAĞLI araştırmalarla HENÜZ KARŞILANMAYAN konular (max 5).
+  Bağlı araştırmanın içeriği (özet + bulgular) bir konuyu gerçekten karşılıyorsa o konuyu bu listeye YAZMA.
+  Bağlı araştırma yoksa fikrin gerektirdiği tüm zorunlu konuları listele.
+- optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3, bağlı araştırmalarla karşılanmayanlar)
 - pivotSuggestion: Herhangi bir eksen <6 ise fikri kurtaracak SOMUT bir pivot önerisi (yoksa null)
 - summary: 2-3 cümlelik özet değerlendirme
 
@@ -215,8 +225,8 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
   "technicalDifficulty": 6,
   "trendAlignment": 9,
   "riskGovernance": 7,
-  "neededResearchTopics": ["konu1", "konu2"],
-  "optionalResearchTopics": ["konu1"],
+  "neededResearchTopics": ["henüz karşılanmayan konu1"],
+  "optionalResearchTopics": ["opsiyonel konu1"],
   "pivotSuggestion": null,
   "summary": "Değerlendirme özeti..."
 }`;
@@ -445,7 +455,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
       actions.push({ action: "idea_saved", data: { id: item.id, title: item.title } });
 
       // ── Background autonomous evaluation (non-blocking) ──────────────────────
-      setImmediate(() => backgroundEvaluateIdea(item.id, item.title, item.description || ""));
+      setImmediate(() => backgroundEvaluateIdea(item.id, item.title, item.description || "", validLinkedIds));
 
       return {
         success: true,
@@ -478,13 +488,16 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
         updates.researchIds = merged;
       }
 
-      if (args.neededResearchTopics !== undefined)
-        updates.neededResearchTopics = args.neededResearchTopics;
-      if (args.optionalResearchTopics !== undefined)
-        updates.optionalResearchTopics = args.optionalResearchTopics;
       if (args.title) updates.title = args.title;
       if (args.description) updates.description = args.description;
       if (args.tags) updates.tags = args.tags;
+
+      // If research is being added, reset evaluatedAt so re-evaluation runs
+      const researchAdded = updates.researchIds !== undefined;
+      if (researchAdded) {
+        updates.evaluatedAt = null;
+        updates.evaluationScores = null;
+      }
 
       const [updated] = await db
         .update(ideasTable)
@@ -495,14 +508,22 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
       actions.push({ action: "idea_saved", data: { id: updated.id, title: updated.title } });
 
-      const addedCount = (updates.researchIds as number[] | undefined)
+      const addedCount = researchAdded
         ? ((updates.researchIds as number[]).length - (existing.researchIds || []).length)
         : 0;
+
+      // Re-evaluate with updated linked research context (non-blocking)
+      if (researchAdded) {
+        const finalResearchIds = updates.researchIds as number[];
+        setImmediate(() =>
+          backgroundEvaluateIdea(updated.id, updated.title, updated.description || "", finalResearchIds)
+        );
+      }
 
       return {
         success: true,
         id: updated.id,
-        message: `"${updated.title}" fikri güncellendi. ${addedCount > 0 ? `${addedCount} araştırma eklendi.` : ''}`,
+        message: `"${updated.title}" fikri güncellendi. ${addedCount > 0 ? `${addedCount} araştırma eklendi, değerlendirme yenileniyor.` : ''}`,
         totalLinkedResearch: (updated.researchIds || []).length,
       };
     }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   useListResearch, useListIdeas, useVote,
   useDeleteResearch, useDeleteIdea,
@@ -41,12 +41,20 @@ export function VitrinePanel() {
 
   const { data: researchList, isLoading: isResearchLoading } = useListResearch();
 
-  // When modal is open for an idea, poll every 3s to catch evaluation completion
-  const needsPolling = detailItem?.type === 'idea';
+  const [pollingEnabled, setPollingEnabled] = useState(false);
 
   const { data: ideaList, isLoading: isIdeasLoading } = useListIdeas({
-    query: { refetchInterval: needsPolling ? 3000 : false }
+    query: { refetchInterval: pollingEnabled ? 3000 : false }
   });
+
+  // Poll only when modal is open for an idea that hasn't been evaluated yet
+  useEffect(() => {
+    if (detailItem?.type !== 'idea') { setPollingEnabled(false); return; }
+    const idea = ideaList?.find(i => i.id === detailItem.id);
+    // evaluatedAt is returned from API but not in generated TS type — use cast
+    const hasEval = !!(idea && (idea as any).evaluatedAt);
+    setPollingEnabled(!hasEval);
+  }, [detailItem, ideaList]);
   const { mutate: submitVote } = useVote();
   const { mutate: deleteResearch } = useDeleteResearch();
   const { mutate: deleteIdea } = useDeleteIdea();
