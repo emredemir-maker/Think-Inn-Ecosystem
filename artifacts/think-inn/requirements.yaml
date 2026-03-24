@@ -1,0 +1,15 @@
+packages:
+  "framer-motion": "Required for HUD animations, layout transitions, and seamless UI state changes"
+  "react-markdown": "Required to render the AI orchestrator's markdown responses safely"
+  "remark-gfm": "Plugin for react-markdown to support tables and advanced markdown from Gemini"
+  "date-fns": "For formatting timestamps on research and ideas"
+  "lucide-react": "For UI icons in the HUD"
+
+images:
+  - path: "artifacts/think-inn/public/images/neural-grid.png"
+    description: "Dark cyberpunk neural network grid background with glowing cyan and purple nodes, wireframe, high tech, HUD aesthetic, depth of field"
+    aspect_ratio: "16:9"
+
+notes:
+  - "The app assumes backend SSE endpoint is available at /api/gemini/conversations/{id}/messages"
+  - "React Query hooks are imported from @workspace/api-client-react"

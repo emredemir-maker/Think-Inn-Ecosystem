@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Think-Inn: Kurumsal İnovasyon Ekosistemi"
+version = "1.0.0"
+id = "artifacts/think-inn"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20180
+
+[services.development]
+run = "pnpm --filter @workspace/think-inn run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/think-inn", "run", "build" ]
+publicDir = "artifacts/think-inn/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20180"
+BASE_PATH = "/"

@@ -1,15 +1,26 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Think-Inn Innovation Ecosystem API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: gemini
+    description: Gemini AI chat and image operations
+  - name: research
+    description: Research articles management
+  - name: ideas
+    description: Innovation ideas management
+  - name: comments
+    description: Community comments
+  - name: votes
+    description: Community voting
+  - name: diagrams
+    description: Scientific diagrams
 paths:
   /healthz:
     get:
@@ -24,6 +35,501 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /gemini/conversations:
+    get:
+      operationId: listGeminiConversations
+      tags: [gemini]
+      summary: List all conversations
+      responses:
+        "200":
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiConversation"
+    post:
+      operationId: createGeminiConversation
+      tags: [gemini]
+      summary: Create a new conversation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGeminiConversationBody"
+      responses:
+        "201":
+          description: Created conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversation"
+
+  /gemini/conversations/{id}:
+    get:
+      operationId: getGeminiConversation
+      tags: [gemini]
+      summary: Get conversation with messages
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiConversationWithMessages"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+    delete:
+      operationId: deleteGeminiConversation
+      tags: [gemini]
+      summary: Delete a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeminiError"
+
+  /gemini/conversations/{id}/messages:
+    get:
+      operationId: listGeminiMessages
+      tags: [gemini]
+      summary: List messages in a conversation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GeminiMessage"
+    post:
+      operationId: sendGeminiMessage
+      tags: [gemini]
+      summary: Send a message and receive an AI response (SSE stream)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendGeminiMessageBody"
+      responses:
+        "200":
+          description: SSE stream of assistant response chunks
+          content:
+            text/event-stream: {}
+
+  /gemini/generate-image:
+    post:
+      operationId: generateGeminiImage
+      tags: [gemini]
+      summary: Generate an image from a text prompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateGeminiImageBody"
+      responses:
+        "200":
+          description: Generated image data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateGeminiImageResponse"
+
+  /research:
+    get:
+      operationId: listResearch
+      tags: [research]
+      summary: List all research articles
+      responses:
+        "200":
+          description: List of research articles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Research"
+    post:
+      operationId: createResearch
+      tags: [research]
+      summary: Create a new research article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateResearchBody"
+      responses:
+        "201":
+          description: Created research
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Research"
+
+  /research/{id}:
+    get:
+      operationId: getResearch
+      tags: [research]
+      summary: Get a research article by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Research article
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Research"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      operationId: updateResearch
+      tags: [research]
+      summary: Update a research article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateResearchBody"
+      responses:
+        "200":
+          description: Updated research
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Research"
+    delete:
+      operationId: deleteResearch
+      tags: [research]
+      summary: Delete a research article
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /ideas:
+    get:
+      operationId: listIdeas
+      tags: [ideas]
+      summary: List all innovation ideas
+      responses:
+        "200":
+          description: List of ideas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Idea"
+    post:
+      operationId: createIdea
+      tags: [ideas]
+      summary: Create a new idea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateIdeaBody"
+      responses:
+        "201":
+          description: Created idea
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Idea"
+
+  /ideas/{id}:
+    get:
+      operationId: getIdea
+      tags: [ideas]
+      summary: Get an idea by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Idea
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Idea"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+    put:
+      operationId: updateIdea
+      tags: [ideas]
+      summary: Update an idea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateIdeaBody"
+      responses:
+        "200":
+          description: Updated idea
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Idea"
+    delete:
+      operationId: deleteIdea
+      tags: [ideas]
+      summary: Delete an idea
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /ideas/check-similarity:
+    post:
+      operationId: checkIdeaSimilarity
+      tags: [ideas]
+      summary: Check if a new idea is similar to existing ones
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckSimilarityBody"
+      responses:
+        "200":
+          description: Similarity check result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SimilarityCheckResult"
+
+  /comments:
+    post:
+      operationId: createComment
+      tags: [comments]
+      summary: Create a comment on a research or idea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCommentBody"
+      responses:
+        "201":
+          description: Created comment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  /comments/{targetType}/{targetId}:
+    get:
+      operationId: listComments
+      tags: [comments]
+      summary: List comments for a research or idea
+      parameters:
+        - name: targetType
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [research, idea]
+        - name: targetId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of comments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Comment"
+
+  /votes:
+    post:
+      operationId: vote
+      tags: [votes]
+      summary: Vote on a research or idea
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteBody"
+      responses:
+        "200":
+          description: Vote result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoteResult"
+
+  /diagrams:
+    get:
+      operationId: listDiagrams
+      tags: [diagrams]
+      summary: List all diagrams
+      responses:
+        "200":
+          description: List of diagrams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Diagram"
+    post:
+      operationId: createDiagram
+      tags: [diagrams]
+      summary: Create a new diagram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDiagramBody"
+      responses:
+        "201":
+          description: Created diagram
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Diagram"
+
+  /diagrams/{id}:
+    get:
+      operationId: getDiagram
+      tags: [diagrams]
+      summary: Get a diagram by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Diagram
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Diagram"
+    put:
+      operationId: updateDiagram
+      tags: [diagrams]
+      summary: Update a diagram
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDiagramBody"
+      responses:
+        "200":
+          description: Updated diagram
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Diagram"
+    delete:
+      operationId: deleteDiagram
+      tags: [diagrams]
+      summary: Delete a diagram
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +540,611 @@ components:
       required:
         - status
 
+    GeminiConversation:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - createdAt
+
+    GeminiMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+        conversationId:
+          type: integer
+        role:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - conversationId
+        - role
+        - content
+        - createdAt
+
+    CreateGeminiConversationBody:
+      type: object
+      properties:
+        title:
+          type: string
+      required:
+        - title
+
+    SendGeminiMessageBody:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    GeminiConversationWithMessages:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeminiMessage"
+      required:
+        - id
+        - title
+        - createdAt
+        - messages
+
+    GenerateGeminiImageBody:
+      type: object
+      properties:
+        prompt:
+          type: string
+      required:
+        - prompt
+
+    GenerateGeminiImageResponse:
+      type: object
+      properties:
+        b64_json:
+          type: string
+        mimeType:
+          type: string
+      required:
+        - b64_json
+        - mimeType
+
+    GeminiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Research:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        summary:
+          type: string
+        technicalAnalysis:
+          type: string
+        findings:
+          type: string
+        rawContent:
+          type: string
+        authorName:
+          type: string
+        coverImageB64:
+          type: string
+          nullable: true
+        coverImageMimeType:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        relatedTo:
+          type: array
+          items:
+            type: integer
+        voteCount:
+          type: integer
+        status:
+          type: string
+          enum: [draft, published, archived]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - summary
+        - technicalAnalysis
+        - findings
+        - rawContent
+        - authorName
+        - tags
+        - relatedTo
+        - voteCount
+        - status
+        - createdAt
+        - updatedAt
+
+    CreateResearchBody:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        technicalAnalysis:
+          type: string
+        findings:
+          type: string
+        rawContent:
+          type: string
+        authorName:
+          type: string
+        coverImageB64:
+          type: string
+          nullable: true
+        coverImageMimeType:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        relatedTo:
+          type: array
+          items:
+            type: integer
+        status:
+          type: string
+          enum: [draft, published, archived]
+      required:
+        - title
+        - summary
+        - technicalAnalysis
+        - findings
+        - rawContent
+        - authorName
+
+    UpdateResearchBody:
+      type: object
+      properties:
+        title:
+          type: string
+        summary:
+          type: string
+        technicalAnalysis:
+          type: string
+        findings:
+          type: string
+        rawContent:
+          type: string
+        authorName:
+          type: string
+        coverImageB64:
+          type: string
+          nullable: true
+        coverImageMimeType:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        relatedTo:
+          type: array
+          items:
+            type: integer
+        status:
+          type: string
+          enum: [draft, published, archived]
+
+    Idea:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        authorName:
+          type: string
+        collaborators:
+          type: array
+          items:
+            type: string
+        researchIds:
+          type: array
+          items:
+            type: integer
+        relatedTo:
+          type: array
+          items:
+            type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        voteCount:
+          type: integer
+        status:
+          type: string
+          enum: [draft, active, merged, prototype, archived]
+        masterIdeaId:
+          type: integer
+          nullable: true
+        roadmap:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - authorName
+        - collaborators
+        - researchIds
+        - relatedTo
+        - tags
+        - voteCount
+        - status
+        - roadmap
+        - createdAt
+        - updatedAt
+
+    CreateIdeaBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        authorName:
+          type: string
+        collaborators:
+          type: array
+          items:
+            type: string
+        researchIds:
+          type: array
+          items:
+            type: integer
+        relatedTo:
+          type: array
+          items:
+            type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, active, merged, prototype, archived]
+        masterIdeaId:
+          type: integer
+          nullable: true
+        roadmap:
+          type: array
+          items:
+            type: string
+      required:
+        - title
+        - description
+        - authorName
+
+    UpdateIdeaBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        authorName:
+          type: string
+        collaborators:
+          type: array
+          items:
+            type: string
+        researchIds:
+          type: array
+          items:
+            type: integer
+        relatedTo:
+          type: array
+          items:
+            type: integer
+        tags:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [draft, active, merged, prototype, archived]
+        masterIdeaId:
+          type: integer
+          nullable: true
+        roadmap:
+          type: array
+          items:
+            type: string
+
+    CheckSimilarityBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      required:
+        - title
+        - description
+
+    SimilarityCheckResult:
+      type: object
+      properties:
+        hasSimilar:
+          type: boolean
+        similarIdeas:
+          type: array
+          items:
+            $ref: "#/components/schemas/Idea"
+        message:
+          type: string
+      required:
+        - hasSimilar
+        - similarIdeas
+        - message
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+        targetType:
+          type: string
+          enum: [research, idea]
+        targetId:
+          type: integer
+        authorName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - targetType
+        - targetId
+        - authorName
+        - content
+        - createdAt
+
+    CreateCommentBody:
+      type: object
+      properties:
+        targetType:
+          type: string
+          enum: [research, idea]
+        targetId:
+          type: integer
+        authorName:
+          type: string
+        content:
+          type: string
+      required:
+        - targetType
+        - targetId
+        - authorName
+        - content
+
+    VoteBody:
+      type: object
+      properties:
+        targetType:
+          type: string
+          enum: [research, idea]
+        targetId:
+          type: integer
+        voterName:
+          type: string
+        value:
+          type: integer
+          enum: [1, -1]
+      required:
+        - targetType
+        - targetId
+        - voterName
+        - value
+
+    VoteResult:
+      type: object
+      properties:
+        voteCount:
+          type: integer
+        userVote:
+          type: integer
+          nullable: true
+      required:
+        - voteCount
+
+    Diagram:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [flowchart, hierarchy, system, custom]
+        svgData:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagramNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagramEdge"
+        relatedIdeaId:
+          type: integer
+          nullable: true
+        relatedResearchId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - title
+        - description
+        - type
+        - svgData
+        - nodes
+        - edges
+        - createdAt
+        - updatedAt
+
+    DiagramNode:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        x:
+          type: number
+        y:
+          type: number
+        type:
+          type: string
+      required:
+        - id
+        - label
+        - x
+        - y
+        - type
+
+    DiagramEdge:
+      type: object
+      properties:
+        from:
+          type: string
+        to:
+          type: string
+        label:
+          type: string
+      required:
+        - from
+        - to
+
+    CreateDiagramBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [flowchart, hierarchy, system, custom]
+        svgData:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagramNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagramEdge"
+        relatedIdeaId:
+          type: integer
+          nullable: true
+        relatedResearchId:
+          type: integer
+          nullable: true
+      required:
+        - title
+        - description
+        - type
+
+    UpdateDiagramBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [flowchart, hierarchy, system, custom]
+        svgData:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagramNode"
+        edges:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiagramEdge"
+        relatedIdeaId:
+          type: integer
+          nullable: true
+        relatedResearchId:
+          type: integer
+          nullable: true
+
+    ApiError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
