@@ -132,19 +132,41 @@ async function executeTool(
       let fmtTechnical = rawTechnical;
 
       try {
-        const formatPrompt = `Aşağıdaki araştırma içeriğini profesyonel ve akademik formatta yeniden düzenle.
+        const formatPrompt = `Aşağıdaki araştırma içeriğini akademik ve profesyonel formatta yeniden düzenle.
 
+GİRDİ:
 Başlık: ${rawTitle}
 Özet: ${rawSummary}
 Bulgular/İçerik: ${rawFindings}
 Teknik Analiz: ${rawTechnical}
 
-Yapman gerekenler:
-1. Türkçe dil bilgisi ve yazım hatalarını düzelt
-2. Cümleleri daha akıcı, net ve profesyonel hale getir
-3. Gereksiz tekrarları kaldır
-4. Bölümleri düzenli madde/paragraf yapısına getir
-5. Akademik üslup kullan — kısaltma ve argo kullanma
+BÖLÜM KURALLARI:
+
+**summary** (ÖZET):
+- 2-3 cümlelik, kısa ve öz bir özet
+- Araştırmanın amacını ve kapsamını anlat
+- Düz paragraf halinde yaz, liste kullanma
+- İçeriği doğrudan yansıt — abartma veya genelleme yapma
+
+**findings** (BULGULAR):
+- Araştırmanın somut bulgularını ve sonuçlarını içer
+- Madde listesi (- ile) kullan, her bulgu ayrı satırda
+- **Önemli sayısal veriler**, **anahtar kavramlar** ve **kritik sonuçlar** bold yap
+- Minimum 3, maksimum 8 madde
+- Akademik, doğrudan ve kesin bir dil kullan
+
+**technicalAnalysis** (TEKNİK ANALİZ):
+- Eğer girdide teknik detay varsa: metodoloji, kullanılan araçlar, platform veya teknik karşılaştırma yaz
+- **Teknik terimler**, **platform adları**, **metodoloji adları** bold yap
+- Madde listesi veya paragraf olabilir
+- Eğer girdide teknik analiz yoksa boş string döndür: ""
+
+GENEL KURALLAR:
+- Türkçe dil bilgisi ve yazım hatalarını düzelt
+- "bu çalışma incelemektedir" yerine "araştırma ortaya koymuştur" gibi aktif bulgusal dil kullan
+- Gereksiz tekrar ve dolgu cümleleri kaldır
+- Markdown formatını kullan: **bold**, - liste
+- Her bölüm kendi içinde tam ve anlamlı olmalı
 
 SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 {"summary":"...","findings":"...","technicalAnalysis":"..."}`;
@@ -157,9 +179,16 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
         const match = formatRes.text?.match(/\{[\s\S]*\}/);
         if (match) {
           const fmt = JSON.parse(match[0]);
-          fmtSummary = fmt.summary || rawSummary;
-          fmtFindings = fmt.findings || rawFindings;
-          fmtTechnical = fmt.technicalAnalysis || rawTechnical;
+          // Gemini may return arrays or strings — normalise to string
+          const toStr = (v: unknown, fallback: string): string => {
+            if (!v) return fallback;
+            if (Array.isArray(v)) return v.join("\n");
+            if (typeof v === "string") return v;
+            return fallback;
+          };
+          fmtSummary = toStr(fmt.summary, rawSummary);
+          fmtFindings = toStr(fmt.findings, rawFindings);
+          fmtTechnical = toStr(fmt.technicalAnalysis, rawTechnical);
         }
       } catch (_) { /* use raw content if formatting fails */ }
 
@@ -168,7 +197,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
       let coverImageMimeType: string | null = null;
 
       try {
-        const imgPrompt = `Professional research paper cover visual for a study titled "${rawTitle}". Abstract, minimal, corporate design using blue and indigo color palette. No text or labels. Clean geometric patterns or subtle data visualization motifs.`;
+        const imgPrompt = `Corporate research cover art for: "${rawTitle}". Style: modern editorial, clean minimalism. Visual metaphors related to the topic. Color palette: deep indigo (#4f46e5), white, slate blue gradients. Elements: abstract flowing shapes, subtle grid or network patterns, professional depth. No text, no letters, no numbers. High quality, editorial magazine style.`;
         const imgResult = await generateImage(imgPrompt);
         coverImageB64 = imgResult.b64_json;
         coverImageMimeType = imgResult.mimeType;

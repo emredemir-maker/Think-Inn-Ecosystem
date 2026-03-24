@@ -5,6 +5,25 @@ import { Research, Idea } from '@workspace/api-client-react';
 import { CyberBadge } from '../ui/CyberBadge';
 import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+function MarkdownContent({ content, className = "" }: { content: string; className?: string }) {
+  return (
+    <div className={`prose prose-sm max-w-none text-gray-700 leading-relaxed
+      prose-p:my-1.5 prose-p:leading-relaxed
+      prose-strong:text-gray-900 prose-strong:font-semibold
+      prose-ul:my-2 prose-li:my-0.5
+      prose-ol:my-2
+      prose-headings:text-gray-900
+      ${className}`}
+    >
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
+}
 
 export function CardDetailModal({ item, type, onClose }: {
   item: Research | Idea | null;
@@ -44,7 +63,7 @@ export function CardDetailModal({ item, type, onClose }: {
 
           <div className="flex-1 overflow-y-auto p-6">
             <h1 className="text-3xl font-bold text-[#1a1a2e] mb-4">{item.title}</h1>
-            
+
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-100">
               <div className="flex items-center gap-1.5">
                 <Users size={16} />
@@ -68,8 +87,8 @@ export function CardDetailModal({ item, type, onClose }: {
 
 function ResearchDetail({ research }: { research: Research }) {
   const hasImage = !!research.coverImageB64;
-  const imageSrc = hasImage 
-    ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}` 
+  const imageSrc = hasImage
+    ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}`
     : null;
 
   return (
@@ -81,36 +100,40 @@ function ResearchDetail({ research }: { research: Research }) {
       )}
 
       <div className="space-y-6">
-        <section className="pl-4 border-l-4 border-indigo-500">
-          <h3 className="text-xs font-bold text-indigo-500 tracking-wider mb-2">[ÖZET]</h3>
-          <p className="text-gray-700 leading-relaxed">{research.summary}</p>
-        </section>
-
-        {research.technicalAnalysis && (
-          <section className="pl-4 border-l-4 border-blue-500">
-            <h3 className="text-xs font-bold text-blue-500 tracking-wider mb-2">[TEKNİK ANALİZ]</h3>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{research.technicalAnalysis}</p>
+        {research.summary && (
+          <section className="pl-4 border-l-4 border-indigo-500">
+            <h3 className="text-[10px] font-bold text-indigo-500 tracking-widest uppercase mb-3">Özet</h3>
+            <MarkdownContent content={research.summary} />
           </section>
         )}
 
         {research.findings && (
           <section className="pl-4 border-l-4 border-emerald-500">
-            <h3 className="text-xs font-bold text-emerald-500 tracking-wider mb-2">[BULGULAR]</h3>
-            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{research.findings}</p>
+            <h3 className="text-[10px] font-bold text-emerald-500 tracking-widest uppercase mb-3">Bulgular</h3>
+            <MarkdownContent content={research.findings} />
+          </section>
+        )}
+
+        {research.technicalAnalysis && (
+          <section className="pl-4 border-l-4 border-blue-500">
+            <h3 className="text-[10px] font-bold text-blue-500 tracking-widest uppercase mb-3">Teknik Analiz</h3>
+            <MarkdownContent content={research.technicalAnalysis} />
           </section>
         )}
       </div>
 
-      <div className="pt-6 mt-8 border-t border-gray-100">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Etiketler</h4>
-        <div className="flex flex-wrap gap-2">
-          {research.tags?.map(tag => (
-            <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-3 py-1.5 rounded-full">
-              {tag}
-            </span>
-          ))}
+      {research.tags && research.tags.length > 0 && (
+        <div className="pt-6 mt-8 border-t border-gray-100">
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">Etiketler</h4>
+          <div className="flex flex-wrap gap-2">
+            {research.tags.map(tag => (
+              <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-3 py-1.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -139,7 +162,7 @@ function IdeaDetail({ idea }: { idea: Idea }) {
 
       <div>
         <h4 className="text-lg font-semibold text-gray-900 mb-3">Açıklama</h4>
-        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{idea.description}</p>
+        <MarkdownContent content={idea.description} />
       </div>
 
       {idea.roadmap && idea.roadmap.length > 0 && (
@@ -169,16 +192,18 @@ function IdeaDetail({ idea }: { idea: Idea }) {
         </div>
       )}
 
-      <div className="pt-6 mt-8 border-t border-gray-100">
-        <h4 className="text-sm font-semibold text-gray-900 mb-3">Etiketler</h4>
-        <div className="flex flex-wrap gap-2">
-          {idea.tags?.map(tag => (
-            <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-3 py-1.5 rounded-full">
-              {tag}
-            </span>
-          ))}
+      {idea.tags && idea.tags.length > 0 && (
+        <div className="pt-6 mt-8 border-t border-gray-100">
+          <h4 className="text-sm font-semibold text-gray-900 mb-3">Etiketler</h4>
+          <div className="flex flex-wrap gap-2">
+            {idea.tags.map(tag => (
+              <span key={tag} className="text-xs text-[#1a1a2e] bg-[#f3f4f6] px-3 py-1.5 rounded-full">
+                {tag}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
