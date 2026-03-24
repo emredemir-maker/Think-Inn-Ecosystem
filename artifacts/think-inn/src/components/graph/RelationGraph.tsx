@@ -23,11 +23,10 @@ interface Edge {
 
 const NODE_W = 240;
 const NODE_H = 160;
-const PORT_R = 6; // port circle radius
+const PORT_R = 6;
 
 const nodeKey = (id: number, type: string) => `${type}-${id}`;
 
-// ── Port positions (canvas space) ────────────────────────────────────
 type PortSide = 'top' | 'bottom' | 'left' | 'right';
 
 function getPort(node: NodeData, side: PortSide) {
@@ -39,21 +38,17 @@ function getPort(node: NodeData, side: PortSide) {
   }
 }
 
-// Choose best port pair based on relative position
 function getBestPorts(src: NodeData, tgt: NodeData) {
   const scx = src.x + NODE_W / 2, scy = src.y + NODE_H / 2;
   const tcx = tgt.x + NODE_W / 2, tcy = tgt.y + NODE_H / 2;
   const dx = tcx - scx, dy = tcy - scy;
-
   if (Math.abs(dy) >= Math.abs(dx)) {
-    // vertical dominant
     return dy > 0
-      ? { s: getPort(src, 'bottom'), t: getPort(tgt, 'top'), vertical: true }
+      ? { s: getPort(src, 'bottom'), t: getPort(tgt, 'top'),    vertical: true }
       : { s: getPort(src, 'top'),    t: getPort(tgt, 'bottom'), vertical: true };
   } else {
-    // horizontal dominant
     return dx > 0
-      ? { s: getPort(src, 'right'), t: getPort(tgt, 'left'), vertical: false }
+      ? { s: getPort(src, 'right'), t: getPort(tgt, 'left'),  vertical: false }
       : { s: getPort(src, 'left'),  t: getPort(tgt, 'right'), vertical: false };
   }
 }
@@ -71,7 +66,7 @@ function buildEdgePath(sx: number, sy: number, tx: number, ty: number, vertical:
 }
 
 function buildLivePath(sx: number, sy: number, tx: number, ty: number): string {
-  const dy = ty - sy, dx = tx - sx;
+  const dx = tx - sx, dy = ty - sy;
   const off = Math.max(50, Math.sqrt(dx * dx + dy * dy) * 0.4);
   if (Math.abs(dy) >= Math.abs(dx)) {
     const sgn = dy >= 0 ? 1 : -1;
@@ -82,23 +77,29 @@ function buildLivePath(sx: number, sy: number, tx: number, ty: number): string {
   }
 }
 
-export function RelationGraph({
-  selectedId,
-  selectedType,
-  allResearch,
-  allIdeas,
-  onBack,
-  onNodeClick,
-  onRelationChange,
-}: {
-  selectedId: number;
-  selectedType: 'research' | 'idea';
+interface RelationGraphProps {
+  // Node-focused mode
+  selectedId?: number;
+  selectedType?: 'research' | 'idea';
+  // Global map mode (shows everything)
+  globalMode?: boolean;
   allResearch: Research[];
   allIdeas: Idea[];
   onBack: () => void;
   onNodeClick: (id: number, type: 'research' | 'idea') => void;
   onRelationChange?: () => void;
-}) {
+}
+
+export function RelationGraph({
+  selectedId,
+  selectedType,
+  globalMode = false,
+  allResearch,
+  allIdeas,
+  onBack,
+  onNodeClick,
+  onRelationChange,
+}: RelationGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<NodeData[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -107,82 +108,130 @@ export function RelationGraph({
   const [hoveredEdge, setHoveredEdge] = useState<number | null>(null);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
-  // Drawing edge (ref to avoid stale closure; tick forces re-render)
   const drawing = useRef<{ srcNode: NodeData; portSide: PortSide; toX: number; toY: number } | null>(null);
   const [drawTick, setDrawTick] = useState(0);
-
-  // Hover target during drawing
   const [hoverTarget, setHoverTarget] = useState<string | null>(null);
 
-  // Pan drag
   const panDrag = useRef<{ mx: number; my: number; px: number; py: number } | null>(null);
-
-  // Keep refs current for closures
   const zoomRef = useRef(zoom);
   const panRef = useRef(pan);
-  const nodesRef = useRef(nodes);
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { panRef.current = pan; }, [pan]);
-  useEffect(() => { nodesRef.current = nodes; }, [nodes]);
 
   // ── Build graph ────────────────────────────────────────────────────
 
   const buildGraph = useCallback(() => {
-    const cw = containerRef.current?.clientWidth ?? 800;
+    const cw = containerRef.current?.clientWidth ?? 900;
     const ch = containerRef.current?.clientHeight ?? 600;
-    const cx = cw / 2 - NODE_W / 2;
-    const cy = ch / 2 - NODE_H / 2;
 
-    const center = selectedType === 'research'
-      ? allResearch.find(r => r.id === selectedId)
-      : allIdeas.find(i => i.id === selectedId);
-    if (!center) return;
+    if (globalMode) {
+      // ── GLOBAL MAP: all nodes in bipartite layout ──
+      const newNodes: NodeData[] = [];
+      const newEdges: Edge[] = [];
 
-    const newNodes: NodeData[] = [{
-      id: center.id, type: selectedType,
-      title: center.title,
-      summary: selectedType === 'research' ? (center as Research).summary ?? '' : (center as Idea).description ?? '',
-      voteCount: center.voteCount,
-      collaboratorCount: selectedType === 'idea' ? ((center as Idea).collaborators?.length ?? 0) : 1,
-      x: cx, y: cy,
-    }];
-    const newEdges: Edge[] = [];
-    let connected: { item: Research | Idea; type: 'research' | 'idea' }[] = [];
+      const researchCount = allResearch.length;
+      const ideaCount = allIdeas.length;
 
-    if (selectedType === 'research') {
-      connected = allIdeas.filter(i => i.researchIds?.includes(selectedId)).map(i => ({ item: i, type: 'idea' as const }));
-      connected.forEach(({ item }) => newEdges.push({ sourceId: selectedId, sourceType: 'research', targetId: item.id, targetType: 'idea' }));
-    } else {
-      const idea = center as Idea;
-      connected = allResearch.filter(r => idea.researchIds?.includes(r.id)).map(r => ({ item: r, type: 'research' as const }));
-      connected.forEach(({ item }) => newEdges.push({ sourceId: selectedId, sourceType: 'idea', targetId: item.id, targetType: 'research' }));
-    }
+      const colGap = Math.max(cw * 0.5, 400);
+      const leftX  = cw / 2 - colGap / 2 - NODE_W / 2;
+      const rightX = cw / 2 + colGap / 2 - NODE_W / 2;
 
-    const n = connected.length;
-    const radius = Math.max(320, n * 90);
-    connected.forEach(({ item, type }, i) => {
-      const angle = n === 1 ? Math.PI / 2
-        : -Math.PI / 2 + (i / Math.max(n - 1, 1)) * (n > 2 ? 2 * Math.PI : Math.PI);
-      newNodes.push({
-        id: item.id, type,
-        title: item.title,
-        summary: type === 'research' ? (item as Research).summary ?? '' : (item as Idea).description ?? '',
-        voteCount: item.voteCount,
-        collaboratorCount: type === 'idea' ? ((item as Idea).collaborators?.length ?? 0) : 1,
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle),
+      const vSpaceR = Math.max(180, Math.min(220, (ch - 120) / Math.max(researchCount, 1)));
+      const vSpaceI = Math.max(180, Math.min(220, (ch - 120) / Math.max(ideaCount, 1)));
+
+      const totalHR = vSpaceR * (researchCount - 1);
+      const totalHI = vSpaceI * (ideaCount - 1);
+
+      allResearch.forEach((r, i) => {
+        newNodes.push({
+          id: r.id, type: 'research',
+          title: r.title,
+          summary: r.summary ?? '',
+          voteCount: r.voteCount,
+          collaboratorCount: 1,
+          x: leftX,
+          y: ch / 2 - totalHR / 2 + i * vSpaceR,
+        });
       });
-    });
 
-    setNodes(newNodes);
-    setEdges(newEdges);
-    setPan({ x: 0, y: 0 });
-    setZoom(1);
-  }, [selectedId, selectedType, allResearch, allIdeas]);
+      allIdeas.forEach((idea, i) => {
+        newNodes.push({
+          id: idea.id, type: 'idea',
+          title: idea.title,
+          summary: idea.description ?? '',
+          voteCount: idea.voteCount,
+          collaboratorCount: idea.collaborators?.length ?? 0,
+          x: rightX,
+          y: ch / 2 - totalHI / 2 + i * vSpaceI,
+        });
+        (idea.researchIds ?? []).forEach(rid => {
+          if (allResearch.find(r => r.id === rid)) {
+            newEdges.push({ sourceId: idea.id, sourceType: 'idea', targetId: rid, targetType: 'research' });
+          }
+        });
+      });
+
+      setNodes(newNodes);
+      setEdges(newEdges);
+      setPan({ x: 0, y: 0 });
+      setZoom(1);
+    } else {
+      // ── FOCUSED MAP: single center node ──
+      if (selectedId === undefined || selectedType === undefined) return;
+      const cx = cw / 2 - NODE_W / 2;
+      const cy = ch / 2 - NODE_H / 2;
+
+      const center = selectedType === 'research'
+        ? allResearch.find(r => r.id === selectedId)
+        : allIdeas.find(i => i.id === selectedId);
+      if (!center) return;
+
+      const newNodes: NodeData[] = [{
+        id: center.id, type: selectedType,
+        title: center.title,
+        summary: selectedType === 'research' ? (center as Research).summary ?? '' : (center as Idea).description ?? '',
+        voteCount: center.voteCount,
+        collaboratorCount: selectedType === 'idea' ? ((center as Idea).collaborators?.length ?? 0) : 1,
+        x: cx, y: cy,
+      }];
+      const newEdges: Edge[] = [];
+
+      let connected: { item: Research | Idea; type: 'research' | 'idea' }[] = [];
+      if (selectedType === 'research') {
+        connected = allIdeas.filter(i => i.researchIds?.includes(selectedId)).map(i => ({ item: i, type: 'idea' as const }));
+        connected.forEach(({ item }) => newEdges.push({ sourceId: selectedId, sourceType: 'research', targetId: item.id, targetType: 'idea' }));
+      } else {
+        const idea = center as Idea;
+        connected = allResearch.filter(r => idea.researchIds?.includes(r.id)).map(r => ({ item: r, type: 'research' as const }));
+        connected.forEach(({ item }) => newEdges.push({ sourceId: selectedId, sourceType: 'idea', targetId: item.id, targetType: 'research' }));
+      }
+
+      const n = connected.length;
+      const radius = Math.max(320, n * 90);
+      connected.forEach(({ item, type }, i) => {
+        const angle = n === 1 ? Math.PI / 2
+          : -Math.PI / 2 + (i / Math.max(n - 1, 1)) * (n > 2 ? 2 * Math.PI : Math.PI);
+        newNodes.push({
+          id: item.id, type,
+          title: item.title,
+          summary: type === 'research' ? (item as Research).summary ?? '' : (item as Idea).description ?? '',
+          voteCount: item.voteCount,
+          collaboratorCount: type === 'idea' ? ((item as Idea).collaborators?.length ?? 0) : 1,
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle),
+        });
+      });
+
+      setNodes(newNodes);
+      setEdges(newEdges);
+      setPan({ x: 0, y: 0 });
+      setZoom(1);
+    }
+  }, [selectedId, selectedType, globalMode, allResearch, allIdeas]);
 
   useEffect(() => { buildGraph(); }, [buildGraph]);
 
-  // ── Screen → canvas coordinate ─────────────────────────────────────
+  // ── Coordinate conversion ──────────────────────────────────────────
 
   const toCanvas = useCallback((sx: number, sy: number) => {
     const rect = containerRef.current!.getBoundingClientRect();
@@ -193,14 +242,11 @@ export function RelationGraph({
     };
   }, []);
 
-  // ── Canvas pointer events ──────────────────────────────────────────
+  // ── Canvas events ──────────────────────────────────────────────────
 
   const onCanvasPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Don't intercept clicks on buttons or interactive elements
     const t = e.target as HTMLElement;
-    if (t.closest('button')) return;
-    if (t.closest('[data-node]')) return;
-    if (t.closest('[data-port]')) return;
+    if (t.closest('button') || t.closest('[data-node]') || t.closest('[data-port]')) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
     panDrag.current = { mx: e.clientX, my: e.clientY, px: panRef.current.x, py: panRef.current.y };
@@ -239,7 +285,7 @@ export function RelationGraph({
 
   const onCanvasWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    setZoom(z => Math.min(2.5, Math.max(0.25, +(z + (e.deltaY > 0 ? -0.1 : 0.1)).toFixed(2))));
+    setZoom(z => Math.min(2.5, Math.max(0.2, +(z + (e.deltaY > 0 ? -0.1 : 0.1)).toFixed(2))));
   };
 
   // ── Node drag ──────────────────────────────────────────────────────
@@ -250,7 +296,6 @@ export function RelationGraph({
     e.stopPropagation();
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
-
     const sx = e.clientX, sy = e.clientY;
     const ox = node.x, oy = node.y;
     const nk = nodeKey(node.id, node.type);
@@ -265,7 +310,7 @@ export function RelationGraph({
     el.addEventListener('pointerup', onUp);
   };
 
-  // ── Port drag (start drawing) ──────────────────────────────────────
+  // ── Port drag ──────────────────────────────────────────────────────
 
   const onPortPointerDown = (e: React.PointerEvent<SVGElement>, node: NodeData, side: PortSide) => {
     e.stopPropagation();
@@ -274,7 +319,7 @@ export function RelationGraph({
     setDrawTick(t => t + 1);
   };
 
-  // ── Save / delete edges ────────────────────────────────────────────
+  // ── Save / delete ──────────────────────────────────────────────────
 
   const saveEdge = async (fromId: number, fromType: string, toId: number, toType: string) => {
     let ideaId: number, researchId: number;
@@ -317,10 +362,8 @@ export function RelationGraph({
 
   const flash = (msg: string) => { setSaveMsg(msg); setTimeout(() => setSaveMsg(null), 2500); };
 
-  // ── Zoom controls ──────────────────────────────────────────────────
-
   const zoomIn  = () => setZoom(z => Math.min(2.5, +(z + 0.2).toFixed(2)));
-  const zoomOut = () => setZoom(z => Math.max(0.25, +(z - 0.2).toFixed(2)));
+  const zoomOut = () => setZoom(z => Math.max(0.2, +(z - 0.2).toFixed(2)));
   const fitView = () => { setPan({ x: 0, y: 0 }); setZoom(1); };
 
   // ── Minimap ────────────────────────────────────────────────────────
@@ -336,8 +379,6 @@ export function RelationGraph({
 
   const dr = drawing.current;
   const isDrawing = !!dr;
-
-  // All 4 port sides
   const PORT_SIDES: PortSide[] = ['top', 'bottom', 'left', 'right'];
 
   return (
@@ -358,7 +399,7 @@ export function RelationGraph({
       onPointerUp={onCanvasPointerUp}
       onWheel={onCanvasWheel}
     >
-      {/* ── Top bar ────────────────────────────────── */}
+      {/* ── Top bar ──────────────────────────────────── */}
       <div className="absolute top-4 left-4 z-30 flex items-center gap-2">
         <button
           onClick={onBack}
@@ -367,7 +408,7 @@ export function RelationGraph({
           <ArrowLeft size={14} /> Listeye Dön
         </button>
         <span className="text-xs text-gray-400 bg-white/90 px-2.5 py-1 rounded-full border border-gray-100">
-          {nodes.length} düğüm · {edges.length} bağlantı
+          {globalMode ? 'Genel Harita · ' : ''}{nodes.length} düğüm · {edges.length} bağlantı
         </span>
         {saveMsg && (
           <span className={`text-xs px-3 py-1 rounded-full border font-medium ${saveMsg.includes('✓') ? 'bg-green-50 border-green-200 text-green-700' : saveMsg.includes('silindi') ? 'bg-orange-50 border-orange-200 text-orange-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
@@ -376,14 +417,34 @@ export function RelationGraph({
         )}
       </div>
 
-      {/* ── Drawing hint ───────────────────────────── */}
+      {/* ── Global map legend ────────────────────────── */}
+      {globalMode && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 bg-white border border-gray-200 rounded-full px-4 py-2 shadow-sm pointer-events-none">
+          <span className="flex items-center gap-1.5 text-xs text-indigo-700 font-medium">
+            <span className="w-2.5 h-2.5 rounded-sm bg-indigo-100 border border-indigo-400 inline-block" />
+            Araştırma
+          </span>
+          <span className="text-gray-200">|</span>
+          <span className="flex items-center gap-1.5 text-xs text-amber-700 font-medium">
+            <span className="w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-400 inline-block" />
+            Fikir
+          </span>
+          <span className="text-gray-200">|</span>
+          <span className="flex items-center gap-1.5 text-xs text-gray-500">
+            <span className="w-4 border-t-2 border-dashed border-indigo-300 inline-block" />
+            Bağlantı
+          </span>
+        </div>
+      )}
+
+      {/* Drawing hint */}
       {isDrawing && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 text-xs bg-indigo-50 border border-indigo-200 text-indigo-700 px-3 py-1.5 rounded-full font-medium pointer-events-none">
           Başka bir düğümün portuna sürükleyin
         </div>
       )}
 
-      {/* ── Zoom controls ──────────────────────────── */}
+      {/* ── Zoom controls ────────────────────────────── */}
       <div className="absolute top-4 right-4 z-30 flex flex-col gap-1">
         <button onClick={zoomIn}  className="w-8 h-8 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow flex items-center justify-center text-gray-600 hover:text-indigo-600 transition-all"><ZoomIn  size={14} /></button>
         <button onClick={zoomOut} className="w-8 h-8 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow flex items-center justify-center text-gray-600 hover:text-indigo-600 transition-all"><ZoomOut size={14} /></button>
@@ -391,7 +452,7 @@ export function RelationGraph({
         <div className="text-center text-[11px] text-gray-400 font-medium mt-0.5">{Math.round(zoom * 100)}%</div>
       </div>
 
-      {/* ── Main transform layer ────────────────────── */}
+      {/* ── Transform layer ──────────────────────────── */}
       <div
         className="absolute inset-0"
         style={{
@@ -400,12 +461,28 @@ export function RelationGraph({
           pointerEvents: 'none',
         }}
       >
-        {/* SVG: edges, live edge, port dots */}
-        <svg
-          className="absolute inset-0 overflow-visible"
-          style={{ width: '100%', height: '100%', pointerEvents: 'none' }}
-        >
-          {/* Existing edges */}
+        {/* Global map column headers */}
+        {globalMode && (() => {
+          const cw = containerRef.current?.clientWidth ?? 900;
+          const ch = containerRef.current?.clientHeight ?? 600;
+          const colGap = Math.max(cw * 0.5, 400);
+          const leftX  = cw / 2 - colGap / 2 - NODE_W / 2;
+          const rightX = cw / 2 + colGap / 2 - NODE_W / 2;
+          return (
+            <>
+              <div className="absolute" style={{ left: leftX, top: 20, width: NODE_W, pointerEvents: 'none' }}>
+                <div className="text-center text-xs font-bold text-indigo-500 uppercase tracking-widest">📄 Araştırmalar</div>
+              </div>
+              <div className="absolute" style={{ left: rightX, top: 20, width: NODE_W, pointerEvents: 'none' }}>
+                <div className="text-center text-xs font-bold text-amber-500 uppercase tracking-widest">💡 Fikirler</div>
+              </div>
+            </>
+          );
+        })()}
+
+        {/* SVG: edges + live edge + ports */}
+        <svg className="absolute inset-0 overflow-visible" style={{ width: '100%', height: '100%', pointerEvents: 'none' }}>
+          {/* Edges */}
           {edges.map((edge, i) => {
             const src = nodes.find(n => n.id === edge.sourceId && n.type === edge.sourceType);
             const tgt = nodes.find(n => n.id === edge.targetId && n.type === edge.targetType);
@@ -417,23 +494,19 @@ export function RelationGraph({
 
             return (
               <g key={i}>
-                {/* Hit area */}
                 <path d={path} fill="none" stroke="transparent" strokeWidth={18}
                   style={{ pointerEvents: 'all', cursor: 'pointer' }}
                   onMouseEnter={() => setHoveredEdge(i)}
                   onMouseLeave={() => setHoveredEdge(null)}
                 />
-                {/* Visible edge */}
                 <path d={path} fill="none"
                   stroke={hov ? '#6366f1' : edge.manual ? '#818cf8' : '#c7d2fe'}
                   strokeWidth={hov ? 2.5 : 1.5}
                   strokeDasharray="7 4" strokeLinecap="round"
-                  style={{ transition: 'stroke 0.12s, stroke-width 0.12s', pointerEvents: 'none' }}
+                  style={{ transition: 'stroke 0.12s', pointerEvents: 'none' }}
                 />
-                {/* Endpoint dots */}
-                <circle cx={s.x} cy={s.y} r={3.5} fill={hov ? '#6366f1' : edge.manual ? '#818cf8' : '#c7d2fe'} style={{ pointerEvents: 'none' }} />
-                <circle cx={t.x} cy={t.y} r={3.5} fill={hov ? '#6366f1' : edge.manual ? '#818cf8' : '#c7d2fe'} style={{ pointerEvents: 'none' }} />
-                {/* Delete button */}
+                <circle cx={s.x} cy={s.y} r={3.5} fill={hov ? '#6366f1' : '#c7d2fe'} style={{ pointerEvents: 'none' }} />
+                <circle cx={t.x} cy={t.y} r={3.5} fill={hov ? '#6366f1' : '#c7d2fe'} style={{ pointerEvents: 'none' }} />
                 {hov && (
                   <g transform={`translate(${mx},${my})`}
                     style={{ pointerEvents: 'all', cursor: 'pointer' }}
@@ -449,32 +522,27 @@ export function RelationGraph({
             );
           })}
 
-          {/* Live drawing edge */}
+          {/* Live edge */}
           {dr && (() => {
             const fromPort = getPort(dr.srcNode, dr.portSide);
             return (
               <g>
-                <path
-                  d={buildLivePath(fromPort.x, fromPort.y, dr.toX, dr.toY)}
-                  fill="none" stroke="#6366f1" strokeWidth={2}
-                  strokeDasharray="6 4" strokeLinecap="round" opacity={0.85}
-                />
+                <path d={buildLivePath(fromPort.x, fromPort.y, dr.toX, dr.toY)}
+                  fill="none" stroke="#6366f1" strokeWidth={2} strokeDasharray="6 4" strokeLinecap="round" opacity={0.85} />
                 <circle cx={fromPort.x} cy={fromPort.y} r={4} fill="#6366f1" />
                 <circle cx={dr.toX} cy={dr.toY} r={3.5} fill="#6366f1" opacity={0.5} />
               </g>
             );
           })()}
 
-          {/* Port dots on each node */}
+          {/* Ports */}
           {nodes.map(node => {
             const nk = nodeKey(node.id, node.type);
             const isTarget = hoverTarget === nk && isDrawing;
-
             return PORT_SIDES.map(side => {
               const { x, y } = getPort(node, side);
               return (
-                <circle
-                  key={`port-${nk}-${side}`}
+                <circle key={`port-${nk}-${side}`}
                   cx={x} cy={y} r={PORT_R}
                   fill="white"
                   stroke={isTarget ? '#6366f1' : '#a5b4fc'}
@@ -493,13 +561,12 @@ export function RelationGraph({
         {/* Node cards */}
         {nodes.map(node => {
           const nk = nodeKey(node.id, node.type);
-          const isCenter = node.id === selectedId && node.type === selectedType;
+          const isCenter = !globalMode && node.id === selectedId && node.type === selectedType;
           const isIdea = node.type === 'idea';
           const isHoverTarget = hoverTarget === nk && isDrawing;
 
           return (
-            <div
-              key={nk}
+            <div key={nk}
               data-node="true"
               onPointerDown={e => onNodePointerDown(e, node)}
               onPointerEnter={() => isDrawing && setHoverTarget(nk)}
@@ -509,19 +576,14 @@ export function RelationGraph({
                 : isHoverTarget ? 'border-indigo-400 ring-2 ring-indigo-100 shadow-xl'
                 : 'border-gray-200 shadow-md hover:shadow-lg'
               }`}
-              style={{
-                left: node.x, top: node.y, width: NODE_W,
-                pointerEvents: 'auto', cursor: 'grab', touchAction: 'none',
-              }}
+              style={{ left: node.x, top: node.y, width: NODE_W, pointerEvents: 'auto', cursor: 'grab', touchAction: 'none' }}
             >
-              {/* Badge row */}
               <div className={`flex items-center gap-1.5 px-3 py-2 rounded-t-2xl border-b ${isIdea ? 'bg-amber-50 border-amber-100' : 'bg-indigo-50 border-indigo-100'}`}>
                 <span className={`text-[10px] font-bold tracking-widest uppercase ${isIdea ? 'text-amber-600' : 'text-indigo-600'}`}>
                   {isIdea ? '💡 Fikir' : '📄 Araştırma'}
                 </span>
                 {isCenter && <span className="ml-1 text-[9px] text-gray-400 font-medium">Seçili</span>}
-                <button
-                  data-detail="true"
+                <button data-detail="true"
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => { e.stopPropagation(); onNodeClick(node.id, node.type); }}
                   className="ml-auto p-0.5 rounded hover:bg-black/5 text-gray-400 hover:text-gray-600 transition-colors"
@@ -531,8 +593,6 @@ export function RelationGraph({
                   <ExternalLink size={11} />
                 </button>
               </div>
-
-              {/* Content */}
               <div className="px-3 pt-2.5 pb-3">
                 <h4 className="font-semibold text-gray-900 text-[13px] mb-1.5 line-clamp-2 leading-snug">{node.title}</h4>
                 <p className="text-[11px] text-gray-500 line-clamp-2 leading-relaxed">{node.summary}</p>
@@ -550,7 +610,7 @@ export function RelationGraph({
         })}
       </div>
 
-      {/* ── Minimap ────────────────────────────────── */}
+      {/* ── Minimap ───────────────────────────────────── */}
       {nodes.length > 0 && (
         <div className="absolute bottom-4 right-4 z-30 bg-white/95 border border-gray-200 rounded-xl shadow-sm overflow-hidden pointer-events-none"
           style={{ width: MM_W, height: MM_H }}>
@@ -560,14 +620,12 @@ export function RelationGraph({
               const tgt = nodes.find(n => n.id === edge.targetId && n.type === edge.targetType);
               if (!src || !tgt) return null;
               const { s, t } = getBestPorts(src, tgt);
-              return <line key={i}
-                x1={(s.x - minX) * mmSX} y1={(s.y - minY) * mmSY}
-                x2={(t.x - minX) * mmSX} y2={(t.y - minY) * mmSY}
+              return <line key={i} x1={(s.x - minX) * mmSX} y1={(s.y - minY) * mmSY} x2={(t.x - minX) * mmSX} y2={(t.y - minY) * mmSY}
                 stroke={edge.manual ? '#818cf8' : '#c7d2fe'} strokeWidth={1} strokeDasharray="3 2" />;
             })}
             {nodes.map(node => {
               const nk = nodeKey(node.id, node.type);
-              const isCenter = node.id === selectedId && node.type === selectedType;
+              const isCenter = !globalMode && node.id === selectedId && node.type === selectedType;
               const isIdea = node.type === 'idea';
               return <rect key={`mm-${nk}`}
                 x={(node.x - minX) * mmSX} y={(node.y - minY) * mmSY}
