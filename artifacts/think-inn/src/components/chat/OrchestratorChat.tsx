@@ -53,7 +53,7 @@ export function OrchestratorChat() {
   };
 
   return (
-    <div className="w-full lg:w-[440px] flex flex-col relative z-20 h-full bg-white border-l border-gray-100 shadow-xl shadow-gray-200/40">
+    <div className="w-full flex flex-col relative z-20 h-full bg-white border-l border-gray-100 shadow-xl shadow-gray-200/40 lg:w-[440px] lg:shrink-0">
 
       {/* ── Header ────────────────────────────────────────────────── */}
       <div className="relative overflow-hidden shrink-0">
