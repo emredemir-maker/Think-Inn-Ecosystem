@@ -140,11 +140,14 @@ router.post("/:id/re-evaluate", async (req, res) => {
 
     const researchIds: number[] = Array.isArray(idea.researchIds) ? (idea.researchIds as number[]) : [];
 
-    setImmediate(() =>
-      backgroundEvaluateIdea(id, idea.title, idea.description || "", researchIds)
-    );
-
     res.json({ ok: true, message: "Değerlendirme yeniden başlatıldı" });
+
+    // Run evaluation AFTER responding so it doesn't block the client
+    try {
+      await backgroundEvaluateIdea(id, idea.title, idea.description || "", researchIds);
+    } catch (bgErr) {
+      req.log.error({ bgErr }, "backgroundEvaluateIdea failed");
+    }
   } catch (err) {
     req.log.error({ err }, "Failed to re-evaluate idea");
     res.status(500).json({ error: "Internal server error" });

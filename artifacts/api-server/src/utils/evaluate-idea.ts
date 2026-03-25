@@ -15,7 +15,7 @@ export async function backgroundEvaluateIdea(
     const linkedResearch = allResearch.filter(r => linkedResearchIds.includes(r.id));
     const linkedContext = linkedResearch.length > 0
       ? linkedResearch.map(r =>
-          `[${r.title}]\nÖzet: ${r.summary ?? ''}\nBulgular: ${(r.findings ?? '').slice(0, 400)}`
+          `[${r.title}]\nÖzet: ${r.summary ?? ''}\nBulgular: ${(r.findings ?? '').slice(0, 800)}`
         ).join("\n\n")
       : "(Bu fikre henüz araştırma bağlanmamış)";
 
@@ -37,9 +37,10 @@ ${linkedContext}
 
 ARAŞTIRMA KAPSAM DEĞERLENDİRMESİ — KRİTİK:
 - neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU ama yukarıdaki BAĞLI araştırmalarla HENÜZ KARŞILANMAYAN konular (max 5).
-  Bağlı araştırmanın içeriği (özet + bulgular) bir konuyu gerçekten karşılıyorsa o konuyu bu listeye YAZMA.
+  Bağlı araştırmanın başlığı veya içeriği bir konuyu karşılıyorsa o konuyu bu listeye YAZMA.
+  Tüm zorunlu konular bağlı araştırmalarla karşılanmışsa boş liste döndür: []
   Bağlı araştırma yoksa fikrin gerektirdiği tüm zorunlu konuları listele.
-- optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3, bağlı araştırmalarla karşılanmayanlar)
+- optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3)
 - pivotSuggestion: Herhangi bir eksen <6 ise fikri kurtaracak SOMUT bir pivot önerisi (yoksa null)
 - summary: 2-3 cümlelik özet değerlendirme
 
@@ -50,7 +51,7 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
   "technicalDifficulty": 6,
   "trendAlignment": 9,
   "riskGovernance": 7,
-  "neededResearchTopics": ["henüz karşılanmayan konu1"],
+  "neededResearchTopics": [],
   "optionalResearchTopics": ["opsiyonel konu1"],
   "pivotSuggestion": null,
   "summary": "Değerlendirme özeti..."
@@ -59,10 +60,16 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
     const res = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: [{ role: "user", parts: [{ text: evalPrompt }] }],
-      config: { maxOutputTokens: 1024, temperature: 0.3 },
+      config: {
+        maxOutputTokens: 8192,
+        temperature: 0.3,
+        thinkingConfig: { thinkingBudget: 0 },
+      },
     });
 
-    const match = res.text?.match(/\{[\s\S]*\}/);
+    // Strip markdown code fences if present
+    const rawText = res.text?.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "") ?? "";
+    const match = rawText.match(/\{[\s\S]*\}/);
     if (!match) return;
 
     const eval_ = JSON.parse(match[0]) as {
@@ -95,5 +102,5 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
         updatedAt: new Date(),
       })
       .where(eq(ideasTable.id, ideaId));
-  } catch (_) { /* non-blocking — silently fail */ }
+  } catch (_) { /* non-blocking — silently ignore */ }
 }
