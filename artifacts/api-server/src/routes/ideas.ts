@@ -2,6 +2,8 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { ideasTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import { setImmediate } from "timers";
+import { backgroundEvaluateIdea } from "../utils/evaluate-idea";
 
 const router = Router();
 
@@ -119,6 +121,32 @@ router.put("/:id", async (req, res) => {
     res.json(item);
   } catch (err) {
     req.log.error({ err }, "Failed to update idea");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.post("/:id/re-evaluate", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, id));
+    if (!idea) return res.status(404).json({ error: "Idea not found" });
+
+    // Reset evaluation so polling spinner activates
+    await db
+      .update(ideasTable)
+      .set({ evaluatedAt: null, evaluationScores: null, updatedAt: new Date() })
+      .where(eq(ideasTable.id, id));
+
+    const researchIds: number[] = Array.isArray(idea.researchIds) ? (idea.researchIds as number[]) : [];
+
+    setImmediate(() =>
+      backgroundEvaluateIdea(id, idea.title, idea.description || "", researchIds)
+    );
+
+    res.json({ ok: true, message: "Değerlendirme yeniden başlatıldı" });
+  } catch (err) {
+    req.log.error({ err }, "Failed to re-evaluate idea");
     res.status(500).json({ error: "Internal server error" });
   }
 });

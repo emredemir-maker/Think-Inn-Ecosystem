@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen, Sparkles, Lock, TrendingUp, Lightbulb, Loader2 } from 'lucide-react';
+import { X, CheckCircle2, AlertTriangle, Users, Circle, BookOpen, Sparkles, Lock, TrendingUp, Lightbulb, Loader2, RefreshCw } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Research, Idea } from '@workspace/api-client-react';
 import { CyberBadge } from '../ui/CyberBadge';
 import { format } from 'date-fns';
@@ -252,6 +253,9 @@ function EvaluationPanel({ idea }: { idea: Idea }) {
 }
 
 function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: Research[]; onClose: () => void }) {
+  const queryClient = useQueryClient();
+  const [isReEvaluating, setIsReEvaluating] = useState(false);
+
   const linkedResearchIds: number[] = idea.researchIds ?? [];
   // neededResearchTopics = AI-determined uncovered topics (updated on each evaluation)
   // Covered topics are removed by the background evaluation agent — no client-side guessing
@@ -271,6 +275,18 @@ function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: R
     sendToChat(`"${idea.title}" fikri için mimari şema ve fonksiyonel analiz oluştur.`);
   };
 
+  const handleReEvaluate = useCallback(async () => {
+    if (isReEvaluating) return;
+    setIsReEvaluating(true);
+    try {
+      await fetch(`/api/ideas/${idea.id}/re-evaluate`, { method: 'POST' });
+      // Invalidate queries so polling/spinner re-activates
+      await queryClient.invalidateQueries({ queryKey: ['/api/ideas'] });
+    } finally {
+      setIsReEvaluating(false);
+    }
+  }, [idea.id, isReEvaluating, queryClient]);
+
   return (
     <div className="space-y-6">
 
@@ -281,18 +297,27 @@ function IdeaDetail({ idea, allResearch, onClose }: { idea: Idea; allResearch: R
             <BookOpen size={15} className="text-gray-500" />
             <span className="text-sm font-semibold text-gray-800">Araştırma Konuları</span>
           </div>
-          {requiredTopics.length > 0 && (
-            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-              requiredTopics.length === 0 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-            }`}>
-              {requiredTopics.length} açık zorunlu konu
-            </span>
-          )}
-          {requiredTopics.length === 0 && linkedResearchItems.length > 0 && (
-            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">
-              Tüm konular karşılandı
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {requiredTopics.length > 0 && (
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                {requiredTopics.length} açık zorunlu konu
+              </span>
+            )}
+            {requiredTopics.length === 0 && linkedResearchItems.length > 0 && (
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-green-100 text-green-700">
+                Tüm konular karşılandı
+              </span>
+            )}
+            <button
+              onClick={handleReEvaluate}
+              disabled={isReEvaluating}
+              title="Bağlı araştırmaları dikkate alarak yeniden değerlendir"
+              className="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-indigo-600 px-2 py-1 rounded-md hover:bg-indigo-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={12} className={isReEvaluating ? 'animate-spin' : ''} />
+              {isReEvaluating ? 'Yeniden değerlendiriliyor...' : 'Yeniden Değerlendir'}
+            </button>
+          </div>
         </div>
 
         {/* Actual linked research — real titles */}
