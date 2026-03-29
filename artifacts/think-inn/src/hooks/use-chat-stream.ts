@@ -6,6 +6,7 @@ export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
   isStreaming?: boolean;
+  progressLabel?: string;
   savedItems?: Array<{ type: "research" | "idea"; id: number; title: string }>;
 }
 
@@ -73,19 +74,26 @@ export function useChatStream(conversationId: number | null) {
               // Stream complete
               setMessages(prev => prev.map(m =>
                 m.id === assistantMsgId
-                  ? { ...m, isStreaming: false, savedItems }
+                  ? { ...m, isStreaming: false, progressLabel: undefined, savedItems }
                   : m
               ));
+            } else if (data.progress) {
+              // Tool is running — show progress label in the streaming bubble
+              setMessages(prev => prev.map(m =>
+                m.id === assistantMsgId ? { ...m, progressLabel: data.progress } : m
+              ));
             } else if (data.action === "research_saved") {
-              // Research was saved by AI — refresh immediately
+              // Research was saved by AI — force immediate refetch
               queryClient.invalidateQueries({ queryKey: ["/api/research"] });
+              queryClient.refetchQueries({ queryKey: ["/api/research"] });
               savedItems.push({ type: "research", id: data.data.id, title: data.data.title });
               setMessages(prev => prev.map(m =>
                 m.id === assistantMsgId ? { ...m, savedItems: [...(m.savedItems || []), { type: "research" as const, id: data.data.id, title: data.data.title }] } : m
               ));
             } else if (data.action === "idea_saved") {
-              // Idea was saved by AI — refresh immediately
+              // Idea was saved by AI — force immediate refetch
               queryClient.invalidateQueries({ queryKey: ["/api/ideas"] });
+              queryClient.refetchQueries({ queryKey: ["/api/ideas"] });
               savedItems.push({ type: "idea", id: data.data.id, title: data.data.title });
               setMessages(prev => prev.map(m =>
                 m.id === assistantMsgId ? { ...m, savedItems: [...(m.savedItems || []), { type: "idea" as const, id: data.data.id, title: data.data.title }] } : m

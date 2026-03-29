@@ -11,6 +11,7 @@ import { ai } from "@workspace/integrations-gemini-ai";
 import { generateImage } from "@workspace/integrations-gemini-ai/image";
 import { setImmediate } from "timers";
 import { backgroundEvaluateIdea } from "../../utils/evaluate-idea";
+import { buildResearchCoverPrompt } from "../../utils/cover-image";
 
 const router = Router();
 
@@ -30,16 +31,17 @@ const TOOLS = [
             title: { type: "STRING", description: "Araştırmanın başlığı" },
             summary: {
               type: "STRING",
-              description: "Araştırmanın kısa özeti (2-4 cümle)",
+              description: "Araştırmanın kısa yönetici özeti (2-4 cümle). SADECE bu alan kısa olacak.",
             },
             findings: {
               type: "STRING",
-              description: "Ana bulgular, sonuçlar ve önemli çıktılar",
+              description:
+                "İçerikteki TÜM bulgular, argümanlar, veriler ve sonuçlar. KISALTMA YAPMA — içeriğin tamamını buraya koy. rawContent varsa oradaki metni aynen aktar.",
             },
             technicalAnalysis: {
               type: "STRING",
               description:
-                "Teknik analiz, metodoloji veya yöntemler (varsa)",
+                "İçerikteki TÜM teknik detaylar, metodolojiler, araçlar ve karşılaştırmalar. KISALTMA YAPMA. Teknik bilgi yoksa boş bırak.",
             },
             authorName: {
               type: "STRING",
@@ -51,6 +53,11 @@ const TOOLS = [
               items: { type: "STRING" },
               description:
                 "Araştırmayla ilgili anahtar kelimeler / etiketler (maks 6, Türkçe veya teknik terim)",
+            },
+            rawContent: {
+              type: "STRING",
+              description:
+                "Kullanıcının yapıştırdığı ham, formatlanmamış tam metin. Düz metin makale/araştırma yapıştırıldıysa MUTLAKA bu alana koy. AI bu metni yapılandıracak.",
             },
           },
           required: ["title", "summary", "findings", "authorName"],
@@ -172,6 +179,24 @@ const TOOLS = [
           properties: {},
         },
       },
+      {
+        name: "generate_idea_analysis",
+        description:
+          "Bir fikir için kapsamlı fonksiyonel analiz, teknik analiz ve mimari plan oluşturur. " +
+          "Kullanıcı 'analiz oluştur', 'mimari şema', 'fonksiyonel analiz', 'teknik analiz' veya " +
+          "'mimari plan' gibi ifadeler kullandığında MUTLAKA bu aracı çağır. " +
+          "list_existing_ideas çıktısından ilgili fikrin ID'sini al.",
+        parameters: {
+          type: "OBJECT",
+          properties: {
+            ideaId: {
+              type: "NUMBER",
+              description: "Analiz edilecek fikrin ID'si. list_existing_ideas çıktısından al.",
+            },
+          },
+          required: ["ideaId"],
+        },
+      },
     ],
   },
 ];
@@ -193,17 +218,19 @@ async function executeTool(
       const rawSummary = (args.summary as string) || "";
       const rawFindings = (args.findings as string) || "";
       const rawTechnical = (args.technicalAnalysis as string) || "";
-      const rawContent = [rawSummary, rawFindings].filter(Boolean).join("\n\n");
+      const pastedRawContent = (args.rawContent as string) || "";
+      // Use pasted raw content as primary source if provided; fall back to extracted fields
+      const rawContent = pastedRawContent || [rawSummary, rawFindings, rawTechnical].filter(Boolean).join("\n\n");
 
-      // ── Step 1: Reformat & proofread content using Gemini ───────────────────
+      // ── Step 1: Reformat & structure content using Gemini ───────────────────
       let fmtSummary = rawSummary;
       let fmtFindings = rawFindings;
       let fmtTechnical = rawTechnical;
 
       try {
-        const formatPrompt = `Aşağıdaki araştırma içeriğini akademik ve profesyonel formatta yeniden düzenle.
-
-GİRDİ:
+        const formatPrompt = `Aşağıdaki araştırma/makale içeriğini formatla ve yapılandır. İÇERİĞİ KISALTMA — sadece format ve yapı değişecek.
+${pastedRawContent ? `\nHAM METİN (kullanıcının yapıştırdığı düz metin — bunu öncelikli kaynak olarak kullan):\n${pastedRawContent}\n` : ""}
+GİRDİ (AI tarafından çıkarılan alanlar):
 Başlık: ${rawTitle}
 Özet: ${rawSummary}
 Bulgular/İçerik: ${rawFindings}
@@ -211,31 +238,33 @@ Teknik Analiz: ${rawTechnical}
 
 BÖLÜM KURALLARI:
 
-**summary** (ÖZET):
-- 2-3 cümlelik, kısa ve öz bir özet
-- Araştırmanın amacını ve kapsamını anlat
+**summary** (YÖNETİCİ ÖZETİ — sadece bu alan kısa olacak):
+- Maksimum 4-5 cümle, makalenin başına konacak kısa bir özet kutusu için
+- Araştırmanın amacını, kapsamını ve temel çıktısını anlat
 - Düz paragraf halinde yaz, liste kullanma
-- İçeriği doğrudan yansıt — abartma veya genelleme yapma
+- Okuyucuya "bu makale ne hakkında?" sorusunu yanıtlasın
 
-**findings** (BULGULAR):
-- Araştırmanın somut bulgularını ve sonuçlarını içer
-- Madde listesi (- ile) kullan, her bulgu ayrı satırda
-- **Önemli sayısal veriler**, **anahtar kavramlar** ve **kritik sonuçlar** bold yap
-- Minimum 3, maksimum 8 madde
-- Akademik, doğrudan ve kesin bir dil kullan
+**findings** (BULGULAR VE İÇERİK — TAMAMI KORUNACAK):
+- HAM METİN veya girdideki TÜM bilgi, bulgu, veri, argüman ve sonuçları koru
+- HİÇBİR bilgiyi çıkarma, kısaltma veya özetleme — sadece formatla
+- Madde listesi (- ile) kullan, her önemli nokta ayrı satırda
+- **Önemli sayısal veriler**, **anahtar kavramlar**, **kritik sonuçlar** ve **özel isimler** bold yap
+- Madde sayısında SINIR YOK — içerik ne kadarsa o kadar madde yaz
+- Alt başlıklar gerekiyorsa ## kullan
+- Akademik, doğrudan ve kesin dil kullan
 
-**technicalAnalysis** (TEKNİK ANALİZ):
-- Eğer girdide teknik detay varsa: metodoloji, kullanılan araçlar, platform veya teknik karşılaştırma yaz
-- **Teknik terimler**, **platform adları**, **metodoloji adları** bold yap
-- Madde listesi veya paragraf olabilir
-- Eğer girdide teknik analiz yoksa boş string döndür: ""
+**technicalAnalysis** (TEKNİK ANALİZ — TAMAMI KORUNACAK):
+- Girdideki TÜM teknik detayları, metodolojileri, araçları, platformları ve karşılaştırmaları koru
+- **Teknik terimler**, **platform adları**, **metodoloji adları**, **araç isimleri** bold yap
+- Madde listesi veya alt başlıklı paragraflar kullan
+- Eğer girdide hiç teknik analiz yoksa boş string döndür: ""
 
 GENEL KURALLAR:
 - Türkçe dil bilgisi ve yazım hatalarını düzelt
-- "bu çalışma incelemektedir" yerine "araştırma ortaya koymuştur" gibi aktif bulgusal dil kullan
-- Gereksiz tekrar ve dolgu cümleleri kaldır
-- Markdown formatını kullan: **bold**, - liste
-- Her bölüm kendi içinde tam ve anlamlı olmalı
+- Aktif dil kullan: "araştırma ortaya koymuştur", "bulgular göstermektedir"
+- Gereksiz tekrar ve dolgu cümleler kaldır AMA bilgi kaybı olmasın
+- Markdown: **bold**, - liste, ## alt başlık
+- summary kısa, findings ve technicalAnalysis TAM ve KAPSAMLI olmalı
 
 SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 {"summary":"...","findings":"...","technicalAnalysis":"..."}`;
@@ -243,7 +272,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
         const formatRes = await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: [{ role: "user", parts: [{ text: formatPrompt }] }],
-          config: { maxOutputTokens: 3072 },
+          config: { maxOutputTokens: 32768 },
         });
         const match = formatRes.text?.match(/\{[\s\S]*\}/);
         if (match) {
@@ -261,18 +290,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
         }
       } catch (_) { /* use raw content if formatting fails */ }
 
-      // ── Step 2: Generate cover image ────────────────────────────────────────
-      let coverImageB64: string | null = null;
-      let coverImageMimeType: string | null = null;
-
-      try {
-        const imgPrompt = `Corporate research cover art for: "${rawTitle}". Style: modern editorial, clean minimalism. Visual metaphors related to the topic. Color palette: deep indigo (#4f46e5), white, slate blue gradients. Elements: abstract flowing shapes, subtle grid or network patterns, professional depth. No text, no letters, no numbers. High quality, editorial magazine style.`;
-        const imgResult = await generateImage(imgPrompt);
-        coverImageB64 = imgResult.b64_json;
-        coverImageMimeType = imgResult.mimeType;
-      } catch (_) { /* continue without image if generation fails */ }
-
-      // ── Step 3: Save to DB ───────────────────────────────────────────────────
+      // ── Step 2: Save to DB immediately (no image yet) ───────────────────────
       const [item] = await db
         .insert(researchTable)
         .values({
@@ -285,44 +303,33 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
           tags: (args.tags as string[]) || [],
           relatedTo: [],
           status: "published",
-          coverImageB64,
-          coverImageMimeType,
+          coverImageB64: null,
+          coverImageMimeType: null,
         })
         .returning();
 
       actions.push({ action: "research_saved", data: { id: item.id, title: item.title } });
 
-      // Auto-link non-blocking
+      // ── Step 3: Generate cover image in background (non-blocking) ───────────
       setImmediate(async () => {
         try {
-          const ideas = await db.select().from(ideasTable);
-          if (ideas.length === 0) return;
-          const ideaList = ideas
-            .map((i) => `ID:${i.id} | ${i.title} | ${i.description?.slice(0, 150)}`)
-            .join("\n");
-          const prompt = `Yeni araştırma: "${item.title}" - ${item.summary}\n\nFikirler:\n${ideaList}\n\nHangi fikirler bu araştırmayla ilgili? JSON: {"linkedIdeaIds":[]}`;
-          const res = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-            config: { maxOutputTokens: 256 },
-          });
-          const match = res.text?.match(/\{[\s\S]*\}/);
-          if (!match) return;
-          const { linkedIdeaIds } = JSON.parse(match[0]) as { linkedIdeaIds: number[] };
-          for (const ideaId of linkedIdeaIds || []) {
-            const idea = ideas.find((i) => i.id === ideaId);
-            if (!idea) continue;
-            const existing = idea.researchIds || [];
-            if (existing.includes(item.id)) continue;
-            await db
-              .update(ideasTable)
-              .set({ researchIds: [...existing, item.id], updatedAt: new Date() })
-              .where(eq(ideasTable.id, ideaId));
-          }
-        } catch (_) { /* non-blocking */ }
+          const imgPrompt = await buildResearchCoverPrompt(
+            rawTitle,
+            fmtSummary || "",
+            (args.tags as string[]) || [],
+            fmtFindings || "",
+          );
+          const imgResult = await generateImage(imgPrompt);
+          await db.update(researchTable)
+            .set({ coverImageB64: imgResult.b64_json, coverImageMimeType: imgResult.mimeType, updatedAt: new Date() })
+            .where(eq(researchTable.id, item.id));
+          console.log(`[CoverImage] Generated for research #${item.id}`);
+        } catch (imgErr) {
+          console.error(`[CoverImage] Failed for research #${item.id}:`, imgErr);
+        }
       });
 
-      return { success: true, id: item.id, message: `"${item.title}" araştırması kaydedildi.` };
+      return { success: true, id: item.id, message: `"${item.title}" araştırması kaydedildi. Kapak görseli arka planda oluşturuluyor.` };
     }
 
     case "save_idea": {
@@ -464,6 +471,118 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
       };
     }
 
+    case "generate_idea_analysis": {
+      const ideaId = args.ideaId as number;
+      if (!ideaId) return { error: "ideaId zorunlu." };
+
+      // Fetch idea
+      const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, ideaId));
+      if (!idea) return { error: `Fikir bulunamadı: ID ${ideaId}` };
+
+      // Fetch all linked research
+      let allLinkedResearch: (typeof researchTable.$inferSelect)[] = [];
+      if (idea.researchIds && idea.researchIds.length > 0) {
+        const allResearch = await db.select().from(researchTable);
+        allLinkedResearch = allResearch.filter(r => (idea.researchIds || []).includes(r.id));
+      }
+
+      const ideaContext = `Fikir Başlığı: ${idea.title}
+Açıklama: ${idea.description}
+Etiketler: ${(idea.tags || []).join(", ")}
+Zorunlu Araştırma Konuları: ${(idea.neededResearchTopics || []).join(", ") || "—"}
+Opsiyonel Araştırma Konuları: ${(idea.optionalResearchTopics || []).join(", ") || "—"}`;
+
+      const researchContext = allLinkedResearch.length > 0
+        ? allLinkedResearch.map(r =>
+            `Araştırma: ${r.title}\nÖzet: ${(r.summary || "").slice(0, 500)}\nBulgular: ${(r.findings || "").slice(0, 500)}`
+          ).join("\n---\n")
+        : "Henüz bağlı araştırma yok.";
+
+      // ── Generate three sections SEQUENTIALLY to avoid rate limits ──────────
+      const geminiCall = async (prompt: string, tokens = 6000): Promise<string> => {
+        try {
+          const r = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: [{ role: "user", parts: [{ text: prompt }] }],
+            config: { maxOutputTokens: tokens },
+          });
+          return r.text?.trim() || "";
+        } catch (e) {
+          console.error("[Analysis] Gemini call failed:", (e as Error).message);
+          return "";
+        }
+      };
+
+      const baseCtx = `## FİKİR\n${ideaContext}\n\n## İLGİLİ ARAŞTIRMALAR\n${researchContext}\n\n`;
+
+      const functionalAnalysis  = await geminiCall(`${baseCtx}Bu fikrin FONKSİYONEL ANALİZİNİ yap. Sistemin ne yapacağını, temel özellikleri, kullanıcı senaryolarını, iş akışlarını, fonksiyonel gereksinimler ve kabul kriterlerini Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık (##) kullan. Sadece analiz içeriğini döndür.`);
+      const technicalAnalysis   = await geminiCall(`${baseCtx}Bu fikrin TEKNİK ANALİZİNİ yap. Önerilen teknoloji yığını ve gerekçeleri, mimari pattern'ler, performans/ölçeklenebilirlik/güvenlik stratejileri, API tasarımı, veri modeli ve teknik riskler konularını Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık (##) kullan. Sadece analiz içeriğini döndür.`);
+      const architecturalPlan   = await geminiCall(`${baseCtx}Bu fikrin MİMARİ PLANINI hazırla. Sistem bileşenlerini katmanlara göre detaylı açıkla. Her bileşenin sorumluluğunu, iletişim protokollerini, veri akışını ve deployment stratejisini Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık kullan. Sadece plan içeriğini döndür.`);
+
+      console.log(`[Analysis] Idea #${ideaId} — functional: ${functionalAnalysis.length}, technical: ${technicalAnalysis.length}, arch: ${architecturalPlan.length} chars`);
+
+      if (!functionalAnalysis && !technicalAnalysis && !architecturalPlan) {
+        return { error: "Gemini analiz üretemedi. Lütfen tekrar deneyin." };
+      }
+
+      // ── Generate structured flow diagram (sequential, after text) ───────────
+      type FlowNode = { id: string; label: string; type: string; description?: string; layer?: string };
+      type FlowEdge = { from: string; to: string; label?: string; animated?: boolean };
+      let flowDiagram: { nodes: FlowNode[]; edges: FlowEdge[] } | undefined;
+
+      try {
+        const flowPrompt = `Proje: ${idea.title}
+Açıklama: ${idea.description}
+
+Bu proje için sistem mimarisi JSON şemasını oluştur. Katman türleri: user, frontend, backend, database, external, process.
+
+JSON (SADECE bunu döndür, başka hiçbir şey yazma):
+{"nodes":[{"id":"n1","label":"Kullanıcı","type":"user","description":"Son kullanıcı","layer":"user"},{"id":"n2","label":"Web Arayüzü","type":"frontend","description":"React SPA","layer":"frontend"},{"id":"n3","label":"API Sunucusu","type":"backend","description":"Node.js REST API","layer":"backend"},{"id":"n4","label":"Veritabanı","type":"database","description":"PostgreSQL","layer":"database"}],"edges":[{"from":"n1","to":"n2","label":"HTTPS","animated":true},{"from":"n2","to":"n3","label":"REST"},{"from":"n3","to":"n4","label":"SQL"}]}
+
+Proje gerçekliğine uygun 6-12 node üret. Her edge'de protokol/teknoloji belirt.`;
+
+        const flowRes = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: [{ role: "user", parts: [{ text: flowPrompt }] }],
+          config: { maxOutputTokens: 4096, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } } as any,
+        });
+
+        const rawText = flowRes.text?.trim() || "";
+        let parsed: any = null;
+        try { parsed = JSON.parse(rawText); } catch {
+          const m = rawText.match(/\{[\s\S]*\}/);
+          if (m) { try { parsed = JSON.parse(m[0]); } catch {} }
+        }
+        if (parsed?.nodes?.length > 0 && Array.isArray(parsed.edges)) {
+          flowDiagram = parsed;
+          console.log(`[FlowDiagram] ✓ ${parsed.nodes.length} nodes, ${parsed.edges.length} edges`);
+        }
+      } catch (e) {
+        console.warn("[FlowDiagram] Could not generate flow data:", (e as Error).message);
+      }
+
+      const architecturalAnalysis = {
+        functionalAnalysis,
+        technicalAnalysis,
+        architecturalPlan,
+        generatedAt: new Date().toISOString(),
+        ...(flowDiagram ? { flowDiagram } : {}),
+      };
+
+      await db.update(ideasTable)
+        .set({ architecturalAnalysis, updatedAt: new Date() } as any)
+        .where(eq(ideasTable.id, ideaId));
+
+      actions.push({ action: "idea_saved", data: { id: idea.id, title: idea.title } });
+
+      return {
+        success: true,
+        ideaId: idea.id,
+        ideaTitle: idea.title,
+        message: `"${idea.title}" fikri için analiz oluşturuldu ve kaydedildi. Fikir kartını açarak görüntüleyebilirsin.`,
+      };
+    }
+
     default:
       return { error: `Bilinmeyen araç: ${name}` };
   }
@@ -484,6 +603,7 @@ KRİTİK KURAL - VERİTABANI HER ZAMAN ÖNCE KONTROL EDİLMELİ:
 ARAŞTIRMA KAYDETME:
 - Kullanıcı bir araştırma metni, makale özeti, akademik içerik veya bulgu paylaştığında → önce list_existing_research çağır, DB'de yoksa save_research kullan
 - İçeriği analiz ederek başlık, özet, bulgular ve teknik analiz çıkar
+- Kullanıcı DÜZ METİN yapıştırdıysa (ham, formatsız metin): rawContent alanına tam metni AYNEN koy. summary için 2-4 cümlelik kısa özet yaz. findings ve technicalAnalysis alanlarına da içeriği KISALTMADAN aktar — sistem sonradan otomatik formatlar
 - Yazar adı belirtilmemişse "Anonim" kullan
 - Benzer başlıklı araştırma DB'de varsa kullanıcıya sor, yoksa doğrudan kaydet
 
@@ -515,6 +635,13 @@ ARAŞTIRMA KAYDEDİLDİKTEN SONRA YAPILACAKLAR:
 - Kaydedilen araştırmayı özetle
 - Sistemdeki fikir(ler)le ilişkisini belirt (varsa)
 - Bir sonraki adım için yönlendir
+
+ANALİZ OLUŞTURMA:
+- Kullanıcı bir fikir için "analiz oluştur", "mimari şema", "fonksiyonel analiz", "teknik analiz", "mimari plan" istediğinde:
+  1. ÖNCE list_existing_ideas çağır → fikrin ID'sini bul
+  2. SONRA generate_idea_analysis çağır: { ideaId: <ID> }
+  3. Analiz tamamlandığında kullanıcıya "Analiz tamamlandı, fikir detaylarından görüntüleyebilirsiniz." mesajı ver
+- ASLA "bu aracım yok" veya "yapamam" deme — generate_idea_analysis aracını kullan
 
 YANIT STİLİ:
 - Kısa, net ve profesyonel
@@ -634,6 +761,11 @@ router.post("/:id/messages", async (req, res) => {
       res.write(`data: ${JSON.stringify(data)}\n\n`);
     };
 
+    // Keep SSE connection alive during long operations
+    const keepAlive = setInterval(() => {
+      res.write(`: keepalive\n\n`);
+    }, 5000);
+
     // Build Gemini contents from conversation history
     const buildContents = (msgs: typeof allMessages) => [
       { role: "user" as const, parts: [{ text: SYSTEM_PROMPT }] },
@@ -643,6 +775,16 @@ router.post("/:id/messages", async (req, res) => {
         parts: [{ text: m.content }],
       })),
     ];
+
+    // ── Tool name → human-readable progress label ────────────────────────────
+    const TOOL_PROGRESS: Record<string, string> = {
+      list_existing_research:  "Mevcut araştırmalar kontrol ediliyor...",
+      list_existing_ideas:     "Mevcut fikirler kontrol ediliyor...",
+      save_research:           "Araştırma kaydediliyor...",
+      save_idea:               "Fikir kaydediliyor...",
+      update_idea:             "Fikir güncelleniyor...",
+      generate_idea_analysis:  "Mimari analiz oluşturuluyor (bu işlem 1-2 dakika sürebilir)...",
+    };
 
     // ── Agentic Loop ────────────────────────────────────────────────────────
     const executedActions: ActionEvent[] = [];
@@ -677,12 +819,26 @@ router.post("/:id/messages", async (req, res) => {
         break;
       }
 
+      // ── Emit progress for each tool about to run ─────────────────────────
+      for (const part of functionCallParts) {
+        const toolName = (part as any).functionCall?.name as string;
+        const label = TOOL_PROGRESS[toolName];
+        if (label) emitSSE({ progress: label });
+      }
+
       // Execute function calls
       const functionResponseParts: any[] = [];
       for (const part of functionCallParts) {
         const fc = (part as any).functionCall;
         try {
           const toolResult = await executeTool(fc.name, fc.args || {}, executedActions);
+
+          // ── Emit action events inline as tools complete ──────────────────
+          while (executedActions.length > 0) {
+            const action = executedActions.shift()!;
+            emitSSE(action);
+          }
+
           functionResponseParts.push({
             functionResponse: {
               name: fc.name,
@@ -707,9 +863,25 @@ router.post("/:id/messages", async (req, res) => {
       ];
     }
 
-    // ── Emit action events FIRST so UI refreshes immediately ────────────────
+    // ── Emit any remaining action events ────────────────────────────────────
     for (const action of executedActions) {
       emitSSE(action);
+    }
+
+    // ── If loop ended without a final text, ask Gemini for a summary ────────
+    if (!finalText) {
+      try {
+        // No tools in the summary call — we want text, not another tool invocation
+        const summaryResult = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: currentContents,
+          config: { maxOutputTokens: 1024 },
+        });
+        const sp = summaryResult.candidates?.[0]?.content?.parts || [];
+        finalText = sp.filter((p: any) => p.text).map((p: any) => p.text as string).join("");
+      } catch {
+        finalText = "İşlem tamamlandı.";
+      }
     }
 
     // ── Stream final text response ───────────────────────────────────────────
@@ -734,6 +906,7 @@ router.post("/:id/messages", async (req, res) => {
       content: assistantContent,
     });
 
+    clearInterval(keepAlive);
     emitSSE({ done: true });
     res.end();
   } catch (err) {
@@ -741,6 +914,7 @@ router.post("/:id/messages", async (req, res) => {
     if (!res.headersSent) {
       res.status(500).json({ error: "Internal server error" });
     } else {
+      clearInterval(keepAlive);
       res.write(`data: ${JSON.stringify({ error: "Stream error" })}\n\n`);
       res.end();
     }

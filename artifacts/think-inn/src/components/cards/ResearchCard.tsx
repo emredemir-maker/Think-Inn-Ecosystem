@@ -17,10 +17,13 @@ export function ResearchCard({
   onShowCanvas?: () => void;
 }) {
   const [voted, setVoted] = useState(false);
-  const hasImage = !!research.coverImageB64;
-  const imageSrc = hasImage
+  // List endpoint now strips base64 for performance. Use dedicated cover endpoint.
+  const hasImage = !!(research as any).hasCoverImage || !!research.coverImageB64;
+  const imageSrc = research.coverImageB64
     ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}`
-    : null;
+    : hasImage
+      ? `/api/research/${research.id}/cover`
+      : null;
 
   const handleVoteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -35,21 +38,47 @@ export function ResearchCard({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -3, transition: { duration: 0.2 } }}
       onClick={onClick}
-      className="group relative bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-purple-100/50 transition-all duration-300 cursor-pointer overflow-hidden flex flex-col"
+      className="group relative rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden flex flex-col hover:scale-[1.01]"
+      style={{
+        background: 'rgba(10,16,34,0.85)',
+        borderColor: 'rgba(99,102,241,0.18)',
+        boxShadow: '0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.03)',
+      }}
     >
       {/* Cover image / placeholder */}
       <div className="h-40 w-full relative overflow-hidden">
         {imageSrc ? (
-          <img src={imageSrc} alt={research.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          <>
+            <img
+              src={imageSrc}
+              alt={research.title}
+              loading="lazy"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={(e) => {
+                const target = e.currentTarget;
+                target.style.display = 'none';
+                const placeholder = target.parentElement?.querySelector('[data-placeholder]') as HTMLElement;
+                if (placeholder) placeholder.style.display = 'flex';
+              }}
+            />
+            <div
+              data-placeholder=""
+              className="hidden w-full h-full absolute inset-0 items-center justify-center bg-gradient-to-br from-[#0d1535] via-[#0f1840] to-[#130c30]"
+            >
+              <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-indigo-500/20" />
+              <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-violet-500/15" />
+              <FileText size={32} className="text-indigo-400/30" />
+            </div>
+          </>
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-violet-100 via-indigo-50 to-blue-100 relative overflow-hidden">
+          <div className="w-full h-full relative overflow-hidden bg-gradient-to-br from-[#0d1535] via-[#0f1840] to-[#130c30]">
             <div className="absolute inset-0 flex items-center justify-center opacity-10">
-              <FileText size={64} className="text-indigo-600" />
+              <FileText size={64} className="text-indigo-400" />
             </div>
             {/* Decorative circles */}
-            <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-indigo-200/40" />
-            <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-purple-200/30" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/20" />
+            <div className="absolute -top-4 -right-4 w-24 h-24 rounded-full bg-indigo-500/20" />
+            <div className="absolute -bottom-6 -left-6 w-32 h-32 rounded-full bg-violet-500/15" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-cyan-400/10" />
           </div>
         )}
         {/* Gradient overlay at bottom */}
@@ -76,36 +105,42 @@ export function ResearchCard({
         </div>
       </div>
 
+      {/* Hover glow overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-violet-500/0 group-hover:from-indigo-500/[0.08] group-hover:to-violet-500/[0.06] transition-all duration-500 pointer-events-none rounded-2xl" />
+
       <div className="p-4 flex flex-col gap-3 flex-1">
-        <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-snug group-hover:text-violet-700 transition-colors">
+        <h3 className="text-sm font-bold text-slate-200 line-clamp-2 leading-snug group-hover:text-indigo-400 transition-colors">
           {research.title}
         </h3>
 
-        <p className="text-xs text-gray-500 leading-relaxed line-clamp-2">{research.summary}</p>
+        <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">{research.summary}</p>
 
         {research.tags && research.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {research.tags.map((tag) => (
-              <span key={tag} className="text-[10px] font-medium text-violet-600 bg-violet-50 border border-violet-100 px-2 py-0.5 rounded-full">
+              <span key={tag} className="text-[10px] font-medium text-violet-400 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full">
                 {tag}
               </span>
             ))}
           </div>
         )}
 
-        <div className="mt-auto pt-3 border-t border-gray-50 flex justify-between items-center">
+        <div
+          className="mt-auto pt-3 flex justify-between items-center"
+          style={{ borderTop: '1px solid rgba(99,102,241,0.1)' }}
+        >
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 flex items-center justify-center">
               <User size={11} className="text-violet-500" />
             </div>
-            <span className="text-xs font-medium text-gray-600">{research.authorName}</span>
+            <span className="text-xs font-medium text-slate-500">{research.authorName}</span>
           </div>
 
           <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
             {onShowCanvas && (
               <button
                 onClick={e => { e.stopPropagation(); onShowCanvas(); }}
-                className="flex items-center gap-1 text-[11px] font-semibold text-violet-500 hover:text-violet-700 hover:bg-violet-50 px-2 py-1 rounded-lg transition-all"
+                className="flex items-center gap-1 text-[11px] font-semibold text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 px-2 py-1 rounded-lg transition-all"
               >
                 <Network size={11} />
                 <span>Harita</span>
@@ -116,8 +151,8 @@ export function ResearchCard({
               onClick={handleVoteClick}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all shadow-sm ${
                 voted
-                  ? 'bg-gradient-to-r from-indigo-500 to-violet-500 border-transparent text-white shadow-indigo-200'
-                  : 'bg-white border-gray-200 text-gray-400 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50'
+                  ? 'bg-gradient-to-r from-indigo-500 to-violet-500 border-transparent text-white'
+                  : 'bg-indigo-500/15 border-indigo-500/20 text-indigo-400 hover:border-indigo-400/40 hover:bg-indigo-500/20'
               }`}
             >
               <ThumbsUp size={11} className={voted ? 'fill-white' : ''} />

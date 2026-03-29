@@ -8,6 +8,10 @@ import commentsRouter from "./comments";
 import votesRouter from "./votes";
 import diagramsRouter from "./diagrams";
 import validateConnectionRouter from "./validate-connection";
+import authRouter from "./auth";
+import adminUsersRouter from "./admin/users";
+import communityRouter from "./community/index";
+import { authMiddleware } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
@@ -20,5 +24,14 @@ router.use("/comments", commentsRouter);
 router.use("/votes", votesRouter);
 router.use("/diagrams", diagramsRouter);
 router.use("/validate-connection", validateConnectionRouter);
+
+// Auth
+router.use("/auth", authRouter);
+
+// User management (admin)
+router.use("/admin/users", authMiddleware, adminUsersRouter);
+
+// Community
+router.use("/community", communityRouter);
 
 export default router;
