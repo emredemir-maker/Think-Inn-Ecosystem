@@ -12,6 +12,7 @@ import { generateImage } from "@workspace/integrations-gemini-ai/image";
 import { setImmediate } from "timers";
 import { backgroundEvaluateIdea } from "../../utils/evaluate-idea";
 import { buildResearchCoverPrompt } from "../../utils/cover-image";
+import { autoCreateResearchThread } from "../../utils/community-auto";
 
 const router = Router();
 
@@ -310,7 +311,10 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
       actions.push({ action: "research_saved", data: { id: item.id, title: item.title } });
 
-      // ── Step 3: Generate cover image in background (non-blocking) ───────────
+      // ── Step 3: Generate cover image + community thread in background ────────
+      setImmediate(() => {
+        autoCreateResearchThread({ id: item.id, title: item.title, summary: fmtSummary || "" });
+      });
       setImmediate(async () => {
         try {
           const imgPrompt = await buildResearchCoverPrompt(
@@ -796,22 +800,32 @@ router.post("/:id/messages", async (req, res) => {
     while (iterations < MAX_ITER) {
       iterations++;
 
-      const result = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: currentContents,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        config: { tools: TOOLS as any, maxOutputTokens: 4096 },
-      });
+      const result = await Promise.race([
+        ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: currentContents,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          config: { tools: TOOLS as any, maxOutputTokens: 4096 },
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Gemini API timeout (90s)")), 90_000)
+        ),
+      ]);
 
       const candidate = result.candidates?.[0];
       const parts = candidate?.content?.parts || [];
 
       // Separate text and function calls
       const functionCallParts = parts.filter((p: any) => p.functionCall);
-      const textContent = parts
+      const rawTextContent = parts
         .filter((p: any) => p.text)
         .map((p: any) => p.text as string)
         .join("");
+      // Strip tool_code blocks that Gemini sometimes leaks into text output
+      const textContent = rawTextContent
+        .replace(/```tool_code[\s\S]*?```/g, "")
+        .replace(/tool_code\s+\S[^\n]*/g, "")
+        .trim();
 
       if (functionCallParts.length === 0) {
         // No function calls — this is the final response
@@ -883,6 +897,12 @@ router.post("/:id/messages", async (req, res) => {
         finalText = "İşlem tamamlandı.";
       }
     }
+
+    // ── Clean final text before streaming ───────────────────────────────────
+    finalText = finalText
+      .replace(/```tool_code[\s\S]*?```/g, "")
+      .replace(/tool_code\s+\S[^\n]*/g, "")
+      .trim();
 
     // ── Stream final text response ───────────────────────────────────────────
     if (finalText) {

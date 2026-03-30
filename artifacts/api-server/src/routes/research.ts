@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { researchTable, ideasTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { generateImage } from "@workspace/integrations-gemini-ai/image";
 import { buildResearchCoverPrompt } from "../utils/cover-image";
@@ -137,12 +137,27 @@ Hiçbir fikir ilgili değilse: {"links": []}`;
 
 router.get("/", async (req, res) => {
   try {
-    const research = await db.select().from(researchTable).orderBy(desc(researchTable.createdAt));
-    const stripped = research.map(({ coverImageB64, coverImageMimeType, ...rest }) => ({
-      ...rest,
-      hasCoverImage: !!coverImageB64,
-    }));
-    res.json(stripped);
+    // Explicitly exclude large base64 columns from the list query for performance
+    const research = await db
+      .select({
+        id: researchTable.id,
+        title: researchTable.title,
+        summary: researchTable.summary,
+        technicalAnalysis: researchTable.technicalAnalysis,
+        findings: researchTable.findings,
+        rawContent: researchTable.rawContent,
+        authorName: researchTable.authorName,
+        tags: researchTable.tags,
+        relatedTo: researchTable.relatedTo,
+        status: researchTable.status,
+        voteCount: researchTable.voteCount,
+        hasCoverImage: sql<boolean>`(cover_image_b64 IS NOT NULL)`,
+        createdAt: researchTable.createdAt,
+        updatedAt: researchTable.updatedAt,
+      })
+      .from(researchTable)
+      .orderBy(desc(researchTable.createdAt));
+    res.json(research);
   } catch (err) {
     req.log.error({ err }, "Failed to list research");
     res.status(500).json({ error: "Internal server error" });

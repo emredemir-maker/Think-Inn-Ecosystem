@@ -1,13 +1,15 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
 import { HUDLayout } from "@/components/layout/HUDLayout";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import CommunityPage from "@/pages/CommunityPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
+import AuthPage from "@/pages/AuthPage";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,7 +20,28 @@ const queryClient = new QueryClient({
   },
 });
 
+// Redirect logged-in users away from /auth
+function AuthRedirect({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    if (!loading && user) navigate("/");
+  }, [user, loading, navigate]);
+  if (loading) return null;
+  return <>{children}</>;
+}
+
 function Router() {
+  const [location] = useLocation();
+
+  if (location === "/auth") {
+    return (
+      <AuthRedirect>
+        <AuthPage />
+      </AuthRedirect>
+    );
+  }
+
   return (
     <HUDLayout>
       <Switch>

@@ -10,6 +10,9 @@ export interface ChatMessage {
   savedItems?: Array<{ type: "research" | "idea"; id: number; title: string }>;
 }
 
+// If no SSE event arrives within this window, abort the stream
+const STREAM_IDLE_TIMEOUT_MS = 60_000;
+
 export function useChatStream(conversationId: number | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -54,65 +57,94 @@ export function useChatStream(conversationId: number | null) {
       let fullResponse = "";
       const savedItems: ChatMessage["savedItems"] = [];
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      // Idle timeout — abort if no data arrives for STREAM_IDLE_TIMEOUT_MS
+      let idleTimer: ReturnType<typeof setTimeout> | null = null;
+      const resetIdleTimer = () => {
+        if (idleTimer) clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+          abortControllerRef.current?.abort();
+        }, STREAM_IDLE_TIMEOUT_MS);
+      };
+      resetIdleTimer();
 
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || "";
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const dataStr = line.slice(6);
-          if (!dataStr.trim()) continue;
+          resetIdleTimer();
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || "";
 
-          try {
-            const data = JSON.parse(dataStr);
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const dataStr = line.slice(6);
+            if (!dataStr.trim()) continue;
 
-            if (data.done) {
-              // Stream complete
-              setMessages(prev => prev.map(m =>
-                m.id === assistantMsgId
-                  ? { ...m, isStreaming: false, progressLabel: undefined, savedItems }
-                  : m
-              ));
-            } else if (data.progress) {
-              // Tool is running — show progress label in the streaming bubble
-              setMessages(prev => prev.map(m =>
-                m.id === assistantMsgId ? { ...m, progressLabel: data.progress } : m
-              ));
-            } else if (data.action === "research_saved") {
-              // Research was saved by AI — force immediate refetch
-              queryClient.invalidateQueries({ queryKey: ["/api/research"] });
-              queryClient.refetchQueries({ queryKey: ["/api/research"] });
-              savedItems.push({ type: "research", id: data.data.id, title: data.data.title });
-              setMessages(prev => prev.map(m =>
-                m.id === assistantMsgId ? { ...m, savedItems: [...(m.savedItems || []), { type: "research" as const, id: data.data.id, title: data.data.title }] } : m
-              ));
-            } else if (data.action === "idea_saved") {
-              // Idea was saved by AI — force immediate refetch
-              queryClient.invalidateQueries({ queryKey: ["/api/ideas"] });
-              queryClient.refetchQueries({ queryKey: ["/api/ideas"] });
-              savedItems.push({ type: "idea", id: data.data.id, title: data.data.title });
-              setMessages(prev => prev.map(m =>
-                m.id === assistantMsgId ? { ...m, savedItems: [...(m.savedItems || []), { type: "idea" as const, id: data.data.id, title: data.data.title }] } : m
-              ));
-            } else if (data.content) {
-              fullResponse += data.content;
-              setMessages(prev => prev.map(m =>
-                m.id === assistantMsgId ? { ...m, content: fullResponse } : m
-              ));
-            } else if (data.error) {
-              console.warn("SSE error:", data.error);
+            try {
+              const data = JSON.parse(dataStr);
+
+              if (data.done) {
+                // Stream complete — trigger a final refetch in case inline refetch was missed
+                if (savedItems.some(i => i.type === "research")) {
+                  queryClient.invalidateQueries({ queryKey: ["/api/research"] });
+                  queryClient.refetchQueries({ queryKey: ["/api/research"] });
+                }
+                if (savedItems.some(i => i.type === "idea")) {
+                  queryClient.invalidateQueries({ queryKey: ["/api/ideas"] });
+                  queryClient.refetchQueries({ queryKey: ["/api/ideas"] });
+                }
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMsgId
+                    ? { ...m, isStreaming: false, progressLabel: undefined, savedItems }
+                    : m
+                ));
+              } else if (data.progress) {
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMsgId ? { ...m, progressLabel: data.progress } : m
+                ));
+              } else if (data.action === "research_saved") {
+                queryClient.invalidateQueries({ queryKey: ["/api/research"] });
+                queryClient.refetchQueries({ queryKey: ["/api/research"] });
+                savedItems.push({ type: "research", id: data.data.id, title: data.data.title });
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMsgId ? { ...m, savedItems: [...(m.savedItems || []), { type: "research" as const, id: data.data.id, title: data.data.title }] } : m
+                ));
+              } else if (data.action === "idea_saved") {
+                queryClient.invalidateQueries({ queryKey: ["/api/ideas"] });
+                queryClient.refetchQueries({ queryKey: ["/api/ideas"] });
+                savedItems.push({ type: "idea", id: data.data.id, title: data.data.title });
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMsgId ? { ...m, savedItems: [...(m.savedItems || []), { type: "idea" as const, id: data.data.id, title: data.data.title }] } : m
+                ));
+              } else if (data.content) {
+                fullResponse += data.content;
+                setMessages(prev => prev.map(m =>
+                  m.id === assistantMsgId ? { ...m, content: fullResponse } : m
+                ));
+              } else if (data.error) {
+                console.warn("SSE error:", data.error);
+              }
+            } catch (e) {
+              console.warn("Error parsing SSE chunk:", e, dataStr);
             }
-          } catch (e) {
-            console.warn("Error parsing SSE chunk:", e, dataStr);
           }
         }
+      } finally {
+        if (idleTimer) clearTimeout(idleTimer);
+        reader.cancel();
       }
     } catch (err: any) {
-      if (err.name === "AbortError") return;
+      if (err.name === "AbortError") {
+        // Timed out or manually aborted — unblock the input
+        setMessages(prev => prev.map(m =>
+          m.id === assistantMsgId && m.isStreaming
+            ? { ...m, content: m.content || "⚠️ İstek zaman aşımına uğradı. Lütfen tekrar deneyin.", isStreaming: false, progressLabel: undefined }
+            : m
+        ));
+        return;
+      }
       console.error(err);
       setError("Bağlantı hatası oluştu. Lütfen tekrar deneyin.");
       setMessages(prev => prev.map(m =>

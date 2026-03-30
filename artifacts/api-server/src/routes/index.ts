@@ -10,6 +10,7 @@ import diagramsRouter from "./diagrams";
 import validateConnectionRouter from "./validate-connection";
 import authRouter from "./auth";
 import adminUsersRouter from "./admin/users";
+import backfillRouter from "./admin/backfill";
 import communityRouter from "./community/index";
 import { authMiddleware } from "../middlewares/auth";
 
@@ -30,6 +31,7 @@ router.use("/auth", authRouter);
 
 // User management (admin)
 router.use("/admin/users", authMiddleware, adminUsersRouter);
+router.use("/admin", backfillRouter);
 
 // Community
 router.use("/community", communityRouter);

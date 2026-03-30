@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Hash, Plus, MessageSquare, Pin, Lock, Star, ChevronLeft,
   Send, ThumbsUp, Heart, Lightbulb, Flame, CheckCircle2,
   LayoutGrid, ArrowLeft, Shield, Crown, User, ShieldAlert,
-  Eye, Clock, Loader2, AlertCircle, X
+  Eye, Clock, Loader2, AlertCircle, X, ChevronDown, ChevronUp,
+  Quote, BookOpen, FileText, ExternalLink
 } from "lucide-react";
 import { useAuth, authFetch } from "@/lib/auth-context";
 
@@ -77,6 +78,7 @@ export default function CommunityPage() {
   const [showCreateThread, setShowCreateThread] = useState(false);
   const [replyContent, setReplyContent] = useState("");
   const [replyParent, setReplyParent] = useState<number | undefined>(undefined);
+  const replyRef = useRef<HTMLTextAreaElement>(null);
 
   // Spaces
   const { data: spacesData, isLoading: loadingSpaces } = useQuery({
@@ -144,6 +146,19 @@ export default function CommunityPage() {
   function sendReply() {
     if (!replyContent.trim() || !activeThread) return;
     mutPost.mutate({ threadId: activeThread.id, content: replyContent, parentPostId: replyParent });
+  }
+
+  function insertQuote(text: string) {
+    const quoted = text
+      .split("\n")
+      .filter(l => l.trim())
+      .map(l => `> ${l}`)
+      .join("\n");
+    setReplyContent(prev => (prev ? prev + "\n\n" : "") + quoted + "\n\n");
+    setTimeout(() => {
+      replyRef.current?.focus();
+      replyRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 50);
   }
 
   return (
@@ -338,14 +353,21 @@ export default function CommunityPage() {
                 )}
               </div>
 
-              {activeThread.body && (
+              {/* Linked card (idea or research) with quote support */}
+              {(activeThread.linkedIdeaId || activeThread.linkedResearchId) ? (
+                <LinkedCard
+                  linkedIdeaId={activeThread.linkedIdeaId}
+                  linkedResearchId={activeThread.linkedResearchId}
+                  onQuote={insertQuote}
+                />
+              ) : activeThread.body ? (
                 <div
                   className="mt-3 px-4 py-3 rounded-xl text-sm text-slate-300 leading-relaxed"
                   style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)" }}
                 >
                   {activeThread.body}
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Posts */}
@@ -385,6 +407,17 @@ export default function CommunityPage() {
                     </button>
                   </div>
                 )}
+                {/* Quote preview */}
+                {replyContent.startsWith(">") && (
+                  <div
+                    className="mb-2 px-3 py-2 rounded-lg text-xs text-slate-400 leading-relaxed"
+                    style={{ background: "rgba(99,102,241,0.06)", borderLeft: "3px solid rgba(99,102,241,0.4)" }}
+                  >
+                    {replyContent.split("\n").filter(l => l.startsWith(">")).slice(0, 3).map((l, i) => (
+                      <p key={i} className="truncate">{l.slice(2)}</p>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5"
@@ -394,16 +427,18 @@ export default function CommunityPage() {
                   </div>
                   <div className="flex-1 flex items-end gap-2">
                     <textarea
+                      ref={replyRef}
                       value={replyContent}
                       onChange={(e) => setReplyContent(e.target.value)}
                       onKeyDown={(e) => { if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) sendReply(); }}
                       placeholder={activeThread.isLocked ? "Bu tartışma kilitlenmiş" : "Yanıtınızı yazın… (Ctrl+Enter gönderir)"}
                       disabled={activeThread.isLocked}
-                      rows={2}
-                      className="flex-1 px-4 py-2.5 rounded-xl text-sm text-slate-200 placeholder:text-slate-600 outline-none resize-none"
+                      rows={replyContent.includes("\n") ? Math.min(replyContent.split("\n").length + 1, 8) : 2}
+                      className="flex-1 px-4 py-2.5 rounded-xl text-sm text-slate-200 placeholder:text-slate-600 outline-none resize-none font-mono"
                       style={{
                         background: "rgba(255,255,255,0.04)",
                         border: "1px solid rgba(99,102,241,0.2)",
+                        lineHeight: "1.6",
                       }}
                     />
                     <button
@@ -451,6 +486,201 @@ export default function CommunityPage() {
   );
 }
 
+// ── Linked Card (idea or research) ───────────────────────────────────────────
+
+interface IdeaDetail {
+  id: number; title: string; description: string;
+  tags?: string[]; status?: string; voteCount?: number;
+  roadmap?: string[]; neededResearchTopics?: string[];
+  evaluationScores?: {
+    commercialFeasibility: number; marketNeed: number;
+    technicalDifficulty: number; trendAlignment: number;
+    riskGovernance: number; summary: string;
+  } | null;
+}
+interface ResearchDetail {
+  id: number; title: string; summary: string; findings?: string;
+  technicalAnalysis?: string; tags?: string[];
+}
+
+function LinkedCard({ linkedIdeaId, linkedResearchId, onQuote }: {
+  linkedIdeaId?: number;
+  linkedResearchId?: number;
+  onQuote: (text: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+
+  const { data: idea } = useQuery<IdeaDetail>({
+    queryKey: ["idea-detail", linkedIdeaId],
+    queryFn: () => authFetch<IdeaDetail>(`/ideas/${linkedIdeaId}`),
+    enabled: !!linkedIdeaId,
+    staleTime: 5 * 60_000,
+  });
+
+  const { data: research } = useQuery<ResearchDetail>({
+    queryKey: ["research-detail", linkedResearchId],
+    queryFn: () => authFetch<ResearchDetail>(`/research/${linkedResearchId}`),
+    enabled: !!linkedResearchId,
+    staleTime: 5 * 60_000,
+  });
+
+  const isIdea = !!linkedIdeaId;
+  const accent = isIdea ? "#6366f1" : "#34d399";
+  const icon = isIdea ? <Lightbulb size={13} /> : <BookOpen size={13} />;
+  const typeLabel = isIdea ? "Fikir" : "Araştırma";
+
+  const title = idea?.title ?? research?.title ?? "Yükleniyor…";
+  const isLoading = linkedIdeaId ? !idea : !research;
+
+  return (
+    <motion.div
+      layout
+      className="mt-3 rounded-xl overflow-hidden"
+      style={{ background: `${accent}08`, border: `1px solid ${accent}22` }}
+    >
+      {/* Header row */}
+      <div
+        className="flex items-center gap-2 px-4 py-2.5 cursor-pointer select-none"
+        onClick={() => setExpanded(e => !e)}
+        style={{ borderBottom: expanded ? `1px solid ${accent}18` : "none" }}
+      >
+        <div
+          className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
+          style={{ background: `${accent}20`, color: accent }}
+        >
+          {icon}
+        </div>
+        <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{typeLabel}</span>
+        <span className="text-sm font-medium text-slate-300 flex-1 truncate">{title}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {!isLoading && (
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                const text = isIdea
+                  ? [idea?.description, idea?.evaluationScores?.summary].filter(Boolean).join("\n\n")
+                  : [research?.summary, research?.findings].filter(Boolean).join("\n\n");
+                onQuote(title + "\n\n" + text);
+              }}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all"
+              style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}
+              title="Tümünü alıntıla"
+            >
+              <Quote size={11} /> Alıntıla
+            </button>
+          )}
+          <span style={{ color: `${accent}60` }}>
+            {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </span>
+        </div>
+      </div>
+
+      {/* Expanded content */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 size={16} className="animate-spin" style={{ color: accent }} />
+              </div>
+            ) : isIdea && idea ? (
+              <IdeaCardContent idea={idea} accent={accent} onQuote={onQuote} />
+            ) : research ? (
+              <ResearchCardContent research={research} accent={accent} onQuote={onQuote} />
+            ) : null}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+function QuoteableSection({ label, content, accent, onQuote }: {
+  label: string; content: string; accent: string; onQuote: (text: string) => void;
+}) {
+  if (!content?.trim()) return null;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: `${accent}80` }}>{label}</span>
+        <button
+          onClick={() => onQuote(`**${label}**\n${content}`)}
+          className="flex items-center gap-1 text-[10px] transition-colors"
+          style={{ color: `${accent}60` }}
+          title="Bu bölümü alıntıla"
+        >
+          <Quote size={9} /> Alıntıla
+        </button>
+      </div>
+      <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{content}</p>
+    </div>
+  );
+}
+
+function IdeaCardContent({ idea, accent, onQuote }: { idea: IdeaDetail; accent: string; onQuote: (t: string) => void }) {
+  return (
+    <div className="px-4 py-3 space-y-3">
+      <QuoteableSection label="Açıklama" content={idea.description} accent={accent} onQuote={onQuote} />
+      {idea.evaluationScores?.summary && (
+        <QuoteableSection label="Değerlendirme" content={idea.evaluationScores.summary} accent={accent} onQuote={onQuote} />
+      )}
+      {idea.roadmap && idea.roadmap.length > 0 && (
+        <QuoteableSection label="Yol Haritası" content={idea.roadmap.join("\n")} accent={accent} onQuote={onQuote} />
+      )}
+      {idea.neededResearchTopics && idea.neededResearchTopics.length > 0 && (
+        <QuoteableSection label="Araştırma Konuları" content={idea.neededResearchTopics.join("\n")} accent={accent} onQuote={onQuote} />
+      )}
+      {/* Evaluation scores */}
+      {idea.evaluationScores && (
+        <div className="grid grid-cols-5 gap-1.5 pt-1">
+          {([
+            ["Ticari", idea.evaluationScores.commercialFeasibility],
+            ["Pazar", idea.evaluationScores.marketNeed],
+            ["Teknik", idea.evaluationScores.technicalDifficulty],
+            ["Trend", idea.evaluationScores.trendAlignment],
+            ["Risk", idea.evaluationScores.riskGovernance],
+          ] as [string, number][]).map(([label, score]) => (
+            <div key={label} className="text-center">
+              <div className="text-base font-bold" style={{ color: score >= 7 ? "#34d399" : score >= 5 ? "#f59e0b" : "#f87171" }}>{score}</div>
+              <div className="text-[9px] text-slate-500">{label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {idea.tags && idea.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {idea.tags.map(t => (
+            <span key={t} className="px-2 py-0.5 rounded-full text-[10px]" style={{ background: `${accent}15`, color: accent }}>{t}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ResearchCardContent({ research, accent, onQuote }: { research: ResearchDetail; accent: string; onQuote: (t: string) => void }) {
+  return (
+    <div className="px-4 py-3 space-y-3">
+      <QuoteableSection label="Özet" content={research.summary} accent={accent} onQuote={onQuote} />
+      {research.findings && <QuoteableSection label="Bulgular" content={research.findings} accent={accent} onQuote={onQuote} />}
+      {research.technicalAnalysis && <QuoteableSection label="Teknik Analiz" content={research.technicalAnalysis} accent={accent} onQuote={onQuote} />}
+      {research.tags && research.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {research.tags.map(t => (
+            <span key={t} className="px-2 py-0.5 rounded-full text-[10px]" style={{ background: `${accent}15`, color: accent }}>{t}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Post Card ────────────────────────────────────────────────────────────────
 
 function PostCard({ post, isLocked, onReply, onReact }: {
@@ -491,7 +721,7 @@ function PostCard({ post, isLocked, onReply, onReact }: {
             )}
             <span className="ml-auto text-[11px] text-slate-600">{timeAgo(post.createdAt)}</span>
           </div>
-          <p className="text-sm text-slate-300 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+          <PostContent content={post.content} />
         </div>
         <div className="flex items-center gap-2 mt-1.5 px-1">
           {EMOJIS.map((e) => (
@@ -517,6 +747,44 @@ function PostCard({ post, isLocked, onReply, onReact }: {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+// ── Post content renderer (handles > quotes) ─────────────────────────────────
+
+function PostContent({ content }: { content: string }) {
+  const lines = content.split("\n");
+  const blocks: Array<{ type: "quote" | "text"; lines: string[] }> = [];
+  let current: { type: "quote" | "text"; lines: string[] } | null = null;
+
+  for (const line of lines) {
+    const isQuote = line.startsWith("> ") || line === ">";
+    const type = isQuote ? "quote" : "text";
+    if (!current || current.type !== type) {
+      current = { type, lines: [] };
+      blocks.push(current);
+    }
+    current.lines.push(isQuote ? line.slice(2) : line);
+  }
+
+  return (
+    <div className="space-y-2 text-sm leading-relaxed">
+      {blocks.map((block, i) =>
+        block.type === "quote" ? (
+          <div
+            key={i}
+            className="px-3 py-2 rounded-lg text-slate-400 italic"
+            style={{ background: "rgba(99,102,241,0.07)", borderLeft: "3px solid rgba(99,102,241,0.35)" }}
+          >
+            {block.lines.map((l, j) => <p key={j}>{l || "\u00A0"}</p>)}
+          </div>
+        ) : (
+          <p key={i} className="text-slate-300 whitespace-pre-wrap">
+            {block.lines.join("\n")}
+          </p>
+        )
+      )}
+    </div>
   );
 }
 

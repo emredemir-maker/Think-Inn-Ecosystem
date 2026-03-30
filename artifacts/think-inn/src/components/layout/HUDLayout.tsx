@@ -1,9 +1,8 @@
 import React, { ReactNode, useState } from "react";
-import { Activity, Zap, Fingerprint, Cpu, Users, MessageSquare, LogIn, LogOut, ChevronDown, Shield, Crown, ShieldAlert, User } from "lucide-react";
+import { Activity, Fingerprint, Cpu, Users, MessageSquare, LogIn, LogOut, ChevronDown, Shield, Crown, ShieldAlert, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
-import { LoginModal } from "@/components/auth/LoginModal";
 
 type UserRole = "super_admin" | "moderator" | "master" | "user";
 
@@ -17,7 +16,6 @@ const ROLE_META: Record<UserRole, { label: string; color: string; icon: React.Re
 export function HUDLayout({ children }: { children: ReactNode }) {
   const { user, logout, isRole } = useAuth();
   const [, navigate] = useLocation();
-  const [loginOpen, setLoginOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const roleMeta = user ? ROLE_META[user.role as UserRole] : null;
@@ -190,7 +188,7 @@ export function HUDLayout({ children }: { children: ReactNode }) {
             </div>
           ) : (
             <button
-              onClick={() => setLoginOpen(true)}
+              onClick={() => navigate("/auth")}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 transition-all"
               style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)" }}
             >
@@ -204,7 +202,6 @@ export function HUDLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </div>
   );
 }

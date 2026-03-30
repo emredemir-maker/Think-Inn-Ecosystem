@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { usersTable, permissionAuditLogTable } from "@workspace/db";
-import { eq, ilike, and, or, desc } from "drizzle-orm";
+import { eq, ilike, and, or, desc, sql } from "drizzle-orm";
 import { requireRole } from "../../middlewares/requireRole";
 import { ROLE_HIERARCHY } from "../../middlewares/requireRole";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 const router = Router();
 
@@ -161,6 +162,50 @@ router.patch("/:id/page-access", requireRole("super_admin"), async (req, res) =>
 
   await db.update(usersTable).set({ pageAccess, updatedAt: new Date() }).where(eq(usersTable.id, targetId));
   res.json({ success: true });
+});
+
+// GET /api/admin/users/stats
+router.get("/stats/summary", requireRole("moderator"), async (_req, res) => {
+  const rows = await db
+    .select({ role: usersTable.role, isActive: usersTable.isActive, count: sql<number>`count(*)::int` })
+    .from(usersTable)
+    .groupBy(usersTable.role, usersTable.isActive);
+
+  const total = rows.reduce((s, r) => s + r.count, 0);
+  const active = rows.filter(r => r.isActive).reduce((s, r) => s + r.count, 0);
+  const byRole: Record<string, number> = {};
+  for (const r of rows) {
+    byRole[r.role] = (byRole[r.role] ?? 0) + r.count;
+  }
+  res.json({ success: true, data: { total, active, inactive: total - active, byRole } });
+});
+
+// POST /api/admin/users — create user (super_admin only)
+router.post("/", requireRole("super_admin"), async (req, res) => {
+  const body = z.object({
+    username: z.string().min(2).max(40),
+    displayName: z.string().min(1).max(80),
+    email: z.string().email(),
+    password: z.string().min(6),
+    role: z.enum(["super_admin", "moderator", "master", "user"]).default("user"),
+  }).parse(req.body);
+
+  const existing = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(or(eq(usersTable.username, body.username), eq(usersTable.email, body.email)))
+    .limit(1);
+  if (existing.length > 0) {
+    return res.status(409).json({ success: false, error: "Bu kullanıcı adı veya e-posta zaten kullanımda" });
+  }
+
+  const passwordHash = await bcrypt.hash(body.password, 12);
+  const [created] = await db
+    .insert(usersTable)
+    .values({ username: body.username, displayName: body.displayName, email: body.email, passwordHash, role: body.role, isActive: true })
+    .returning({ id: usersTable.id, username: usersTable.username, displayName: usersTable.displayName, email: usersTable.email, role: usersTable.role, isActive: usersTable.isActive, createdAt: usersTable.createdAt });
+
+  res.status(201).json({ success: true, data: created });
 });
 
 // GET /api/admin/audit-log
