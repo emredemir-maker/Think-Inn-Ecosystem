@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "buildCommand": "cd ../.. && pnpm --filter @workspace/think-inn run build",
+  "outputDirectory": "dist/public",
+  "installCommand": "cd ../.. && pnpm install"
+}

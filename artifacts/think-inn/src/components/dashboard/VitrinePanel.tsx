@@ -24,6 +24,7 @@ import { RelationGraph } from "../graph/RelationGraph";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_ORIGIN } from "@/lib/api-config";
 
 type TabId = "discover" | "research" | "ideas" | "projects";
 type ViewMode = "list" | "graph" | "global-map";
@@ -116,7 +117,7 @@ function FeaturedResearchCard({ research, onClick }: { research: Research; onCli
   const hasImage = !!(research as any).hasCoverImage || !!research.coverImageB64;
   const imageSrc = research.coverImageB64
     ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}`
-    : hasImage ? `/api/research/${research.id}/cover` : null;
+    : hasImage ? `${API_ORIGIN}/api/research/${research.id}/cover` : null;
 
   return (
     <motion.div

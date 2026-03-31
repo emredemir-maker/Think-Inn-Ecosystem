@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { API_ORIGIN } from "./api-config";
 
-const API_BASE = "/api";
+const API_BASE = `${API_ORIGIN}/api`;
 
 export interface AuthUser {
   id: number;

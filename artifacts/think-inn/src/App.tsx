@@ -10,6 +10,10 @@ import CommunityPage from "@/pages/CommunityPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
 import AuthPage from "@/pages/AuthPage";
 import { useEffect } from "react";
+import { setBaseUrl } from "@workspace/api-client-react";
+import { API_ORIGIN } from "@/lib/api-config";
+
+setBaseUrl(API_ORIGIN || null);
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -14,6 +14,7 @@ import { tr } from 'date-fns/locale';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth, authFetch } from '@/lib/auth-context';
+import { API_ORIGIN } from '@/lib/api-config';
 
 function sendToChat(message: string) {
   window.dispatchEvent(new CustomEvent('think-inn:send-message', { detail: { message } }));
@@ -159,7 +160,7 @@ function ResearchDetail({ research }: { research: Research }) {
   const hasImage = !!(research as any).hasCoverImage || !!research.coverImageB64;
   const imageSrc = research.coverImageB64
     ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}`
-    : hasImage ? `/api/research/${research.id}/cover` : null;
+    : hasImage ? `${API_ORIGIN}/api/research/${research.id}/cover` : null;
 
   return (
     <div className="space-y-6">
@@ -253,7 +254,7 @@ function IdeaDetail({ idea, allResearch, onClose, onOpenProject }: {
     if (isReEvaluating) return;
     setIsReEvaluating(true);
     try {
-      await fetch(`/api/ideas/${idea.id}/re-evaluate`, { method: 'POST' });
+      await fetch(`${API_ORIGIN}/api/ideas/${idea.id}/re-evaluate`, { method: 'POST' });
       await queryClient.invalidateQueries({ queryKey: ['/api/ideas'] });
     } finally {
       setIsReEvaluating(false);
