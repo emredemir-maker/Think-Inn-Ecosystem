@@ -11,6 +11,7 @@ import validateConnectionRouter from "./validate-connection";
 import authRouter from "./auth";
 import adminUsersRouter from "./admin/users";
 import backfillRouter from "./admin/backfill";
+import bootstrapRouter from "./admin/bootstrap";
 import communityRouter from "./community/index";
 import { authMiddleware } from "../middlewares/auth";
 
@@ -28,6 +29,7 @@ router.use("/validate-connection", validateConnectionRouter);
 
 // Auth
 router.use("/auth", authRouter);
+router.use("/auth", bootstrapRouter);
 
 // User management (admin)
 router.use("/admin/users", authMiddleware, adminUsersRouter);
