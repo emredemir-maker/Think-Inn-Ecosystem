@@ -805,7 +805,7 @@ router.post("/:id/messages", async (req, res) => {
           model: "gemini-2.5-flash",
           contents: currentContents,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          config: { tools: TOOLS as any, maxOutputTokens: 4096 },
+          config: { tools: TOOLS as any, maxOutputTokens: 16384, thinkingConfig: { thinkingBudget: 0 } } as any,
         }),
         new Promise<never>((_, reject) =>
           setTimeout(() => reject(new Error("Gemini API timeout (90s)")), 90_000)
