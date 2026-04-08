@@ -32,7 +32,7 @@ export default function DepartmentManagementPage() {
 
   const { data: depts = [], isLoading } = useQuery<Department[]>({
     queryKey: ["/api/admin/departments"],
-    queryFn: () => authFetch<{ success: boolean; data: Department[] }>("/admin/departments").then(r => r.data),
+    queryFn: () => authFetch<Department[]>("/admin/departments"),
   });
 
   const createMut = useMutation({
