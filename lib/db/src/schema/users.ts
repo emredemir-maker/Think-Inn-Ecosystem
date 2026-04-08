@@ -4,6 +4,15 @@ import { z } from "zod/v4";
 
 export const userRoleEnum = pgEnum('user_role', ['super_admin', 'moderator', 'master', 'user']);
 
+export const departmentsTable = pgTable("departments", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull().default(""),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -14,6 +23,7 @@ export const usersTable = pgTable("users", {
   isActive: boolean("is_active").notNull().default(true),
   avatarUrl: text("avatar_url"),
   bio: text("bio"),
+  department: text("department"),
   lastActiveAt: timestamp("last_active_at"),
   pageAccess: json("page_access").$type<Array<{ page: string; granted: boolean }>>().notNull().default([]),
   createdAt: timestamp("created_at").defaultNow().notNull(),

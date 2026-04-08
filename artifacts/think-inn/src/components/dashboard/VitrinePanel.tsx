@@ -193,6 +193,7 @@ export function VitrinePanel() {
   const [searchFocused, setSearchFocused] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [layoutMode, setLayoutMode] = useState<LayoutMode>("grid");
+  const [activeCat, setActiveCat] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [canvasItem, setCanvasItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
   const [detailItem, setDetailItem] = useState<{ id: number; type: 'research' | 'idea' } | null>(null);
@@ -238,6 +239,9 @@ export function VitrinePanel() {
     }
   }, [detailItem, researchList, ideaList]);
 
+  // Reset category filter when switching tabs
+  React.useEffect(() => { setActiveCat(null); }, [activeTab]);
+
   const handleVote = (targetType: "research" | "idea", targetId: number, value: 1 | -1) => {
     submitVote(
       { data: { targetType, targetId, voterName: "CurrentUser", value } },
@@ -274,22 +278,24 @@ export function VitrinePanel() {
   const filteredResearch = useMemo(() => {
     if (!Array.isArray(researchList)) return [];
     const q = searchQuery.toLowerCase();
-    if (!q) return researchList;
-    return researchList.filter(r =>
-      r.title.toLowerCase().includes(q) || r.summary?.toLowerCase().includes(q) ||
-      r.authorName?.toLowerCase().includes(q) || r.tags?.some(t => t.toLowerCase().includes(q))
-    );
-  }, [researchList, searchQuery]);
+    return researchList.filter(r => {
+      if (activeCat && (r as any).category !== activeCat) return false;
+      if (!q) return true;
+      return r.title.toLowerCase().includes(q) || r.summary?.toLowerCase().includes(q) ||
+        r.authorName?.toLowerCase().includes(q) || r.tags?.some(t => t.toLowerCase().includes(q));
+    });
+  }, [researchList, searchQuery, activeCat]);
 
   const filteredIdeas = useMemo(() => {
     if (!Array.isArray(ideaList)) return [];
     const q = searchQuery.toLowerCase();
-    if (!q) return ideaList;
-    return ideaList.filter(i =>
-      i.title.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q) ||
-      i.authorName?.toLowerCase().includes(q) || i.tags?.some(t => t.toLowerCase().includes(q))
-    );
-  }, [ideaList, searchQuery]);
+    return ideaList.filter(i => {
+      if (activeCat && (i as any).category !== activeCat) return false;
+      if (!q) return true;
+      return i.title.toLowerCase().includes(q) || i.description?.toLowerCase().includes(q) ||
+        i.authorName?.toLowerCase().includes(q) || i.tags?.some(t => t.toLowerCase().includes(q));
+    });
+  }, [ideaList, searchQuery, activeCat]);
 
   const projectIdeas = useMemo(() => {
     if (!Array.isArray(ideaList)) return [];
@@ -637,6 +643,39 @@ export function VitrinePanel() {
               transition={{ duration: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden"
             >
+              {/* Category filter chips */}
+              {(activeTab === 'ideas' || activeTab === 'research') && (() => {
+                const cats = activeTab === 'ideas'
+                  ? [...new Set((ideaList ?? []).map(i => (i as any).category).filter(Boolean))]
+                  : [...new Set((researchList ?? []).map(r => (r as any).category).filter(Boolean))];
+                if (cats.length === 0) return null;
+                return (
+                  <div className="shrink-0 px-5 pt-2.5 pb-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-wrap">
+                    <button
+                      onClick={() => setActiveCat(null)}
+                      className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all whitespace-nowrap flex-shrink-0"
+                      style={{
+                        background: activeCat === null ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.06)',
+                        border: activeCat === null ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(99,102,241,0.15)',
+                        color: activeCat === null ? '#a5b4fc' : 'rgba(148,163,184,0.6)',
+                      }}
+                    >Tümü</button>
+                    {cats.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCat(activeCat === cat ? null : cat)}
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all whitespace-nowrap flex-shrink-0"
+                        style={{
+                          background: activeCat === cat ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.06)',
+                          border: activeCat === cat ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(99,102,241,0.15)',
+                          color: activeCat === cat ? '#a5b4fc' : 'rgba(148,163,184,0.6)',
+                        }}
+                      >{cat}</button>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {/* Search + layout controls */}
               <div className="shrink-0 px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(99,102,241,0.12)' }}>
                 <div

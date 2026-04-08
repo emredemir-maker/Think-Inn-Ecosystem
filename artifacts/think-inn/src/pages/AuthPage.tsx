@@ -4,9 +4,10 @@ import { useLocation } from "wouter";
 import {
   Eye, EyeOff, Lightbulb, Users, BookOpen, Sparkles,
   ArrowRight, Shield, Zap, Network, Lock, User, Mail,
-  AtSign, ChevronRight, Star
+  AtSign, ChevronRight, Star, Building2
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { API_ORIGIN } from "@/lib/api-config";
 
 // ── Star field ────────────────────────────────────────────────────────────────
 
@@ -118,6 +119,15 @@ export default function AuthPage() {
   const [regDisplayName, setRegDisplayName] = useState("");
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
+  const [regDepartment, setRegDepartment] = useState("");
+  const [departments, setDepartments] = useState<Array<{ id: number; name: string }>>([]);
+
+  useEffect(() => {
+    fetch(`${API_ORIGIN}/api/departments`)
+      .then(r => r.json())
+      .then(j => { if (j.success && Array.isArray(j.data)) setDepartments(j.data); })
+      .catch(() => {});
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -143,7 +153,7 @@ export default function AuthPage() {
     setError(null);
     setLoading(true);
     try {
-      await register({ username: regUsername, displayName: regDisplayName, email: regEmail, password: regPassword });
+      await register({ username: regUsername, displayName: regDisplayName, email: regEmail, password: regPassword, department: regDepartment || undefined });
       navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kayıt başarısız");
@@ -396,6 +406,29 @@ export default function AuthPage() {
                   </div>
                   <Field icon={Mail} label="E-posta" type="email" value={regEmail} onChange={setRegEmail} placeholder="ornek@email.com" autoComplete="email" />
                   <Field icon={Lock} label="Şifre" type="password" value={regPassword} onChange={setRegPassword} placeholder="En az 8 karakter" autoComplete="new-password" />
+                  {departments.length > 0 && (
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>Departman (isteğe bağlı)</label>
+                      <div className="relative">
+                        <Building2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }} />
+                        <select
+                          value={regDepartment}
+                          onChange={e => setRegDepartment(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm outline-none transition-all appearance-none"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: regDepartment ? "#fff" : "rgba(255,255,255,0.3)",
+                          }}
+                        >
+                          <option value="">Departman seçin...</option>
+                          {departments.map(d => (
+                            <option key={d.id} value={d.name} style={{ background: "#0a0e2e" }}>{d.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
                   <button
                     type="submit"

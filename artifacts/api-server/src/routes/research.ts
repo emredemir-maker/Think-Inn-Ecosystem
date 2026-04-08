@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { researchTable, ideasTable } from "@workspace/db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, inArray } from "drizzle-orm";
 import { ai } from "@workspace/integrations-gemini-ai";
 import { generateImage } from "@workspace/integrations-gemini-ai/image";
 import { buildResearchCoverPrompt } from "../utils/cover-image";
@@ -137,7 +137,11 @@ Hiçbir fikir ilgili değilse: {"links": []}`;
 
 router.get("/", async (req, res) => {
   try {
-    // Explicitly exclude large base64 columns from the list query for performance
+    const { category } = req.query;
+    const conditions = [];
+    if (category && typeof category === "string") {
+      conditions.push(eq(researchTable.category, category));
+    }
     const research = await db
       .select({
         id: researchTable.id,
@@ -147,6 +151,7 @@ router.get("/", async (req, res) => {
         findings: researchTable.findings,
         rawContent: researchTable.rawContent,
         authorName: researchTable.authorName,
+        category: researchTable.category,
         tags: researchTable.tags,
         relatedTo: researchTable.relatedTo,
         status: researchTable.status,
@@ -156,6 +161,7 @@ router.get("/", async (req, res) => {
         updatedAt: researchTable.updatedAt,
       })
       .from(researchTable)
+      .where(conditions.length ? and(...conditions) : undefined)
       .orderBy(desc(researchTable.createdAt));
     res.json(research);
   } catch (err) {
@@ -178,6 +184,7 @@ router.post("/", async (req, res) => {
         authorName: body.authorName,
         coverImageB64: body.coverImageB64 || null,
         coverImageMimeType: body.coverImageMimeType || null,
+        category: body.category || null,
         tags: body.tags || [],
         relatedTo: body.relatedTo || [],
         status: body.status || "published",

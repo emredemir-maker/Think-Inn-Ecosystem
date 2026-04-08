@@ -12,6 +12,7 @@ import authRouter from "./auth";
 import adminUsersRouter from "./admin/users";
 import backfillRouter from "./admin/backfill";
 import bootstrapRouter from "./admin/bootstrap";
+import departmentsRouter from "./admin/departments";
 import communityRouter from "./community/index";
 import { authMiddleware } from "../middlewares/auth";
 
@@ -33,6 +34,8 @@ router.use("/auth", bootstrapRouter);
 
 // User management (admin)
 router.use("/admin/users", authMiddleware, adminUsersRouter);
+router.use("/admin/departments", authMiddleware, departmentsRouter);
+router.use("/departments", departmentsRouter);
 router.use("/admin", backfillRouter);
 
 // Community

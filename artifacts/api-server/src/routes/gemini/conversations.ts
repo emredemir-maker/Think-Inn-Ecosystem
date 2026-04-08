@@ -60,6 +60,11 @@ const TOOLS = [
               description:
                 "Kullanıcının yapıştırdığı ham, formatlanmamış tam metin. Düz metin makale/araştırma yapıştırıldıysa MUTLAKA bu alana koy. AI bu metni yapılandıracak.",
             },
+            category: {
+              type: "STRING",
+              description:
+                "Araştırmanın kategorisi. Şunlardan birini seç: 'Yapay Zeka & Veri', 'Ürün & Tasarım', 'Operasyon & Süreç', 'Müşteri & Deneyim', 'Teknoloji & Altyapı', 'İnsan Kaynakları', 'Strateji & İnovasyon', 'Güvenlik & Uyumluluk'",
+            },
           },
           required: ["title", "summary", "findings", "authorName"],
         },
@@ -108,6 +113,11 @@ const TOOLS = [
               description:
                 "Fikri güçlendirecek ama zorunlu olmayan ek araştırma konuları. " +
                 "Nice-to-have araştırmalar. Zaten sistemde olanlara veya neededResearchTopics'e yazılanlara tekrar yazma.",
+            },
+            category: {
+              type: "STRING",
+              description:
+                "Fikrin kategorisi. Şunlardan birini seç: 'Yapay Zeka & Veri', 'Ürün & Tasarım', 'Operasyon & Süreç', 'Müşteri & Deneyim', 'Teknoloji & Altyapı', 'İnsan Kaynakları', 'Strateji & İnovasyon', 'Güvenlik & Uyumluluk'",
             },
           },
           required: ["title", "description", "authorName"],
@@ -301,6 +311,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
           technicalAnalysis: fmtTechnical,
           rawContent,
           authorName: (args.authorName as string) || "Anonim",
+          category: (args.category as string) || null,
           tags: (args.tags as string[]) || [],
           relatedTo: [],
           status: "published",
@@ -355,6 +366,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
           title: (args.title as string) || "Başlıksız Fikir",
           description: (args.description as string) || "",
           authorName: (args.authorName as string) || "Anonim",
+          category: (args.category as string) || null,
           tags: (args.tags as string[]) || [],
           collaborators: [],
           researchIds: validLinkedIds,

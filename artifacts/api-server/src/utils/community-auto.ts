@@ -131,6 +131,59 @@ export async function autoCreateIdeaThread(idea: {
   }
 }
 
+export async function autoCreateProjectThread(idea: {
+  id: number;
+  title: string;
+  description: string;
+}): Promise<void> {
+  try {
+    const [existing] = await db
+      .select({ id: communityThreadsTable.id })
+      .from(communityThreadsTable)
+      .where(
+        and(
+          eq(communityThreadsTable.linkedIdeaId, idea.id),
+        ),
+      )
+      .limit(1);
+
+    if (existing) {
+      // Update title if idea changed
+      await db
+        .update(communityThreadsTable)
+        .set({ title: idea.title })
+        .where(eq(communityThreadsTable.id, existing.id));
+      return;
+    }
+
+    const botId = await getSystemUserId();
+    const spaceId = await getOrCreateSpace(
+      "projeler",
+      "Projeler",
+      "#a78bfa",
+      "Building2",
+      botId,
+    );
+
+    await db.insert(communityThreadsTable).values({
+      spaceId,
+      authorId: botId,
+      title: idea.title,
+      body: idea.description
+        ? idea.description.slice(0, 500) + (idea.description.length > 500 ? "…" : "")
+        : "",
+      linkedIdeaId: idea.id,
+    });
+
+    db.update(communitySpacesTable)
+      .set({ threadCount: sql`${communitySpacesTable.threadCount} + 1`, updatedAt: new Date() })
+      .where(eq(communitySpacesTable.id, spaceId))
+      .catch(() => {});
+  } catch {
+    // Non-blocking
+  }
+}
+
 export async function autoCreateResearchThread(research: {
   id: number;
   title: string;

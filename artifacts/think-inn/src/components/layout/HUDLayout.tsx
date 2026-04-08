@@ -1,5 +1,5 @@
 import React, { ReactNode, useState } from "react";
-import { Activity, Fingerprint, Cpu, Users, MessageSquare, LogIn, LogOut, ChevronDown, Shield, Crown, ShieldAlert, User } from "lucide-react";
+import { Activity, Fingerprint, Cpu, Users, MessageSquare, LogIn, LogOut, ChevronDown, Shield, Crown, ShieldAlert, User, Building2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
@@ -94,6 +94,9 @@ export function HUDLayout({ children }: { children: ReactNode }) {
             {isRole("moderator") && (
               <NavLink icon={<Users size={13} />} label="Kullanıcılar" onClick={() => navigate("/admin/users")} />
             )}
+            {isRole("super_admin") && (
+              <NavLink icon={<Building2 size={13} />} label="Departmanlar" onClick={() => navigate("/admin/departments")} />
+            )}
           </div>
         </div>
 
@@ -173,6 +176,14 @@ export function HUDLayout({ children }: { children: ReactNode }) {
                           className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors text-left"
                         >
                           <Users size={13} /> Kullanıcı Yönetimi
+                        </button>
+                      )}
+                      {isRole("super_admin") && (
+                        <button
+                          onClick={() => { navigate("/admin/departments"); setUserMenuOpen(false); }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-400 hover:text-slate-200 hover:bg-white/5 transition-colors text-left"
+                        >
+                          <Building2 size={13} /> Departman Yönetimi
                         </button>
                       )}
                       <button

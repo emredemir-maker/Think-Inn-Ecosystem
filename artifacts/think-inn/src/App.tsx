@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import CommunityPage from "@/pages/CommunityPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
+import DepartmentManagementPage from "@/pages/admin/DepartmentManagementPage";
 import AuthPage from "@/pages/AuthPage";
 import { useEffect } from "react";
 import { setBaseUrl } from "@workspace/api-client-react";
@@ -52,6 +53,7 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/community" component={CommunityPage} />
         <Route path="/admin/users" component={UserManagementPage} />
+        <Route path="/admin/departments" component={DepartmentManagementPage} />
         <Route component={NotFound} />
       </Switch>
     </HUDLayout>

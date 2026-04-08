@@ -29,6 +29,7 @@ interface RegisterData {
   displayName: string;
   email: string;
   password: string;
+  department?: string;
 }
 
 const ROLE_LEVELS: Record<string, number> = {

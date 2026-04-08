@@ -4,8 +4,11 @@ import {
   X, Layers, CheckCircle2, Code2, GitBranch, Lightbulb,
   Tag, Users, ChevronRight, Monitor, Server, Database,
   Globe, Workflow, UserCircle2, Boxes, ArrowRight, ArrowLeft, Search,
+  Kanban, Plus, Trash2, FileText, Link2, UserPlus,
 } from 'lucide-react';
 import { Idea } from '@workspace/api-client-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { authFetch } from '@/lib/auth-context';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { format } from 'date-fns';
@@ -49,7 +52,7 @@ type ArchAnalysis = {
   generatedAt: string;
   flowDiagram?: FlowDiagramData;
 };
-type Section = 'overview' | 'functional' | 'technical' | 'architectural';
+type Section = 'overview' | 'functional' | 'technical' | 'architectural' | 'project';
 
 // ─── Custom Node (dark glass) ─────────────────────────────────────────────────
 function ArchNode({ data, selected }: { data: FlowNodeData; selected?: boolean }) {
@@ -472,6 +475,7 @@ const SECTIONS: {
   { id: 'functional',   label: 'Fonksiyonel Analiz', sublabel: 'Ne yapıyor?',      icon: <CheckCircle2 size={14} />, accent: '#34d399', accentDim: 'rgba(52,211,153,0.15)' },
   { id: 'technical',    label: 'Teknik Analiz',      sublabel: 'Nasıl yapılıyor?', icon: <Code2 size={14} />,        accent: '#22d3ee', accentDim: 'rgba(34,211,238,0.15)' },
   { id: 'architectural',label: 'Mimari Plan',         sublabel: 'Sistem şeması',    icon: <GitBranch size={14} />,    accent: '#a78bfa', accentDim: 'rgba(167,139,250,0.15)' },
+  { id: 'project',      label: 'Proje Yönetimi',     sublabel: 'Ekip & durum',     icon: <Kanban size={14} />,       accent: '#fb923c', accentDim: 'rgba(251,146,60,0.15)' },
 ];
 
 // ─── Overview Section ─────────────────────────────────────────────────────────
@@ -795,6 +799,10 @@ export function ProjectAnalysisModal({ idea, onClose }: { idea: Idea; onClose: (
                         : <EmptyState />
                     )}
 
+                    {activeSection === 'project' && (
+                      <ProjectManagementSection idea={idea} />
+                    )}
+
                     {activeSection === 'architectural' && (
                       analysis
                         ? (
@@ -849,6 +857,186 @@ export function ProjectAnalysisModal({ idea, onClose }: { idea: Idea; onClose: (
         </motion.div>
       </div>
     </AnimatePresence>
+  );
+}
+
+// ─── Project Management Section ───────────────────────────────────────────────
+const STATUS_OPTIONS = [
+  { value: 'fikir',       label: '💡 Fikir',         color: '#818cf8' },
+  { value: 'planlama',    label: '📋 Planlama',       color: '#fbbf24' },
+  { value: 'gelistirme',  label: '⚙️ Geliştirme',    color: '#22d3ee' },
+  { value: 'test',        label: '🧪 Test',           color: '#a78bfa' },
+  { value: 'tamamlandi',  label: '✅ Tamamlandı',     color: '#34d399' },
+  { value: 'beklemede',   label: '⏸️ Beklemede',      color: '#f87171' },
+];
+
+function ProjectManagementSection({ idea }: { idea: Idea }) {
+  const qc = useQueryClient();
+  const projectTeam: Array<{ name: string; role: string; email?: string }> = (idea as any).projectTeam || [];
+  const projectDocs: Array<{ name: string; url: string; type: string }> = (idea as any).projectDocs || [];
+  const currentStatus: string = (idea as any).projectStatus || 'fikir';
+
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('');
+  const [newDocName, setNewDocName] = useState('');
+  const [newDocUrl, setNewDocUrl] = useState('');
+
+  const patchMut = useMutation({
+    mutationFn: (data: object) => authFetch(`/ideas/${idea.id}/project`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['/api/ideas'] }),
+  });
+
+  const setStatus = (s: string) => patchMut.mutate({ projectStatus: s });
+
+  const addMember = () => {
+    if (!newMemberName.trim()) return;
+    const updated = [...projectTeam, { name: newMemberName.trim(), role: newMemberRole.trim() || 'Üye' }];
+    patchMut.mutate({ projectTeam: updated });
+    setNewMemberName(''); setNewMemberRole('');
+  };
+
+  const removeMember = (idx: number) => {
+    const updated = projectTeam.filter((_, i) => i !== idx);
+    patchMut.mutate({ projectTeam: updated });
+  };
+
+  const addDoc = () => {
+    if (!newDocName.trim() || !newDocUrl.trim()) return;
+    const updated = [...projectDocs, { name: newDocName.trim(), url: newDocUrl.trim(), type: 'link' }];
+    patchMut.mutate({ projectDocs: updated });
+    setNewDocName(''); setNewDocUrl('');
+  };
+
+  const removeDoc = (idx: number) => {
+    const updated = projectDocs.filter((_, i) => i !== idx);
+    patchMut.mutate({ projectDocs: updated });
+  };
+
+  const statusMeta = STATUS_OPTIONS.find(s => s.value === currentStatus) ?? STATUS_OPTIONS[0];
+
+  return (
+    <div className="space-y-6">
+      {/* Status selector */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{ color: '#fb923c' }}>
+          <Kanban size={11} /> Proje Durumu
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => setStatus(opt.value)}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+              style={{
+                background: currentStatus === opt.value ? `${opt.color}22` : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${currentStatus === opt.value ? `${opt.color}60` : 'rgba(255,255,255,0.08)'}`,
+                color: currentStatus === opt.value ? opt.color : 'rgba(148,163,184,0.6)',
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Team members */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{ color: '#fb923c' }}>
+          <Users size={11} /> Ekip Üyeleri ({projectTeam.length})
+        </p>
+        <div className="space-y-2 mb-3">
+          {projectTeam.length === 0 && (
+            <p className="text-xs" style={{ color: 'rgba(148,163,184,0.4)' }}>Henüz ekip üyesi eklenmemiş.</p>
+          )}
+          {projectTeam.map((m, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(251,146,60,0.05)', border: '1px solid rgba(251,146,60,0.12)' }}>
+              <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(251,146,60,0.15)' }}>
+                <UserCircle2 size={14} style={{ color: '#fb923c' }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white">{m.name}</p>
+                <p className="text-[10px]" style={{ color: 'rgba(251,146,60,0.7)' }}>{m.role}</p>
+              </div>
+              <button onClick={() => removeMember(i)} className="p-1 rounded transition-colors" style={{ color: 'rgba(248,113,113,0.5)' }}>
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={newMemberName}
+            onChange={e => setNewMemberName(e.target.value)}
+            placeholder="Ad Soyad"
+            className="flex-1 px-3 py-2 rounded-lg text-xs outline-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          />
+          <input
+            value={newMemberRole}
+            onChange={e => setNewMemberRole(e.target.value)}
+            placeholder="Rol"
+            className="w-28 px-3 py-2 rounded-lg text-xs outline-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          />
+          <button
+            onClick={addMember}
+            disabled={!newMemberName.trim()}
+            className="px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: 'rgba(251,146,60,0.2)', color: '#fb923c', opacity: !newMemberName.trim() ? 0.4 : 1 }}
+          >
+            <UserPlus size={13} />
+          </button>
+        </div>
+      </div>
+
+      {/* Project docs */}
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest mb-3 flex items-center gap-1.5" style={{ color: '#fb923c' }}>
+          <FileText size={11} /> Proje Dokümanları ({projectDocs.length})
+        </p>
+        <div className="space-y-2 mb-3">
+          {projectDocs.length === 0 && (
+            <p className="text-xs" style={{ color: 'rgba(148,163,184,0.4)' }}>Henüz doküman eklenmemiş.</p>
+          )}
+          {projectDocs.map((d, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(99,102,241,0.05)', border: '1px solid rgba(99,102,241,0.15)' }}>
+              <Link2 size={13} style={{ color: '#818cf8' }} className="flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-white">{d.name}</p>
+                <a href={d.url} target="_blank" rel="noreferrer" className="text-[10px] truncate block hover:underline" style={{ color: '#818cf8' }}>{d.url}</a>
+              </div>
+              <button onClick={() => removeDoc(i)} className="p-1 rounded transition-colors flex-shrink-0" style={{ color: 'rgba(248,113,113,0.5)' }}>
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={newDocName}
+            onChange={e => setNewDocName(e.target.value)}
+            placeholder="Doküman adı"
+            className="flex-1 px-3 py-2 rounded-lg text-xs outline-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          />
+          <input
+            value={newDocUrl}
+            onChange={e => setNewDocUrl(e.target.value)}
+            placeholder="https://..."
+            className="w-44 px-3 py-2 rounded-lg text-xs outline-none"
+            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          />
+          <button
+            onClick={addDoc}
+            disabled={!newDocName.trim() || !newDocUrl.trim()}
+            className="px-3 py-2 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: 'rgba(99,102,241,0.2)', color: '#818cf8', opacity: (!newDocName.trim() || !newDocUrl.trim()) ? 0.4 : 1 }}
+          >
+            <Plus size={13} />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

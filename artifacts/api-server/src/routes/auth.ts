@@ -18,6 +18,7 @@ const registerSchema = z.object({
   displayName: z.string().min(2, "Ad en az 2 karakter olmalı").max(50),
   email: z.string().email("Geçerli bir e-posta adresi girin"),
   password: z.string().min(8, "Şifre en az 8 karakter olmalı"),
+  department: z.string().max(100).optional(),
 });
 
 const loginSchema = z.object({
@@ -42,7 +43,7 @@ router.post("/register", async (req, res) => {
       error: parsed.error.issues[0]?.message ?? "Geçersiz veri",
     });
   }
-  const { username, displayName, email, password } = parsed.data;
+  const { username, displayName, email, password, department } = parsed.data;
 
   const [existingEmail] = await db
     .select({ id: usersTable.id })
@@ -69,7 +70,7 @@ router.post("/register", async (req, res) => {
   const passwordHash = await bcrypt.hash(password, 12);
   const [user] = await db
     .insert(usersTable)
-    .values({ username, displayName, email, passwordHash, role })
+    .values({ username, displayName, email, passwordHash, role, department })
     .returning({
       id: usersTable.id,
       username: usersTable.username,

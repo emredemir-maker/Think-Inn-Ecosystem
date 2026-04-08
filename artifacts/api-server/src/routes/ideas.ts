@@ -1,19 +1,25 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { ideasTable, researchTable } from "@workspace/db";
+import { ideasTable, researchTable, communityThreadsTable } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { setImmediate } from "timers";
 import { backgroundEvaluateIdea } from "../utils/evaluate-idea";
 import { ai } from "@workspace/integrations-gemini-ai";
-import { autoCreateIdeaThread } from "../utils/community-auto";
+import { autoCreateIdeaThread, autoCreateProjectThread } from "../utils/community-auto";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
   try {
+    const { category } = req.query;
     const ideas = await db
       .select()
       .from(ideasTable)
+      .where(
+        category && typeof category === "string"
+          ? eq(ideasTable.category, category)
+          : undefined,
+      )
       .orderBy(desc(ideasTable.createdAt));
     res.json(ideas);
   } catch (err) {
@@ -73,6 +79,7 @@ router.post("/", async (req, res) => {
         collaborators: body.collaborators || [],
         researchIds: body.researchIds || [],
         relatedTo: body.relatedTo || [],
+        category: body.category || null,
         tags: body.tags || [],
         status: body.status || "active",
         masterIdeaId: body.masterIdeaId || null,
@@ -308,6 +315,49 @@ Kurallar:
     });
   } catch (err) {
     req.log.error({ err }, "Failed to start analysis regeneration");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// PATCH /api/ideas/:id/project — update project management fields
+router.patch("/:id/project", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { projectStatus, projectTeam, projectDocs } = req.body;
+
+    const updates: Record<string, unknown> = { updatedAt: new Date() };
+    if (projectStatus !== undefined) updates.projectStatus = projectStatus;
+    if (projectTeam !== undefined) updates.projectTeam = projectTeam;
+    if (projectDocs !== undefined) updates.projectDocs = projectDocs;
+
+    const [idea] = await db.update(ideasTable).set(updates).where(eq(ideasTable.id, id)).returning();
+    if (!idea) return res.status(404).json({ error: "Idea not found" });
+
+    // If status promoted to prototype, auto-create a project thread
+    if (projectStatus === "prototype" || idea.status === "prototype") {
+      setImmediate(() => autoCreateProjectThread({ id: idea.id, title: idea.title, description: idea.description }));
+    }
+
+    res.json(idea);
+  } catch (err) {
+    req.log.error({ err }, "Failed to update project fields");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// GET /api/ideas/:id/thread — get linked community thread
+router.get("/:id/thread", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [thread] = await db
+      .select()
+      .from(communityThreadsTable)
+      .where(eq(communityThreadsTable.linkedIdeaId, id))
+      .limit(1);
+    if (!thread) return res.status(404).json({ error: "Thread not found" });
+    res.json({ success: true, data: thread });
+  } catch (err) {
+    req.log.error({ err }, "Failed to get idea thread");
     res.status(500).json({ error: "Internal server error" });
   }
 });

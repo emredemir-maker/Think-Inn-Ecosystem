@@ -12,6 +12,7 @@ export const researchTable = pgTable("research", {
   authorName: text("author_name").notNull(),
   coverImageB64: text("cover_image_b64"),
   coverImageMimeType: text("cover_image_mime_type"),
+  category: text("category"),
   tags: json("tags").$type<string[]>().notNull().default([]),
   relatedTo: json("related_to").$type<number[]>().notNull().default([]),
   voteCount: integer("vote_count").notNull().default(0),
