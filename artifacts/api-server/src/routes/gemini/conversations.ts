@@ -417,6 +417,9 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
       if (args.title) updates.title = args.title;
       if (args.description) updates.description = args.description;
       if (args.tags) updates.tags = args.tags;
+      if (args.neededResearchTopics) updates.neededResearchTopics = args.neededResearchTopics;
+      if (args.optionalResearchTopics) updates.optionalResearchTopics = args.optionalResearchTopics;
+      if (args.category) updates.category = args.category;
 
       // If research is being added, reset evaluatedAt so re-evaluation runs
       const researchAdded = updates.researchIds !== undefined;
@@ -627,8 +630,27 @@ FİKİR İŞLEMLERİ — KRİTİK KURAL:
 
 ▶ YENİ FİKİR OLUŞTURMA (save_idea):
 - Kullanıcı yeni bir inovasyon fikri veya proje önerisi paylaştığında kullan
-- ÖNCE list_existing_research VE list_existing_ideas çağır; DB'de çok benzer fikir varsa kaydetme
-- Benzer yoksa save_idea çağır: linkedResearchIds (ilgili araştırma ID'leri), neededResearchTopics (max 4 zorunlu), optionalResearchTopics (max 3 opsiyonel)
+- ÖNCE list_existing_research VE list_existing_ideas çağır
+
+▶ MÜKERRER FİKİR TESPİTİ VE BİRLEŞTİRME (DUPLICATE MERGE):
+Şu kriterlerin ikisi veya daha fazlası karşılanıyorsa fikirler "benzer" sayılır:
+  - Aynı problem alanı / aynı çözüm konsepti
+  - Aynı hedef kullanıcı / departman / süreç
+  - %60+ etiket örtüşmesi veya başlık benzerliği
+
+Benzer fikir bulunursa — ASLA save_idea ÇAĞIRMA:
+  1. Kullanıcıya şunu söyle: "**[Mevcut fikir başlığı]** adlı benzer bir fikir zaten kayıtlı. Yeni detaylarınızı bu fikre entegre ediyorum."
+  2. Hemen update_idea çağır:
+     - ideaId: mevcut fikrin ID'si
+     - description: mevcut açıklama + "\n\n---\n**Ek Katkı:** " + yeni detaylar
+     - tags: mevcut etiketler ∪ yeni etiketler (tekrarsız birleşim)
+     - neededResearchTopics: mevcut liste + yeni eklenecek konular (zaten listede varsa ekleme)
+     - optionalResearchTopics: aynı şekilde birleştir
+     - addResearchIds: ilgili araştırma ID'leri (varsa)
+  3. Kullanıcıya güncelleme özetini ver
+
+Benzer YOK → save_idea çağır:
+  - linkedResearchIds, neededResearchTopics (max 4), optionalResearchTopics (max 3), category
 
 ▶ MEVCUT FİKİR GÜNCELLEME (update_idea) — KESİNLİKLE save_idea DEĞİL:
 Şu durumlarda update_idea çağır:
