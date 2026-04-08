@@ -121,12 +121,15 @@ export default function AuthPage() {
   const [regPassword, setRegPassword] = useState("");
   const [regDepartment, setRegDepartment] = useState("");
   const [departments, setDepartments] = useState<Array<{ id: number; name: string }>>([]);
+  const [deptsLoading, setDeptsLoading] = useState(true);
 
   useEffect(() => {
+    setDeptsLoading(true);
     fetch(`${API_ORIGIN}/api/departments`)
       .then(r => r.json())
-      .then(j => { if (j.success && Array.isArray(j.data)) setDepartments(j.data); })
-      .catch(() => {});
+      .then(j => { if (j.success && Array.isArray(j.data)) setDepartments(j.data.filter((d: any) => d.isActive !== false)); })
+      .catch(() => {})
+      .finally(() => setDeptsLoading(false));
   }, []);
 
   // Redirect if already logged in
@@ -406,29 +409,38 @@ export default function AuthPage() {
                   </div>
                   <Field icon={Mail} label="E-posta" type="email" value={regEmail} onChange={setRegEmail} placeholder="ornek@email.com" autoComplete="email" />
                   <Field icon={Lock} label="Şifre" type="password" value={regPassword} onChange={setRegPassword} placeholder="En az 8 karakter" autoComplete="new-password" />
-                  {departments.length > 0 && (
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>Departman (isteğe bağlı)</label>
-                      <div className="relative">
-                        <Building2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }} />
-                        <select
-                          value={regDepartment}
-                          onChange={e => setRegDepartment(e.target.value)}
-                          className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm outline-none transition-all appearance-none"
-                          style={{
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: regDepartment ? "#fff" : "rgba(255,255,255,0.3)",
-                          }}
-                        >
-                          <option value="">Departman seçin...</option>
-                          {departments.map(d => (
-                            <option key={d.id} value={d.name} style={{ background: "#0a0e2e" }}>{d.name}</option>
-                          ))}
-                        </select>
-                      </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+                      Departman <span style={{ color: "rgba(255,255,255,0.25)" }}>(isteğe bağlı)</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(255,255,255,0.3)" }} />
+                      <select
+                        value={regDepartment}
+                        onChange={e => setRegDepartment(e.target.value)}
+                        disabled={deptsLoading}
+                        className="w-full pl-9 pr-4 py-2.5 rounded-lg text-sm outline-none transition-all appearance-none"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          color: regDepartment ? "#fff" : "rgba(255,255,255,0.3)",
+                          opacity: deptsLoading ? 0.5 : 1,
+                        }}
+                      >
+                        {deptsLoading
+                          ? <option value="">Yükleniyor...</option>
+                          : departments.length === 0
+                            ? <option value="">Departman tanımlanmamış</option>
+                            : <>
+                                <option value="">Departman seçin...</option>
+                                {departments.map(d => (
+                                  <option key={d.id} value={d.name} style={{ background: "#0a0e2e" }}>{d.name}</option>
+                                ))}
+                              </>
+                        }
+                      </select>
                     </div>
-                  )}
+                  </div>
 
                   <button
                     type="submit"

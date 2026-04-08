@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users, Shield, ShieldAlert, Crown, User, Search, ChevronDown,
   ToggleLeft, ToggleRight, ChevronRight, X, AlertTriangle, CheckCircle,
   Clock, Mail, Calendar, Activity, UserPlus, Eye, EyeOff,
-  TrendingUp, UserCheck, UserX, AtSign, Lock
+  TrendingUp, UserCheck, UserX, AtSign, Lock, Building2
 } from "lucide-react";
 import { useAuth, authFetch } from "@/lib/auth-context";
+import { API_ORIGIN } from "@/lib/api-config";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,8 +99,19 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("user");
+  const [department, setDepartment] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [depts, setDepts] = useState<Array<{ id: number; name: string }>>([]);
+  const [deptsLoading, setDeptsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`${API_ORIGIN}/api/departments`)
+      .then(r => r.json())
+      .then(j => { if (j.success && Array.isArray(j.data)) setDepts(j.data.filter((d: any) => d.isActive !== false)); })
+      .catch(() => {})
+      .finally(() => setDeptsLoading(false));
+  }, []);
 
   const mut = useMutation({
     mutationFn: (body: object) => authFetch("/admin/users", { method: "POST", body: JSON.stringify(body) }),
@@ -113,7 +125,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    mut.mutate({ username, displayName, email, password, role });
+    mut.mutate({ username, displayName, email, password, role, ...(department ? { department } : {}) });
   }
 
   return (
@@ -183,6 +195,40 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
               <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400">
                 {showPw ? <EyeOff size={13} /> : <Eye size={13} />}
               </button>
+            </div>
+          </div>
+
+          {/* Department */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
+              Departman <span style={{ color: "rgba(255,255,255,0.2)" }}>(isteğe bağlı)</span>
+            </label>
+            <div className="relative">
+              <Building2 size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+              <select
+                value={department}
+                onChange={e => setDepartment(e.target.value)}
+                disabled={deptsLoading}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none appearance-none"
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(99,102,241,0.2)",
+                  color: department ? "#e2e8f0" : "rgba(255,255,255,0.3)",
+                  opacity: deptsLoading ? 0.5 : 1,
+                }}
+              >
+                {deptsLoading
+                  ? <option value="">Yükleniyor...</option>
+                  : depts.length === 0
+                    ? <option value="">Departman tanımlanmamış</option>
+                    : <>
+                        <option value="">Seçin (isteğe bağlı)</option>
+                        {depts.map(d => (
+                          <option key={d.id} value={d.name} style={{ background: "#0a0e2e" }}>{d.name}</option>
+                        ))}
+                      </>
+                }
+              </select>
             </div>
           </div>
 

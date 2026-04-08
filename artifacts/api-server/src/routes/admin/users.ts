@@ -189,6 +189,7 @@ router.post("/", requireRole("super_admin"), async (req, res) => {
     email: z.string().email(),
     password: z.string().min(6),
     role: z.enum(["super_admin", "moderator", "master", "user"]).default("user"),
+    department: z.string().max(100).optional(),
   }).parse(req.body);
 
   const existing = await db
@@ -203,7 +204,7 @@ router.post("/", requireRole("super_admin"), async (req, res) => {
   const passwordHash = await bcrypt.hash(body.password, 12);
   const [created] = await db
     .insert(usersTable)
-    .values({ username: body.username, displayName: body.displayName, email: body.email, passwordHash, role: body.role, isActive: true })
+    .values({ username: body.username, displayName: body.displayName, email: body.email, passwordHash, role: body.role, department: body.department ?? null, isActive: true })
     .returning({ id: usersTable.id, username: usersTable.username, displayName: usersTable.displayName, email: usersTable.email, role: usersTable.role, isActive: usersTable.isActive, createdAt: usersTable.createdAt });
 
   // Send invitation email in background (non-blocking)
