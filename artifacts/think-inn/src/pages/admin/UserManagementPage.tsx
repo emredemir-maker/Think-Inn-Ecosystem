@@ -92,7 +92,7 @@ function StatCard({ icon: Icon, label, value, color, sub }: {
 
 // ── Create User Modal ────────────────────────────────────────────────────────
 
-function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: (emailSent: boolean) => void }) {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
@@ -103,7 +103,10 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
   const mut = useMutation({
     mutationFn: (body: object) => authFetch("/admin/users", { method: "POST", body: JSON.stringify(body) }),
-    onSuccess: () => { onCreated(); onClose(); },
+    onSuccess: (res: { emailSent?: boolean }) => {
+      onCreated(res?.emailSent ?? false);
+      onClose();
+    },
     onError: (err) => setError(err instanceof Error ? err.message : "Kullanıcı oluşturulamadı"),
   });
 
@@ -266,6 +269,7 @@ export default function UserManagementPage() {
   const [confirmAction, setConfirmAction] = useState<{ type: string; user: AdminUser; value?: string } | null>(null);
   const [reason, setReason] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
   const params = new URLSearchParams();
   if (search) params.set("search", search);
@@ -636,14 +640,41 @@ export default function UserManagementPage() {
         )}
       </AnimatePresence>
 
+      {/* ── Toast Notification ────────────────────────────────────── */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl text-sm font-medium"
+            style={{
+              background: toast.ok ? "rgba(16,185,129,0.12)" : "rgba(234,179,8,0.12)",
+              border: `1px solid ${toast.ok ? "rgba(16,185,129,0.35)" : "rgba(234,179,8,0.35)"}`,
+              color: toast.ok ? "#10b981" : "#eab308",
+            }}
+          >
+            {toast.ok ? <Mail size={15} /> : <Mail size={15} />}
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Create User Modal ─────────────────────────────────────── */}
       <AnimatePresence>
         {showCreate && (
           <CreateUserModal
             onClose={() => setShowCreate(false)}
-            onCreated={() => {
+            onCreated={(emailSent) => {
               qc.invalidateQueries({ queryKey: ["admin-users"] });
               qc.invalidateQueries({ queryKey: ["admin-user-stats"] });
+              setToast({
+                ok: emailSent,
+                msg: emailSent
+                  ? "Kullanıcı oluşturuldu ve davet maili gönderildi."
+                  : "Kullanıcı oluşturuldu. (Davet maili gönderilemedi)",
+              });
+              setTimeout(() => setToast(null), 5000);
             }}
           />
         )}

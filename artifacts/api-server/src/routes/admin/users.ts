@@ -6,6 +6,7 @@ import { requireRole } from "../../middlewares/requireRole";
 import { ROLE_HIERARCHY } from "../../middlewares/requireRole";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { sendInvitationEmail } from "../../utils/email";
 
 const router = Router();
 
@@ -205,7 +206,24 @@ router.post("/", requireRole("super_admin"), async (req, res) => {
     .values({ username: body.username, displayName: body.displayName, email: body.email, passwordHash, role: body.role, isActive: true })
     .returning({ id: usersTable.id, username: usersTable.username, displayName: usersTable.displayName, email: usersTable.email, role: usersTable.role, isActive: usersTable.isActive, createdAt: usersTable.createdAt });
 
-  res.status(201).json({ success: true, data: created });
+  // Send invitation email in background (non-blocking)
+  let emailSent = false;
+  if (process.env.RESEND_API_KEY) {
+    try {
+      await sendInvitationEmail({
+        to: body.email,
+        displayName: body.displayName,
+        username: body.username,
+        temporaryPassword: body.password,
+        role: body.role,
+      });
+      emailSent = true;
+    } catch (emailErr) {
+      console.error("[Email] Davet maili gönderilemedi:", emailErr);
+    }
+  }
+
+  res.status(201).json({ success: true, data: created, emailSent });
 });
 
 // GET /api/admin/audit-log
