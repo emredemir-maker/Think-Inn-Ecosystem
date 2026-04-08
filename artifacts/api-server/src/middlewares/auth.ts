@@ -22,9 +22,15 @@ declare global {
 }
 
 export function getJwtSecret() {
-  return new TextEncoder().encode(
-    process.env.JWT_SECRET || "dev-secret-change-in-production"
-  );
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("JWT_SECRET environment variable is not set. Cannot run in production without it.");
+    }
+    // Development fallback — not secure, only for local use
+    return new TextEncoder().encode("dev-secret-local-only");
+  }
+  return new TextEncoder().encode(secret);
 }
 
 export async function authMiddleware(req: Request, _res: Response, next: NextFunction) {
