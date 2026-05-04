@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Research, Idea } from '@workspace/api-client-react';
 import { ArrowLeft, ThumbsUp, Users, ZoomIn, ZoomOut, Maximize2, ExternalLink, Loader2, CheckCircle, AlertTriangle, BookOpen, Tag, LayoutTemplate } from 'lucide-react';
 
@@ -11,7 +11,6 @@ interface NodeData {
   collaboratorCount: number;
   x: number;
   y: number;
-  /** Only set for project nodes — the idea ID they're linked to */
   parentIdeaId?: number;
 }
 
@@ -36,7 +35,6 @@ interface Edge {
   targetType: string;
   manual?: boolean;
   topicMapping?: { topic: string; topicType: "needed" | "optional" };
-  /** Project link edges are styled distinctly and not deletable */
   isProjectLink?: boolean;
 }
 
@@ -112,9 +110,7 @@ export function RelationGraph({
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
-  // Hovered edge index — driven by SVG onPointerEnter/Leave
   const [hoveredEdgeIdx, setHoveredEdgeIdx] = useState<number | null>(null);
-  // Screen-space position of the hovered edge midpoint (for HTML delete button)
   const [deleteBtn, setDeleteBtn] = useState<{ x: number; y: number; edgeIdx: number } | null>(null);
 
   const [flashMsg, setFlashMsg] = useState<{ text: string; type: 'ok'|'err'|'info' } | null>(null);
@@ -135,18 +131,6 @@ export function RelationGraph({
   const panRef  = useRef(pan);
   useEffect(() => { zoomRef.current = zoom; }, [zoom]);
   useEffect(() => { panRef.current  = pan;  }, [pan]);
-
-  // ── Star field (generated once, CSS box-shadow trick) ─────────────
-  const starField = React.useMemo(() => {
-    const rng = (min: number, max: number) => Math.random() * (max - min) + min;
-    const shadows = Array.from({ length: 180 }, () => {
-      const x = rng(0, 2400), y = rng(0, 1400);
-      const size = Math.random() < 0.12 ? 1.5 : Math.random() < 0.35 ? 1 : 0.5;
-      const op = rng(0.08, 0.55).toFixed(2);
-      return `${x.toFixed(0)}px ${y.toFixed(0)}px ${size}px rgba(255,255,255,${op})`;
-    }).join(',');
-    return shadows;
-  }, []);
 
   // ── Canvas → screen space ─────────────────────────────────────────
   const canvasToScreen = useCallback((cx: number, cy: number) => {
@@ -169,14 +153,12 @@ export function RelationGraph({
   }, []);
 
   // ── Build graph ────────────────────────────────────────────────────
-
   const buildGraph = useCallback(() => {
     const cw = containerRef.current?.clientWidth ?? 900;
     const ch = containerRef.current?.clientHeight ?? 600;
 
     if (globalMode) {
       const newNodes: NodeData[] = [], newEdges: Edge[] = [];
-      // 3-column layout: Research | Ideas | Projects
       const projectIdeas = allIdeas.filter(i => !!(i as any).architecturalAnalysis);
       const hasProjects = projectIdeas.length > 0;
       const colGap = Math.max(cw * 0.36, 300);
@@ -197,7 +179,6 @@ export function RelationGraph({
           }
         });
       });
-      // Project nodes (one per idea that has architecturalAnalysis)
       projectIdeas.forEach((idea,i) => {
         newNodes.push({ id:idea.id, type:'project', title:(idea as any).architecturalAnalysis?.functionalAnalysis ? `${idea.title} — Proje` : idea.title, summary:'Mimari analiz & akış şeması', voteCount:0, collaboratorCount:0, x:rightX, y:ch/2-vP*(projectIdeas.length-1)/2+i*vP, parentIdeaId:idea.id });
         newEdges.push({ sourceId:idea.id, sourceType:'idea', targetId:idea.id, targetType:'project', isProjectLink:true });
@@ -222,7 +203,6 @@ export function RelationGraph({
           const tm = (idea as IdeaWithTopics).researchTopicMappings?.find(m => m.researchId === item.id);
           newEdges.push({sourceId:selectedId,sourceType:'idea',targetId:item.id,targetType:'research', topicMapping: tm ? { topic: tm.topic, topicType: tm.topicType } : undefined});
         });
-        // If this idea has a project, add project node below/right
         if (!!(idea as any).architecturalAnalysis) {
           const projX = cx + 320, projY = cy;
           newNodes.push({ id:idea.id, type:'project', title:`${idea.title} — Proje`, summary:'Mimari analiz & akış şeması', voteCount:0, collaboratorCount:0, x:projX, y:projY, parentIdeaId:idea.id });
@@ -244,7 +224,6 @@ export function RelationGraph({
   useEffect(() => {
     if (hoveredEdgeIdx === null || hoveredEdgeIdx >= edges.length) { setDeleteBtn(null); return; }
     const edge = edges[hoveredEdgeIdx];
-    // Don't show delete button for project links
     if (edge.isProjectLink) { setDeleteBtn(null); return; }
     const src = nodes.find(n=>n.id===edge.sourceId&&n.type===edge.sourceType);
     const tgt = nodes.find(n=>n.id===edge.targetId&&n.type===edge.targetType);
@@ -255,15 +234,27 @@ export function RelationGraph({
     setDeleteBtn({x, y, edgeIdx:hoveredEdgeIdx});
   }, [hoveredEdgeIdx, edges, nodes, zoom, pan, canvasToScreen]);
 
-  // ── Canvas events ──────────────────────────────────────────────────
+  // ── Density halo cluster centers ───────────────────────────────────
+  const clusterCenters = useMemo(() => {
+    const center = (nds: NodeData[]) => nds.length === 0 ? null : {
+      x: nds.reduce((s, n) => s + n.x + NODE_W/2, 0) / nds.length,
+      y: nds.reduce((s, n) => s + n.y + NODE_H/2, 0) / nds.length,
+      r: Math.max(180, nds.length * 80),
+    };
+    return {
+      research: center(nodes.filter(n => n.type === 'research')),
+      idea:     center(nodes.filter(n => n.type === 'idea')),
+      project:  center(nodes.filter(n => n.type === 'project')),
+    };
+  }, [nodes]);
 
+  // ── Canvas events ──────────────────────────────────────────────────
   const onCanvasPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const t = e.target as HTMLElement;
-    // Don't start panning when clicking on interactive elements
     if (t.closest('button')) return;
     if (t.closest('[data-node]')) return;
     if (t.closest('[data-port]')) return;
-    if (t.closest('[data-edge]')) return;  // ← edge hit areas
+    if (t.closest('[data-edge]')) return;
     const el = e.currentTarget;
     el.setPointerCapture(e.pointerId);
     panDrag.current = { mx:e.clientX, my:e.clientY, px:panRef.current.x, py:panRef.current.y };
@@ -301,7 +292,6 @@ export function RelationGraph({
   };
 
   // ── Node drag ──────────────────────────────────────────────────────
-
   const onNodePointerDown = (e: React.PointerEvent<HTMLDivElement>, node: NodeData) => {
     const t = e.target as HTMLElement;
     if (t.closest('[data-port]')||t.closest('[data-detail]')||t.closest('button')) return;
@@ -322,7 +312,6 @@ export function RelationGraph({
   };
 
   // ── AI Validation ──────────────────────────────────────────────────
-
   const startValidation = async (fromId:number, fromType:string, toId:number, toType:string) => {
     let ideaId:number|null=null, researchId:number|null=null;
     if (fromType==='idea'&&toType==='research'){ideaId=fromId;researchId=toId;}
@@ -348,7 +337,6 @@ export function RelationGraph({
       setEdges(prev=>[...prev,{sourceId:fromId,sourceType:fromType,targetId:toId,targetType:toType,manual:true}]);
       flash('Bağlantı kaydedildi ✓','ok');
       onRelationChange?.();
-      // Show topic picker if idea has research topics
       const neededTopics = idea.neededResearchTopics ?? [];
       const optionalTopics = idea.optionalResearchTopics ?? [];
       if (neededTopics.length > 0 || optionalTopics.length > 0) {
@@ -376,7 +364,7 @@ export function RelationGraph({
   };
 
   const deleteEdge = async (edge: Edge) => {
-    if (edge.isProjectLink) return; // Project links are not deletable
+    if (edge.isProjectLink) return;
     const [ideaId,researchId] = edge.sourceType==='idea'?[edge.sourceId,edge.targetId]:[edge.targetId,edge.sourceId];
     const idea=allIdeas.find(i=>i.id===ideaId); if(!idea) return;
     const newResearchIds=(idea.researchIds??[]).filter(id=>id!==researchId);
@@ -400,38 +388,127 @@ export function RelationGraph({
   const dr=drawing.current;
   const PORT_SIDES:PortSide[]=['top','bottom','left','right'];
 
+  // ── Pseudo coordinates (corner decoration) ─────────────────────────
+  const cw0 = containerRef.current?.clientWidth ?? 900;
+  const ch0 = containerRef.current?.clientHeight ?? 600;
+  const COORD_SCALE = 120;
+  const coordCx = (-pan.x / zoom / COORD_SCALE).toFixed(1);
+  const coordCy = (-pan.y / zoom / COORD_SCALE).toFixed(1);
+  const coordTR = `[${(parseFloat(coordCx) + cw0/COORD_SCALE/zoom).toFixed(1)}, ${coordCy}]`;
+  const coordBL = `[${coordCx}, ${(parseFloat(coordCy) + ch0/COORD_SCALE/zoom).toFixed(1)}]`;
+
+  // Grid cell sizes accounting for zoom
+  const CELL = 100;
+  const SUB  = 20;
+  const cellZ = CELL * zoom;
+  const subZ  = SUB  * zoom;
+  const gridOffX = pan.x % cellZ;
+  const gridOffY = pan.y % cellZ;
+
+  // Axis positions (screen space, shifted by pan)
+  const axisVx = cw0/2 + pan.x;
+  const axisHy = ch0/2 + pan.y;
+
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden"
-      style={{ background:'radial-gradient(ellipse 120% 80% at 50% 0%, #0a0e2e 0%, #04050f 55%, #000008 100%)', cursor:panDrag.current?'grabbing':'default', userSelect:'none', touchAction:'none' }}
+      style={{ background:'#07091e', cursor:panDrag.current?'grabbing':'default', userSelect:'none', touchAction:'none' }}
       onPointerDown={onCanvasPointerDown}
       onPointerMove={onCanvasPointerMove}
       onPointerUp={onCanvasPointerUp}
       onWheel={onCanvasWheel}
     >
-      {/* ── Star field ──────────────────────────── */}
-      <div style={{ position:'absolute', inset:0, pointerEvents:'none', zIndex:0, overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:0, left:0, width:1, height:1, boxShadow: starField, willChange:'transform', transform:`translate(${pan.x%2400}px,${pan.y%1400}px)` }} />
-        {/* Nebula glow 1 – indigo top-left */}
-        <div style={{ position:'absolute', top:'-10%', left:'-5%', width:'55%', height:'55%', background:'radial-gradient(ellipse at 40% 40%, rgba(79,70,229,0.13) 0%, transparent 70%)', pointerEvents:'none' }} />
-        {/* Nebula glow 2 – cyan bottom-right */}
-        <div style={{ position:'absolute', bottom:'-10%', right:'-5%', width:'50%', height:'50%', background:'radial-gradient(ellipse at 60% 60%, rgba(6,182,212,0.09) 0%, transparent 70%)', pointerEvents:'none' }} />
-        {/* Nebula glow 3 – violet center */}
-        <div style={{ position:'absolute', top:'30%', left:'35%', width:'40%', height:'40%', background:'radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.07) 0%, transparent 65%)', pointerEvents:'none' }} />
-        {/* Grid overlay */}
-        <div style={{ position:'absolute', inset:0, backgroundImage:'radial-gradient(rgba(99,102,241,0.18) 1px, transparent 1px)', backgroundSize:'28px 28px', backgroundPosition:`${pan.x%28}px ${pan.y%28}px`, pointerEvents:'none' }} />
+      {/* ── Vector space background SVG ─────────────────────────────── */}
+      <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', zIndex:0 }}>
+        <defs>
+          {/* Sub-grid pattern */}
+          <pattern id="vs-subgrid" width={subZ} height={subZ} patternUnits="userSpaceOnUse"
+            x={pan.x % subZ} y={pan.y % subZ}>
+            <path d={`M ${subZ} 0 L 0 0 0 ${subZ}`} fill="none"
+              stroke="rgba(79,70,229,0.07)" strokeWidth={0.5}/>
+          </pattern>
+          {/* Main grid pattern */}
+          <pattern id="vs-maingrid" width={cellZ} height={cellZ} patternUnits="userSpaceOnUse"
+            x={gridOffX} y={gridOffY}>
+            <rect width={cellZ} height={cellZ} fill="url(#vs-subgrid)"/>
+            <path d={`M ${cellZ} 0 L 0 0 0 ${cellZ}`} fill="none"
+              stroke="rgba(99,102,241,0.13)" strokeWidth={1}/>
+          </pattern>
+          {/* Glow filter for nodes & dots */}
+          <filter id="glow-indigo" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glow-amber" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="glow-violet" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        {/* Grid fill */}
+        <rect width="100%" height="100%" fill="url(#vs-maingrid)"/>
+
+        {/* Axis lines */}
+        {axisVx > 0 && axisVx < cw0 && (
+          <line x1={axisVx} y1={0} x2={axisVx} y2={ch0}
+            stroke="rgba(99,102,241,0.18)" strokeWidth={1.5}/>
+        )}
+        {axisHy > 0 && axisHy < ch0 && (
+          <line x1={0} y1={axisHy} x2={cw0} y2={axisHy}
+            stroke="rgba(99,102,241,0.18)" strokeWidth={1.5}/>
+        )}
+
+        {/* Tick marks on axes */}
+        {axisVx > 0 && axisVx < cw0 && Array.from({length: Math.ceil(ch0 / cellZ) + 2}).map((_,i) => {
+          const ty = gridOffY + (i-1)*cellZ;
+          if (ty < 0 || ty > ch0) return null;
+          return <line key={`tv${i}`} x1={axisVx-4} y1={ty} x2={axisVx+4} y2={ty}
+            stroke="rgba(99,102,241,0.35)" strokeWidth={1}/>;
+        })}
+        {axisHy > 0 && axisHy < ch0 && Array.from({length: Math.ceil(cw0 / cellZ) + 2}).map((_,i) => {
+          const tx = gridOffX + (i-1)*cellZ;
+          if (tx < 0 || tx > cw0) return null;
+          return <line key={`th${i}`} x1={tx} y1={axisHy-4} x2={tx} y2={axisHy+4}
+            stroke="rgba(99,102,241,0.35)" strokeWidth={1}/>;
+        })}
+
         {/* Vignette */}
-        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 90% 90% at 50% 50%, transparent 40%, rgba(0,0,8,0.7) 100%)', pointerEvents:'none' }} />
+        <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+          <stop offset="40%" stopColor="transparent"/>
+          <stop offset="100%" stopColor="rgba(4,5,18,0.75)"/>
+        </radialGradient>
+        <rect width="100%" height="100%" fill="url(#vignette)"/>
+      </svg>
+
+      {/* ── Coordinate corner decorations (screen-space) ─────────────── */}
+      <div style={{ position:'absolute', inset:0, pointerEvents:'none', zIndex:1 }}>
+        <span style={{ position:'absolute', top:8, left:8, fontSize:9, fontFamily:'monospace', color:'rgba(99,102,241,0.2)', letterSpacing:'0.05em' }}>
+          [{coordCx}, {coordCy}]
+        </span>
+        <span style={{ position:'absolute', top:8, right:8, fontSize:9, fontFamily:'monospace', color:'rgba(99,102,241,0.2)', letterSpacing:'0.05em' }}>
+          {coordTR}
+        </span>
+        <span style={{ position:'absolute', bottom:8, left:8, fontSize:9, fontFamily:'monospace', color:'rgba(99,102,241,0.2)', letterSpacing:'0.05em' }}>
+          {coordBL}
+        </span>
+        <span style={{ position:'absolute', bottom:8, right:134, fontSize:9, fontFamily:'monospace', color:'rgba(99,102,241,0.15)', letterSpacing:'0.05em' }}>
+          dim={zoom.toFixed(2)}
+        </span>
       </div>
+
       {/* ── Top bar ─────────────────────────────── */}
       <div className="absolute top-4 left-4 z-30 flex items-center gap-2">
-        <button onClick={onBack} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium text-slate-300 transition-all hover:text-white" style={{ background:'rgba(10,16,34,0.9)', border:'1px solid rgba(99,102,241,0.3)', backdropFilter:'blur(8px)' }}>
+        <button onClick={onBack} className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium text-slate-300 transition-all hover:text-white" style={{ background:'rgba(7,9,30,0.9)', border:'1px solid rgba(99,102,241,0.3)', backdropFilter:'blur(12px)' }}>
           <ArrowLeft size={14}/> Listeye Dön
         </button>
-        <span className="text-xs text-slate-400 px-2.5 py-1 rounded-full font-mono" style={{ background:'rgba(10,16,34,0.8)', border:'1px solid rgba(99,102,241,0.2)' }}>
+        <span className="text-xs text-slate-400 px-2.5 py-1 rounded-full font-mono" style={{ background:'rgba(7,9,30,0.85)', border:'1px solid rgba(99,102,241,0.2)', backdropFilter:'blur(8px)' }}>
           {globalMode?'Genel Harita · ':''}{nodes.length} düğüm · {edges.length} bağlantı
         </span>
         {flashMsg&&(
-          <span className={`text-xs px-3 py-1 rounded-full border font-medium ${flashMsg.type==='ok'?'border-emerald-500/30 text-emerald-400':flashMsg.type==='err'?'border-red-500/30 text-red-400':'border-indigo-500/30 text-indigo-400'}`} style={{ background:'rgba(10,16,34,0.9)' }}>
+          <span className={`text-xs px-3 py-1 rounded-full border font-medium ${flashMsg.type==='ok'?'border-emerald-500/30 text-emerald-400':flashMsg.type==='err'?'border-red-500/30 text-red-400':'border-indigo-500/30 text-indigo-400'}`} style={{ background:'rgba(7,9,30,0.9)', backdropFilter:'blur(8px)' }}>
             {flashMsg.text}
           </span>
         )}
@@ -439,26 +516,26 @@ export function RelationGraph({
 
       {/* Global legend */}
       {globalMode&&(
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 rounded-full px-4 py-2 pointer-events-none" style={{ background:'rgba(10,16,34,0.9)', border:'1px solid rgba(99,102,241,0.2)', backdropFilter:'blur(8px)' }}>
-          <span className="flex items-center gap-1.5 text-xs text-indigo-400 font-medium font-mono"><span className="w-2 h-2 rounded-sm inline-block" style={{ background:'rgba(99,102,241,0.3)', border:'1px solid #818cf8' }}/>Araştırma</span>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-4 rounded-full px-4 py-2 pointer-events-none" style={{ background:'rgba(7,9,30,0.88)', border:'1px solid rgba(99,102,241,0.2)', backdropFilter:'blur(12px)' }}>
+          <span className="flex items-center gap-1.5 text-xs text-indigo-400 font-medium font-mono"><span className="w-2 h-2 rounded-sm inline-block" style={{ background:'rgba(99,102,241,0.25)', border:'1px solid rgba(129,140,248,0.6)' }}/>Araştırma</span>
           <span className="text-slate-700">|</span>
-          <span className="flex items-center gap-1.5 text-xs text-amber-400 font-medium font-mono"><span className="w-2 h-2 rounded-sm inline-block" style={{ background:'rgba(251,191,36,0.3)', border:'1px solid #fbbf24' }}/>Fikir</span>
+          <span className="flex items-center gap-1.5 text-xs text-amber-400 font-medium font-mono"><span className="w-2 h-2 rounded-sm inline-block" style={{ background:'rgba(251,191,36,0.25)', border:'1px solid rgba(251,191,36,0.6)' }}/>Fikir</span>
           <span className="text-slate-700">|</span>
-          <span className="flex items-center gap-1.5 text-xs text-violet-400 font-medium font-mono"><span className="w-2 h-2 rounded-sm inline-block" style={{ background:'rgba(167,139,250,0.3)', border:'1px solid #a78bfa' }}/>Proje</span>
+          <span className="flex items-center gap-1.5 text-xs text-violet-400 font-medium font-mono"><span className="w-2 h-2 rounded-sm inline-block" style={{ background:'rgba(167,139,250,0.25)', border:'1px solid rgba(167,139,250,0.6)' }}/>Proje</span>
         </div>
       )}
 
       {!!dr&&!validation&&(
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 text-xs text-indigo-300 px-3 py-1.5 rounded-full font-medium font-mono pointer-events-none" style={{ background:'rgba(10,16,34,0.9)', border:'1px solid rgba(99,102,241,0.3)', backdropFilter:'blur(8px)' }}>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 text-xs text-indigo-300 px-3 py-1.5 rounded-full font-medium font-mono pointer-events-none" style={{ background:'rgba(7,9,30,0.9)', border:'1px solid rgba(99,102,241,0.3)', backdropFilter:'blur(12px)' }}>
           Başka bir düğümün portuna sürükleyin
         </div>
       )}
 
-      {/* ── HTML Delete button (screen-space, reliable) ─────────────── */}
+      {/* ── HTML Delete button (screen-space) ─────────────────────────── */}
       {deleteBtn !== null && hoveredEdgeIdx !== null && edges[deleteBtn.edgeIdx] && (
         <button
           className="absolute z-40 w-7 h-7 rounded-full text-red-400 text-base font-bold hover:text-red-300 transition-colors flex items-center justify-center"
-          style={{ background:'rgba(10,16,34,0.95)', border:'1px solid rgba(239,68,68,0.4)', backdropFilter:'blur(8px)', boxShadow:'0 4px 12px rgba(0,0,0,0.5)', left: deleteBtn.x - 14, top: deleteBtn.y - 14, pointerEvents: 'auto' }}
+          style={{ background:'rgba(7,9,30,0.95)', border:'1px solid rgba(239,68,68,0.4)', backdropFilter:'blur(8px)', boxShadow:'0 4px 12px rgba(0,0,0,0.5)', left: deleteBtn.x - 14, top: deleteBtn.y - 14, pointerEvents: 'auto' }}
           onPointerEnter={() => setHoveredEdgeIdx(deleteBtn.edgeIdx)}
           onPointerLeave={() => { setHoveredEdgeIdx(null); setDeleteBtn(null); }}
           onClick={() => deleteEdge(edges[deleteBtn.edgeIdx])}
@@ -470,15 +547,15 @@ export function RelationGraph({
 
       {/* ── Zoom controls ───────────────────────────────────────────── */}
       <div className="absolute top-4 right-4 z-30 flex flex-col gap-1">
-        <button onClick={zoomIn}  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all" style={{ background:'rgba(10,16,34,0.9)', border:'1px solid rgba(99,102,241,0.25)' }}><ZoomIn  size={14}/></button>
-        <button onClick={zoomOut} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all" style={{ background:'rgba(10,16,34,0.9)', border:'1px solid rgba(99,102,241,0.25)' }}><ZoomOut size={14}/></button>
-        <button onClick={fitView} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all" style={{ background:'rgba(10,16,34,0.9)', border:'1px solid rgba(99,102,241,0.25)' }}><Maximize2 size={13}/></button>
+        <button onClick={zoomIn}  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all" style={{ background:'rgba(7,9,30,0.9)', border:'1px solid rgba(99,102,241,0.25)', backdropFilter:'blur(8px)' }}><ZoomIn  size={14}/></button>
+        <button onClick={zoomOut} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all" style={{ background:'rgba(7,9,30,0.9)', border:'1px solid rgba(99,102,241,0.25)', backdropFilter:'blur(8px)' }}><ZoomOut size={14}/></button>
+        <button onClick={fitView} className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-indigo-400 transition-all" style={{ background:'rgba(7,9,30,0.9)', border:'1px solid rgba(99,102,241,0.25)', backdropFilter:'blur(8px)' }}><Maximize2 size={13}/></button>
         <div className="text-center text-[11px] text-indigo-400/70 font-mono mt-0.5">{Math.round(zoom*100)}%</div>
       </div>
 
       {/* ── AI Validation popup ─────────────────────────────────────── */}
       {validation&&(
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 rounded-2xl p-5 w-80" style={{ background:'rgba(8,12,28,0.97)', border:'1px solid rgba(99,102,241,0.3)', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.8)' }}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 rounded-2xl p-5 w-80" style={{ background:'rgba(5,7,20,0.97)', border:'1px solid rgba(99,102,241,0.35)', backdropFilter:'blur(24px)', boxShadow:'0 24px 60px rgba(0,0,0,0.8), 0 0 40px rgba(79,70,229,0.08)' }}>
           {validation.status==='loading'?(
             <div className="flex flex-col items-center gap-3 py-2">
               <Loader2 size={28} className="text-indigo-400 animate-spin"/>
@@ -512,7 +589,7 @@ export function RelationGraph({
 
       {/* ── Topic Picker popup ─────────────────────────────────────────── */}
       {topicPicker && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 rounded-2xl p-5 w-96" style={{ background:'rgba(8,12,28,0.97)', border:'1px solid rgba(99,102,241,0.3)', backdropFilter:'blur(20px)', boxShadow:'0 24px 60px rgba(0,0,0,0.8)' }}>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 rounded-2xl p-5 w-96" style={{ background:'rgba(5,7,20,0.97)', border:'1px solid rgba(99,102,241,0.35)', backdropFilter:'blur(24px)', boxShadow:'0 24px 60px rgba(0,0,0,0.8)' }}>
           <div className="flex items-center gap-2 mb-3">
             <BookOpen size={16} className="text-indigo-400"/>
             <p className="text-sm font-semibold text-slate-200">Araştırma Konusu Eşleştir</p>
@@ -559,6 +636,42 @@ export function RelationGraph({
       <div className="absolute inset-0"
         style={{ transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom})`, transformOrigin:'50% 50%', pointerEvents:'none' }}>
 
+        {/* ── Density halos (inside transform, so they pan/zoom with canvas) ── */}
+        <svg className="absolute inset-0 overflow-visible" style={{width:'100%',height:'100%',pointerEvents:'none',zIndex:1}}>
+          <defs>
+            <radialGradient id="halo-research" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stopColor="rgba(79,70,229,0.13)"/>
+              <stop offset="55%" stopColor="rgba(99,102,241,0.05)"/>
+              <stop offset="100%" stopColor="transparent"/>
+            </radialGradient>
+            <radialGradient id="halo-idea" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stopColor="rgba(251,191,36,0.10)"/>
+              <stop offset="55%" stopColor="rgba(251,191,36,0.04)"/>
+              <stop offset="100%" stopColor="transparent"/>
+            </radialGradient>
+            <radialGradient id="halo-project" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stopColor="rgba(139,92,246,0.12)"/>
+              <stop offset="55%" stopColor="rgba(167,139,250,0.04)"/>
+              <stop offset="100%" stopColor="transparent"/>
+            </radialGradient>
+          </defs>
+          {clusterCenters.research && (
+            <ellipse cx={clusterCenters.research.x} cy={clusterCenters.research.y}
+              rx={clusterCenters.research.r} ry={clusterCenters.research.r * 0.65}
+              fill="url(#halo-research)" style={{pointerEvents:'none'}}/>
+          )}
+          {clusterCenters.idea && (
+            <ellipse cx={clusterCenters.idea.x} cy={clusterCenters.idea.y}
+              rx={clusterCenters.idea.r} ry={clusterCenters.idea.r * 0.65}
+              fill="url(#halo-idea)" style={{pointerEvents:'none'}}/>
+          )}
+          {clusterCenters.project && (
+            <ellipse cx={clusterCenters.project.x} cy={clusterCenters.project.y}
+              rx={clusterCenters.project.r} ry={clusterCenters.project.r * 0.65}
+              fill="url(#halo-project)" style={{pointerEvents:'none'}}/>
+          )}
+        </svg>
+
         {/* Global column headers */}
         {globalMode&&(()=>{
           const cw=containerRef.current?.clientWidth??900,ch=containerRef.current?.clientHeight??600;
@@ -568,9 +681,15 @@ export function RelationGraph({
           const midX   = cw/2-NODE_W/2;
           const rightX = hasProjects ? cw/2+colGap-NODE_W/2 : cw/2+colGap/2-NODE_W/2;
           return (<>
-            <div className="absolute pointer-events-none" style={{left:leftX,top:20,width:NODE_W}}><div className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-[0.2em] font-mono" style={{ textShadow:'0 0 10px rgba(99,102,241,0.5)' }}>// Araştırmalar</div></div>
-            <div className="absolute pointer-events-none" style={{left:hasProjects?midX:rightX,top:20,width:NODE_W}}><div className="text-center text-[10px] font-bold text-amber-400 uppercase tracking-[0.2em] font-mono" style={{ textShadow:'0 0 10px rgba(251,191,36,0.5)' }}>// Fikirler</div></div>
-            {hasProjects&&<div className="absolute pointer-events-none" style={{left:rightX,top:20,width:NODE_W}}><div className="text-center text-[10px] font-bold text-violet-400 uppercase tracking-[0.2em] font-mono" style={{ textShadow:'0 0 10px rgba(167,139,250,0.5)' }}>// Projeler</div></div>}
+            <div className="absolute pointer-events-none" style={{left:leftX,top:16,width:NODE_W}}>
+              <div className="text-center text-[10px] font-bold text-indigo-400 uppercase tracking-[0.25em] font-mono" style={{ textShadow:'0 0 12px rgba(99,102,241,0.6)', opacity:0.8 }}>// Araştırmalar</div>
+            </div>
+            <div className="absolute pointer-events-none" style={{left:hasProjects?midX:rightX,top:16,width:NODE_W}}>
+              <div className="text-center text-[10px] font-bold text-amber-400 uppercase tracking-[0.25em] font-mono" style={{ textShadow:'0 0 12px rgba(251,191,36,0.6)', opacity:0.8 }}>// Fikirler</div>
+            </div>
+            {hasProjects&&<div className="absolute pointer-events-none" style={{left:rightX,top:16,width:NODE_W}}>
+              <div className="text-center text-[10px] font-bold text-violet-400 uppercase tracking-[0.25em] font-mono" style={{ textShadow:'0 0 12px rgba(167,139,250,0.6)', opacity:0.8 }}>// Projeler</div>
+            </div>}
           </>);
         })()}
 
@@ -586,7 +705,20 @@ export function RelationGraph({
             <marker id="arrowViolet" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
               <polygon points="0 0, 7 3.5, 0 7" fill="#a78bfa" opacity="0.9"/>
             </marker>
+            <filter id="dot-glow-i" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="dot-glow-a" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+            <filter id="dot-glow-v" x="-200%" y="-200%" width="500%" height="500%">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
           </defs>
+
           {/* Edges */}
           {edges.map((edge,i)=>{
             const src=nodes.find(n=>n.id===edge.sourceId&&n.type===edge.sourceType);
@@ -596,7 +728,6 @@ export function RelationGraph({
             const path=epPath(s.x,s.y,t.x,t.y,v);
             const hov=hoveredEdgeIdx===i;
 
-            // Project link edge — violet animated style
             if (edge.isProjectLink) {
               const mx=(s.x+t.x)/2, my=(s.y+t.y)/2;
               return (
@@ -606,8 +737,10 @@ export function RelationGraph({
                   style={{pointerEvents:'all'}}
                 >
                   <path d={path} fill="none" stroke="transparent" strokeWidth={20} style={{cursor:'pointer'}}/>
-                  {/* Glow layer */}
-                  <path d={path} fill="none" stroke={hov?'#7c3aed':'#a78bfa'} strokeWidth={hov?6:4} strokeLinecap="round" opacity={0.12} style={{pointerEvents:'none'}}/>
+                  {/* Outer glow */}
+                  <path d={path} fill="none" stroke={hov?'#7c3aed':'#a78bfa'} strokeWidth={hov?10:7} strokeLinecap="round" opacity={0.08} style={{pointerEvents:'none'}}/>
+                  {/* Inner glow */}
+                  <path d={path} fill="none" stroke={hov?'#a78bfa':'#7c3aed'} strokeWidth={hov?5:3} strokeLinecap="round" opacity={0.14} style={{pointerEvents:'none'}}/>
                   {/* Animated dashes */}
                   <path d={path} fill="none"
                     stroke={hov?'#a78bfa':'#7c3aed'}
@@ -616,18 +749,24 @@ export function RelationGraph({
                     style={{pointerEvents:'none',transition:'stroke 0.15s'}}>
                     <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.5s" repeatCount="indefinite"/>
                   </path>
+                  {/* Travelling dot */}
+                  <circle r={3.5} fill="#c4b5fd" filter="url(#dot-glow-v)" style={{pointerEvents:'none'}}>
+                    <animateMotion dur="2.5s" repeatCount="indefinite" path={path}/>
+                  </circle>
                   <circle cx={s.x} cy={s.y} r={3.5} fill={hov?'#a78bfa':'#7c3aed'} style={{pointerEvents:'none'}}/>
-                  {/* "Proje" label badge always visible */}
+                  {/* "Proje" label badge */}
                   <g style={{pointerEvents:'none'}}>
-                    <rect x={mx-24} y={my-10} width={48} height={18} rx={9} fill="rgba(124,58,237,0.3)" stroke="#a78bfa" strokeWidth={0.8}/>
+                    <rect x={mx-24} y={my-10} width={48} height={18} rx={9} fill="rgba(124,58,237,0.25)" stroke="rgba(167,139,250,0.5)" strokeWidth={0.8}/>
                     <text x={mx} y={my+3.5} textAnchor="middle" fontSize={8.5} fill="#c4b5fd" fontWeight="700" letterSpacing="0.5">Proje</text>
                   </g>
                 </g>
               );
             }
 
+            const isNeededEdge = edge.topicMapping?.topicType === 'needed';
             const edgeColor = hov ? '#818cf8' : edge.manual ? '#6366f1' : '#4f46e5';
-            const glowColor = hov ? 'rgba(129,140,248,0.2)' : edge.manual ? 'rgba(99,102,241,0.15)' : 'rgba(79,70,229,0.1)';
+            const dotColor  = isNeededEdge ? '#c7d2fe' : edge.manual ? '#818cf8' : '#6366f1';
+            const edgeDur   = isNeededEdge ? '1.8s' : edge.manual ? '2.4s' : '3.2s';
 
             return (
               <g key={i} data-edge="true"
@@ -637,8 +776,10 @@ export function RelationGraph({
               >
                 {/* Wide transparent hit area */}
                 <path d={path} fill="none" stroke="transparent" strokeWidth={20} style={{cursor:'pointer'}}/>
-                {/* Glow layer */}
-                <path d={path} fill="none" stroke={edgeColor} strokeWidth={hov?8:5} strokeLinecap="round" opacity={hov?0.15:0.08} style={{pointerEvents:'none'}}/>
+                {/* Outer glow */}
+                <path d={path} fill="none" stroke={edgeColor} strokeWidth={hov?12:8} strokeLinecap="round" opacity={hov?0.1:0.06} style={{pointerEvents:'none'}}/>
+                {/* Inner glow */}
+                <path d={path} fill="none" stroke={edgeColor} strokeWidth={hov?6:4} strokeLinecap="round" opacity={hov?0.16:0.09} style={{pointerEvents:'none'}}/>
                 {/* Animated dashes */}
                 <path d={path} fill="none"
                   stroke={edgeColor}
@@ -647,19 +788,23 @@ export function RelationGraph({
                   style={{pointerEvents:'none',transition:'stroke 0.15s,stroke-width 0.15s'}}>
                   <animate attributeName="stroke-dashoffset" from="0" to="-26" dur={edge.manual?'1.2s':'2s'} repeatCount="indefinite"/>
                 </path>
+                {/* Travelling embedding dot */}
+                <circle r={hov?4:3} fill={dotColor} filter="url(#dot-glow-i)" opacity={hov?0.95:0.75} style={{pointerEvents:'none'}}>
+                  <animateMotion dur={edgeDur} repeatCount="indefinite" path={path}/>
+                </circle>
                 <circle cx={s.x} cy={s.y} r={3} fill={edgeColor} opacity={hov?0.9:0.5} style={{pointerEvents:'none'}}/>
-              {edge.topicMapping && hov && (()=>{
-                const mx=(s.x+t.x)/2, my=(s.y+t.y)/2;
-                const isNeeded = edge.topicMapping.topicType === 'needed';
-                return (
-                  <g style={{pointerEvents:'none'}}>
-                    <rect x={mx-62} y={my-13} width={124} height={22} rx={6} fill={isNeeded?'rgba(99,102,241,0.25)':'rgba(251,191,36,0.2)'} stroke={isNeeded?'#818cf8':'#fbbf24'} strokeWidth={0.8}/>
-                    <text x={mx} y={my+3.5} textAnchor="middle" fontSize={9} fill={isNeeded?'#c7d2fe':'#fde68a'} fontWeight="600">
-                      {edge.topicMapping.topic.length > 18 ? edge.topicMapping.topic.slice(0,15)+'…' : edge.topicMapping.topic}
-                    </text>
-                  </g>
-                );
-              })()}
+                {edge.topicMapping && hov && (()=>{
+                  const mx=(s.x+t.x)/2, my=(s.y+t.y)/2;
+                  const isNeeded = edge.topicMapping.topicType === 'needed';
+                  return (
+                    <g style={{pointerEvents:'none'}}>
+                      <rect x={mx-62} y={my-13} width={124} height={22} rx={6} fill={isNeeded?'rgba(99,102,241,0.2)':'rgba(251,191,36,0.15)'} stroke={isNeeded?'rgba(129,140,248,0.5)':'rgba(251,191,36,0.5)'} strokeWidth={0.8}/>
+                      <text x={mx} y={my+3.5} textAnchor="middle" fontSize={9} fill={isNeeded?'#c7d2fe':'#fde68a'} fontWeight="600">
+                        {edge.topicMapping.topic.length > 18 ? edge.topicMapping.topic.slice(0,15)+'…' : edge.topicMapping.topic}
+                      </text>
+                    </g>
+                  );
+                })()}
               </g>
             );
           })}
@@ -684,7 +829,9 @@ export function RelationGraph({
               const {x,y}=getPort(node,side);
               return (
                 <circle key={`p-${nk}-${side}`} cx={x} cy={y} r={PORT_R}
-                  fill={isTarget?'rgba(99,102,241,0.4)':'rgba(10,16,34,0.8)'} stroke={isTarget?'#818cf8':'rgba(99,102,241,0.4)'} strokeWidth={isTarget?2.5:1.5}
+                  fill={isTarget?'rgba(99,102,241,0.35)':'rgba(7,9,30,0.75)'}
+                  stroke={isTarget?'#818cf8':'rgba(99,102,241,0.45)'}
+                  strokeWidth={isTarget?2.5:1.5}
                   style={{pointerEvents:'all',cursor:'crosshair'}} data-port="true"
                   onPointerDown={e=>onPortPointerDown(e as unknown as React.PointerEvent<SVGElement>,node,side)}
                   onPointerEnter={()=>!!dr&&setHoverTarget(nk)}
@@ -712,20 +859,23 @@ export function RelationGraph({
                 style={{
                   left:node.x,top:node.y,width:NODE_W,
                   pointerEvents:'auto',cursor:'grab',touchAction:'none',
-                  background:'rgba(12,8,30,0.95)',
-                  border: isHoverTarget ? '1px solid rgba(167,139,250,0.7)' : '1px solid rgba(139,92,246,0.35)',
-                  boxShadow: isHoverTarget ? '0 0 24px rgba(167,139,250,0.25), 0 8px 32px rgba(0,0,0,0.5)' : '0 4px 20px rgba(0,0,0,0.4)',
-                  backdropFilter:'blur(12px)',
+                  background:'rgba(8,6,22,0.72)',
+                  border: isHoverTarget ? '1px solid rgba(167,139,250,0.8)' : '1px solid rgba(139,92,246,0.3)',
+                  boxShadow: isHoverTarget
+                    ? '0 0 0 1px rgba(167,139,250,0.15), 0 0 32px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.04), 0 8px 32px rgba(0,0,0,0.6)'
+                    : '0 0 0 1px rgba(139,92,246,0.06), inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 24px rgba(0,0,0,0.5)',
+                  backdropFilter:'blur(16px)',
+                  WebkitBackdropFilter:'blur(16px)',
                 }}
               >
-                <div className="flex items-center gap-1.5 px-3 py-2 rounded-t-2xl" style={{ background:'linear-gradient(90deg,rgba(124,58,237,0.4),rgba(139,92,246,0.2))', borderBottom:'1px solid rgba(139,92,246,0.25)' }}>
+                <div className="flex items-center gap-1.5 px-3 py-2 rounded-t-2xl" style={{ background:'linear-gradient(90deg,rgba(124,58,237,0.28),rgba(139,92,246,0.12))', borderBottom:'1px solid rgba(139,92,246,0.18)' }}>
                   <LayoutTemplate size={11} className="text-violet-300 shrink-0"/>
                   <span className="text-[9px] font-bold tracking-widest uppercase text-violet-300 font-mono">Proje Kartı</span>
                   <button
                     data-detail="true"
                     onPointerDown={e=>e.stopPropagation()}
                     onClick={e=>{e.stopPropagation(); if(node.parentIdeaId && onOpenProject) onOpenProject(node.parentIdeaId);}}
-                    className="ml-auto p-0.5 rounded hover:bg-white/10 text-violet-400 hover:text-violet-200 transition-colors"
+                    className="ml-auto p-0.5 rounded hover:bg-white/10 text-violet-400/60 hover:text-violet-200 transition-colors"
                     style={{pointerEvents:'auto'}}
                   >
                     <ExternalLink size={11}/>
@@ -733,13 +883,13 @@ export function RelationGraph({
                 </div>
                 <div className="px-3 pt-2.5 pb-3">
                   <h4 className="font-semibold text-slate-200 text-[13px] mb-1.5 line-clamp-2 leading-snug">{node.title.replace(' — Proje','')}</h4>
-                  <p className="text-[11px] text-violet-400/70 line-clamp-2 leading-relaxed">Mimari analiz & akış şeması</p>
+                  <p className="text-[11px] text-violet-400/60 line-clamp-2 leading-relaxed">Mimari analiz & akış şeması</p>
                   <button
                     data-detail="true"
                     onPointerDown={e=>e.stopPropagation()}
                     onClick={e=>{e.stopPropagation(); if(node.parentIdeaId && onOpenProject) onOpenProject(node.parentIdeaId);}}
                     className="mt-2.5 w-full flex items-center justify-center gap-1.5 text-[11px] font-semibold text-violet-300 hover:text-violet-200 rounded-lg px-2 py-1.5 transition-colors"
-                    style={{background:'rgba(139,92,246,0.12)', border:'1px solid rgba(139,92,246,0.25)', pointerEvents:'auto'}}
+                    style={{background:'rgba(139,92,246,0.1)', border:'1px solid rgba(139,92,246,0.2)', pointerEvents:'auto'}}
                   >
                     <LayoutTemplate size={10}/>
                     Projeyi Görüntüle
@@ -750,15 +900,18 @@ export function RelationGraph({
           }
 
           // ── Research / Idea node ──────────────────────────────────
-          const nodeAccentColor = isIdea ? 'rgba(251,191,36,0.3)' : 'rgba(99,102,241,0.3)';
+          const accentRgb   = isIdea ? '251,191,36' : '99,102,241';
+          const accentBright= isIdea ? '#fbbf24'    : '#818cf8';
           const nodeBorderColor = isCenter
-            ? (isIdea ? 'rgba(251,191,36,0.7)' : 'rgba(99,102,241,0.7)')
+            ? `rgba(${accentRgb},0.75)`
             : isHoverTarget
-              ? (isIdea ? 'rgba(251,191,36,0.6)' : 'rgba(99,102,241,0.6)')
-              : (isIdea ? 'rgba(251,191,36,0.2)' : 'rgba(99,102,241,0.2)');
-          const nodeGlow = isCenter || isHoverTarget
-            ? `0 0 20px ${isIdea?'rgba(251,191,36,0.15)':'rgba(99,102,241,0.2)'}, 0 8px 32px rgba(0,0,0,0.5)`
-            : '0 4px 20px rgba(0,0,0,0.4)';
+              ? `rgba(${accentRgb},0.65)`
+              : `rgba(${accentRgb},0.22)`;
+          const nodeGlow = isCenter
+            ? `0 0 0 1px rgba(${accentRgb},0.1), 0 0 28px rgba(${accentRgb},0.18), inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.55)`
+            : isHoverTarget
+              ? `0 0 0 1px rgba(${accentRgb},0.08), 0 0 20px rgba(${accentRgb},0.14), inset 0 1px 0 rgba(255,255,255,0.04), 0 6px 28px rgba(0,0,0,0.5)`
+              : 'inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.45)';
 
           return (
             <div key={nk} data-node="true"
@@ -769,24 +922,45 @@ export function RelationGraph({
               style={{
                 left:node.x,top:node.y,width:NODE_W,
                 pointerEvents:'auto',cursor:'grab',touchAction:'none',
-                background:'rgba(10,16,34,0.92)',
+                background:'rgba(8,10,26,0.72)',
                 border:`1px solid ${nodeBorderColor}`,
                 boxShadow:nodeGlow,
-                backdropFilter:'blur(12px)',
+                backdropFilter:'blur(16px)',
+                WebkitBackdropFilter:'blur(16px)',
               }}
             >
-              <div className="flex items-center gap-1.5 px-3 py-2 rounded-t-2xl" style={{ background: isIdea ? 'rgba(251,191,36,0.07)' : 'rgba(99,102,241,0.07)', borderBottom: `1px solid ${isIdea?'rgba(251,191,36,0.12)':'rgba(99,102,241,0.12)'}` }}>
+              <div className="flex items-center gap-1.5 px-3 py-2 rounded-t-2xl"
+                style={{
+                  background: isIdea ? 'rgba(251,191,36,0.06)' : 'rgba(99,102,241,0.07)',
+                  borderBottom: `1px solid rgba(${accentRgb},0.1)`
+                }}>
                 <span className={`text-[9px] font-bold tracking-widest uppercase font-mono ${isIdea?'text-amber-400':'text-indigo-400'}`}>{isIdea?'Fikir':'Araştırma'}</span>
-                {isCenter&&<span className="ml-1 text-[9px] text-slate-500 font-mono">· seçili</span>}
-                <button data-detail="true" onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();onNodeClick(node.id,node.type as 'research'|'idea');}} className={`ml-auto p-0.5 rounded transition-colors ${isIdea?'text-amber-500/60 hover:text-amber-300':'text-indigo-500/60 hover:text-indigo-300'}`} style={{pointerEvents:'auto'}}><ExternalLink size={11}/></button>
+                {isCenter&&<span className="ml-1 text-[9px] text-slate-600 font-mono">· seçili</span>}
+                <button data-detail="true" onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();onNodeClick(node.id,node.type as 'research'|'idea');}}
+                  className="ml-auto p-0.5 rounded transition-colors"
+                  style={{ color:`rgba(${accentRgb},0.5)`, pointerEvents:'auto' }}
+                  onMouseEnter={e=>(e.currentTarget.style.color=accentBright)}
+                  onMouseLeave={e=>(e.currentTarget.style.color=`rgba(${accentRgb},0.5)`)}
+                >
+                  <ExternalLink size={11}/>
+                </button>
               </div>
               <div className="px-3 pt-2.5 pb-3">
                 <h4 className="font-semibold text-slate-200 text-[13px] mb-1.5 line-clamp-2 leading-snug">{node.title}</h4>
                 <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">{node.summary}</p>
-                <div className="flex items-center gap-3 mt-2.5 pt-2 text-[11px] text-slate-600" style={{ borderTop:`1px solid ${isIdea?'rgba(251,191,36,0.08)':'rgba(99,102,241,0.08)'}` }}>
-                  <span className="flex items-center gap-1"><ThumbsUp size={10} className={isIdea?'text-amber-500/70':'text-indigo-400/70'}/><span className="text-slate-500">{node.voteCount}</span></span>
-                  <span className="flex items-center gap-1"><Users size={10} className="text-slate-600"/><span className="text-slate-500">{node.collaboratorCount}</span></span>
-                  <span className={`ml-auto text-[10px] font-mono ${isIdea?'text-amber-500/30':'text-indigo-500/30'}`}>{isIdea?`#${node.id}`:`R${node.id}`}</span>
+                <div className="flex items-center gap-3 mt-2.5 pt-2 text-[11px] text-slate-600"
+                  style={{ borderTop:`1px solid rgba(${accentRgb},0.07)` }}>
+                  <span className="flex items-center gap-1">
+                    <ThumbsUp size={10} style={{ color:`rgba(${accentRgb},0.65)` }}/>
+                    <span className="text-slate-500">{node.voteCount}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users size={10} className="text-slate-600"/>
+                    <span className="text-slate-500">{node.collaboratorCount}</span>
+                  </span>
+                  <span className="ml-auto text-[10px] font-mono" style={{ color:`rgba(${accentRgb},0.25)` }}>
+                    {isIdea?`#${node.id}`:`R${node.id}`}
+                  </span>
                 </div>
               </div>
             </div>
@@ -796,24 +970,34 @@ export function RelationGraph({
 
       {/* ── Minimap ─────────────────────────────────────────────────── */}
       {nodes.length>0&&(
-        <div className="absolute bottom-4 right-4 z-30 rounded-xl overflow-hidden pointer-events-none" style={{width:MM_W,height:MM_H,background:'rgba(6,11,24,0.9)',border:'1px solid rgba(99,102,241,0.2)',backdropFilter:'blur(8px)'}}>
+        <div className="absolute bottom-4 right-4 z-30 rounded-xl overflow-hidden pointer-events-none" style={{width:MM_W,height:MM_H,background:'rgba(5,7,18,0.92)',border:'1px solid rgba(99,102,241,0.18)',backdropFilter:'blur(10px)'}}>
           <svg width={MM_W} height={MM_H}>
+            {/* Mini grid */}
+            <defs>
+              <pattern id="mm-grid" width={8} height={8} patternUnits="userSpaceOnUse">
+                <path d="M 8 0 L 0 0 0 8" fill="none" stroke="rgba(99,102,241,0.08)" strokeWidth={0.5}/>
+              </pattern>
+            </defs>
+            <rect width={MM_W} height={MM_H} fill="url(#mm-grid)"/>
             {edges.map((edge,i)=>{
               const src=nodes.find(n=>n.id===edge.sourceId&&n.type===edge.sourceType);
               const tgt=nodes.find(n=>n.id===edge.targetId&&n.type===edge.targetType);
               if(!src||!tgt) return null;
               const {s,t}=getBestPorts(src,tgt);
-              return <line key={i} x1={(s.x-minX)*mmSX} y1={(s.y-minY)*mmSY} x2={(t.x-minX)*mmSX} y2={(t.y-minY)*mmSY} stroke={edge.isProjectLink?'#a78bfa':edge.manual?'#6366f1':'#4338ca'} strokeWidth={1} strokeDasharray="3 2" opacity={0.7}/>;
+              return <line key={i} x1={(s.x-minX)*mmSX} y1={(s.y-minY)*mmSY} x2={(t.x-minX)*mmSX} y2={(t.y-minY)*mmSY} stroke={edge.isProjectLink?'rgba(167,139,250,0.7)':edge.manual?'rgba(99,102,241,0.7)':'rgba(67,56,202,0.6)'} strokeWidth={1} strokeDasharray="3 2" opacity={0.7}/>;
             })}
             {nodes.map(node=>{
               const nk=nodeKey(node.id,node.type);
               const isCenter=!globalMode&&node.id===selectedId&&node.type===selectedType;
               const isIdea=node.type==='idea';
               const isProject=node.type==='project';
-              return <rect key={`mm-${nk}`} x={(node.x-minX)*mmSX} y={(node.y-minY)*mmSY} width={NODE_W*mmSX} height={NODE_H*mmSY} rx={2} fill={isCenter?'rgba(99,102,241,0.3)':isProject?'rgba(139,92,246,0.2)':isIdea?'rgba(251,191,36,0.15)':'rgba(99,102,241,0.15)'} stroke={isCenter?'#818cf8':isProject?'#a78bfa':isIdea?'#fbbf24':'#6366f1'} strokeWidth={isCenter?1.5:0.8}/>;
+              return <rect key={`mm-${nk}`} x={(node.x-minX)*mmSX} y={(node.y-minY)*mmSY} width={NODE_W*mmSX} height={NODE_H*mmSY} rx={2}
+                fill={isCenter?'rgba(99,102,241,0.28)':isProject?'rgba(139,92,246,0.18)':isIdea?'rgba(251,191,36,0.14)':'rgba(99,102,241,0.14)'}
+                stroke={isCenter?'#818cf8':isProject?'rgba(167,139,250,0.7)':isIdea?'rgba(251,191,36,0.6)':'rgba(99,102,241,0.5)'}
+                strokeWidth={isCenter?1.5:0.8}/>;
             })}
           </svg>
-          <div className="absolute bottom-1 left-2 text-[9px] text-indigo-500/50 font-mono tracking-wider">MINI MAP</div>
+          <div className="absolute bottom-1 left-2 text-[9px] text-indigo-500/40 font-mono tracking-wider">MINI MAP</div>
         </div>
       )}
     </div>
