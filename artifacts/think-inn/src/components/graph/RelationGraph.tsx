@@ -636,41 +636,55 @@ export function RelationGraph({
       <div className="absolute inset-0"
         style={{ transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom})`, transformOrigin:'50% 50%', pointerEvents:'none' }}>
 
-        {/* ── Density halos (inside transform, so they pan/zoom with canvas) ── */}
-        <svg className="absolute inset-0 overflow-visible" style={{width:'100%',height:'100%',pointerEvents:'none',zIndex:1}}>
-          <defs>
-            <radialGradient id="halo-research" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"  stopColor="rgba(79,70,229,0.13)"/>
-              <stop offset="55%" stopColor="rgba(99,102,241,0.05)"/>
-              <stop offset="100%" stopColor="transparent"/>
-            </radialGradient>
-            <radialGradient id="halo-idea" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"  stopColor="rgba(251,191,36,0.10)"/>
-              <stop offset="55%" stopColor="rgba(251,191,36,0.04)"/>
-              <stop offset="100%" stopColor="transparent"/>
-            </radialGradient>
-            <radialGradient id="halo-project" cx="50%" cy="50%" r="50%">
-              <stop offset="0%"  stopColor="rgba(139,92,246,0.12)"/>
-              <stop offset="55%" stopColor="rgba(167,139,250,0.04)"/>
-              <stop offset="100%" stopColor="transparent"/>
-            </radialGradient>
-          </defs>
-          {clusterCenters.research && (
-            <ellipse cx={clusterCenters.research.x} cy={clusterCenters.research.y}
-              rx={clusterCenters.research.r} ry={clusterCenters.research.r * 0.65}
-              fill="url(#halo-research)" style={{pointerEvents:'none'}}/>
-          )}
-          {clusterCenters.idea && (
-            <ellipse cx={clusterCenters.idea.x} cy={clusterCenters.idea.y}
-              rx={clusterCenters.idea.r} ry={clusterCenters.idea.r * 0.65}
-              fill="url(#halo-idea)" style={{pointerEvents:'none'}}/>
-          )}
-          {clusterCenters.project && (
-            <ellipse cx={clusterCenters.project.x} cy={clusterCenters.project.y}
-              rx={clusterCenters.project.r} ry={clusterCenters.project.r * 0.65}
-              fill="url(#halo-project)" style={{pointerEvents:'none'}}/>
-          )}
-        </svg>
+        {/* ── Density halos — only in global mode (cluster-level overview) ── */}
+        {globalMode && (
+          <svg className="absolute inset-0 overflow-visible" style={{width:'100%',height:'100%',pointerEvents:'none',zIndex:1}}>
+            <defs>
+              <radialGradient id="halo-research" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"  stopColor="rgba(79,70,229,0.14)"/>
+                <stop offset="40%" stopColor="rgba(99,102,241,0.07)"/>
+                <stop offset="70%" stopColor="rgba(79,70,229,0.03)"/>
+                <stop offset="100%" stopColor="transparent"/>
+              </radialGradient>
+              <radialGradient id="halo-idea" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"  stopColor="rgba(251,191,36,0.11)"/>
+                <stop offset="40%" stopColor="rgba(251,191,36,0.05)"/>
+                <stop offset="70%" stopColor="rgba(251,191,36,0.02)"/>
+                <stop offset="100%" stopColor="transparent"/>
+              </radialGradient>
+              <radialGradient id="halo-project" cx="50%" cy="50%" r="50%">
+                <stop offset="0%"  stopColor="rgba(139,92,246,0.13)"/>
+                <stop offset="40%" stopColor="rgba(167,139,250,0.05)"/>
+                <stop offset="70%" stopColor="rgba(139,92,246,0.02)"/>
+                <stop offset="100%" stopColor="transparent"/>
+              </radialGradient>
+            </defs>
+            {clusterCenters.research && (<>
+              <ellipse cx={clusterCenters.research.x} cy={clusterCenters.research.y}
+                rx={clusterCenters.research.r * 1.4} ry={clusterCenters.research.r * 0.9}
+                fill="url(#halo-research)" style={{pointerEvents:'none'}}/>
+              <ellipse cx={clusterCenters.research.x} cy={clusterCenters.research.y}
+                rx={clusterCenters.research.r * 0.7} ry={clusterCenters.research.r * 0.45}
+                fill="url(#halo-research)" style={{pointerEvents:'none'}} opacity={0.6}/>
+            </>)}
+            {clusterCenters.idea && (<>
+              <ellipse cx={clusterCenters.idea.x} cy={clusterCenters.idea.y}
+                rx={clusterCenters.idea.r * 1.4} ry={clusterCenters.idea.r * 0.9}
+                fill="url(#halo-idea)" style={{pointerEvents:'none'}}/>
+              <ellipse cx={clusterCenters.idea.x} cy={clusterCenters.idea.y}
+                rx={clusterCenters.idea.r * 0.7} ry={clusterCenters.idea.r * 0.45}
+                fill="url(#halo-idea)" style={{pointerEvents:'none'}} opacity={0.6}/>
+            </>)}
+            {clusterCenters.project && (<>
+              <ellipse cx={clusterCenters.project.x} cy={clusterCenters.project.y}
+                rx={clusterCenters.project.r * 1.4} ry={clusterCenters.project.r * 0.9}
+                fill="url(#halo-project)" style={{pointerEvents:'none'}}/>
+              <ellipse cx={clusterCenters.project.x} cy={clusterCenters.project.y}
+                rx={clusterCenters.project.r * 0.7} ry={clusterCenters.project.r * 0.45}
+                fill="url(#halo-project)" style={{pointerEvents:'none'}} opacity={0.6}/>
+            </>)}
+          </svg>
+        )}
 
         {/* Global column headers */}
         {globalMode&&(()=>{
@@ -705,15 +719,8 @@ export function RelationGraph({
             <marker id="arrowViolet" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto">
               <polygon points="0 0, 7 3.5, 0 7" fill="#a78bfa" opacity="0.9"/>
             </marker>
-            <filter id="dot-glow-i" x="-200%" y="-200%" width="500%" height="500%">
-              <feGaussianBlur stdDeviation="2.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="dot-glow-a" x="-200%" y="-200%" width="500%" height="500%">
-              <feGaussianBlur stdDeviation="2.5" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <filter id="dot-glow-v" x="-200%" y="-200%" width="500%" height="500%">
+            {/* Shared travelling-dot glow filter */}
+            <filter id="dot-glow" x="-200%" y="-200%" width="500%" height="500%">
               <feGaussianBlur stdDeviation="2.5" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
@@ -750,7 +757,7 @@ export function RelationGraph({
                     <animate attributeName="stroke-dashoffset" from="0" to="-20" dur="1.5s" repeatCount="indefinite"/>
                   </path>
                   {/* Travelling dot */}
-                  <circle r={3.5} fill="#c4b5fd" filter="url(#dot-glow-v)" style={{pointerEvents:'none'}}>
+                  <circle r={3.5} fill="#c4b5fd" filter="url(#dot-glow)" style={{pointerEvents:'none'}}>
                     <animateMotion dur="2.5s" repeatCount="indefinite" path={path}/>
                   </circle>
                   <circle cx={s.x} cy={s.y} r={3.5} fill={hov?'#a78bfa':'#7c3aed'} style={{pointerEvents:'none'}}/>
@@ -789,7 +796,7 @@ export function RelationGraph({
                   <animate attributeName="stroke-dashoffset" from="0" to="-26" dur={edge.manual?'1.2s':'2s'} repeatCount="indefinite"/>
                 </path>
                 {/* Travelling embedding dot */}
-                <circle r={hov?4:3} fill={dotColor} filter="url(#dot-glow-i)" opacity={hov?0.95:0.75} style={{pointerEvents:'none'}}>
+                <circle r={hov?4:3} fill={dotColor} filter="url(#dot-glow)" opacity={hov?0.95:0.75} style={{pointerEvents:'none'}}>
                   <animateMotion dur={edgeDur} repeatCount="indefinite" path={path}/>
                 </circle>
                 <circle cx={s.x} cy={s.y} r={3} fill={edgeColor} opacity={hov?0.9:0.5} style={{pointerEvents:'none'}}/>
