@@ -48,7 +48,7 @@ type IdeaTabId = 'overview' | 'research' | 'evaluation' | 'analysis' | 'communit
 interface IdeaTab {
   id: IdeaTabId;
   label: string;
-  icon: React.ElementType;
+  icon: import('lucide-react').LucideIcon;
   accent: string;
 }
 

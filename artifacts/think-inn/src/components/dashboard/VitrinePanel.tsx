@@ -30,7 +30,7 @@ type TabId = "discover" | "research" | "ideas" | "projects";
 type ViewMode = "list" | "graph" | "global-map";
 type LayoutMode = "grid" | "list";
 
-const TABS: { id: TabId; label: string; icon: React.ElementType; accent: string; glow: string }[] = [
+const TABS: { id: TabId; label: string; icon: import('lucide-react').LucideIcon; accent: string; glow: string }[] = [
   { id: "discover",  label: "Keşfet",        icon: Sparkles,  accent: "#22d3ee", glow: "rgba(34,211,238,0.3)" },
   { id: "research",  label: "Araştırmalar",   icon: FileText,  accent: "#818cf8", glow: "rgba(99,102,241,0.3)" },
   { id: "ideas",     label: "Fikirler",       icon: Lightbulb, accent: "#fbbf24", glow: "rgba(251,191,36,0.3)" },
@@ -203,7 +203,7 @@ export function VitrinePanel() {
   // Poll research until all cover images are generated
   const [researchPollingEnabled, setResearchPollingEnabled] = useState(false);
   const { data: researchList, isLoading: isResearchLoading } = useListResearch({
-    query: { refetchInterval: researchPollingEnabled ? 4000 : false }
+    query: { refetchInterval: researchPollingEnabled ? 4000 : false } as any
   });
 
   const hasMissingImages = Array.isArray(researchList) && researchList.some(r => !(r as any).hasCoverImage && !(r as any).coverImageB64);
@@ -213,7 +213,7 @@ export function VitrinePanel() {
 
   const [pollingEnabled, setPollingEnabled] = useState(false);
   const { data: ideaList, isLoading: isIdeasLoading } = useListIdeas({
-    query: { refetchInterval: pollingEnabled ? 3000 : false }
+    query: { refetchInterval: pollingEnabled ? 3000 : false } as any
   });
 
   useEffect(() => {

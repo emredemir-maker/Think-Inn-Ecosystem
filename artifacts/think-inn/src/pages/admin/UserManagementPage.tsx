@@ -72,7 +72,7 @@ function timeAgo(iso?: string | null) {
 // ── Stat Card ────────────────────────────────────────────────────────────────
 
 function StatCard({ icon: Icon, label, value, color, sub }: {
-  icon: React.ElementType; label: string; value: number | string; color: string; sub?: string;
+  icon: import('lucide-react').LucideIcon; label: string; value: number | string; color: string; sub?: string;
 }) {
   return (
     <div
@@ -280,7 +280,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 function FormField({ icon: Icon, label, type = "text", value, onChange, placeholder, required }: {
-  icon: React.ElementType; label: string; type?: string; value: string;
+  icon: import('lucide-react').LucideIcon; label: string; type?: string; value: string;
   onChange: (v: string) => void; placeholder?: string; required?: boolean;
 }) {
   return (

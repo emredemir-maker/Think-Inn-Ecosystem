@@ -59,7 +59,7 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
 function Field({
   icon: Icon, label, type = "text", value, onChange, placeholder, autoComplete,
 }: {
-  icon: React.ElementType; label: string; type?: string; value: string;
+  icon: import('lucide-react').LucideIcon; label: string; type?: string; value: string;
   onChange: (v: string) => void; placeholder?: string; autoComplete?: string;
 }) {
   const [show, setShow] = useState(false);

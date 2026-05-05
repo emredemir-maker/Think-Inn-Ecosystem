@@ -37,7 +37,7 @@ export function ProjectCard({
   idea: Idea;
   onClick?: () => void;
 }) {
-  const analysis = (idea as Record<string, unknown>).architecturalAnalysis as ArchAnalysis | null;
+  const analysis = (idea as unknown as Record<string, unknown>).architecturalAnalysis as ArchAnalysis | null;
   if (!analysis) return null;
 
   const gradient = STATUS_GRADIENT[idea.status] ?? STATUS_GRADIENT.draft;
