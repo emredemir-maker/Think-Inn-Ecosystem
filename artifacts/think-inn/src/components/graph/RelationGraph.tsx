@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo, Suspense } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { Research, Idea } from '@workspace/api-client-react';
-import { ArrowLeft, Loader2, CheckCircle, AlertTriangle, BookOpen, Tag } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface NodeData {
@@ -45,11 +45,16 @@ interface ValidationState {
 
 interface ConnectMode { sourceId: number; sourceType: string; }
 
-// ── Constants & helpers ────────────────────────────────────────────────────
-const TYPE_COLOR: Record<string, string> = {
-  research: '#22d3ee',
-  idea:     '#e2e8f0',
-  project:  '#c4b5fd',
+// ── Card accent colors per type ────────────────────────────────────────────
+const TYPE_ACCENT: Record<string, string> = {
+  research: '#6366f1',
+  idea:     '#f59e0b',
+  project:  '#8b5cf6',
+};
+const TYPE_LABEL: Record<string, string> = {
+  research: 'Araştırma',
+  idea:     'Fikir',
+  project:  'Proje',
 };
 
 const nodeKey = (id: number, type: string) => `${type}-${id}`;
@@ -78,51 +83,6 @@ function fibSphere(n: number, r: number): [number, number, number][] {
   return pts;
 }
 
-// ── Star field ─────────────────────────────────────────────────────────────
-function StarField() {
-  const positions = useMemo(() => {
-    const p = new Float32Array(1800 * 3);
-    for (let i = 0; i < 1800; i++) {
-      const r     = 50 + Math.random() * 80;
-      const theta = Math.random() * Math.PI * 2;
-      const phi   = Math.acos(Math.random() * 2 - 1);
-      p[i*3]   = r * Math.sin(phi) * Math.cos(theta);
-      p[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
-      p[i*3+2] = r * Math.cos(phi);
-    }
-    return p;
-  }, []);
-  return (
-    <points>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]}/>
-      </bufferGeometry>
-      <pointsMaterial size={0.07} color="#4a5a7a" transparent opacity={0.65} sizeAttenuation/>
-    </points>
-  );
-}
-
-// ── Travelling dot along an edge ────────────────────────────────────────────
-function TravellingDot({ p0, p1, color, speed }: {
-  p0: [number,number,number]; p1: [number,number,number]; color: string; speed: number;
-}) {
-  const ref  = useRef<THREE.Mesh>(null);
-  const t    = useRef(Math.random());
-  const srcV = useMemo(() => new THREE.Vector3(...p0), [p0[0], p0[1], p0[2]]);
-  const tgtV = useMemo(() => new THREE.Vector3(...p1), [p1[0], p1[1], p1[2]]);
-  useFrame((_, dt) => {
-    t.current = (t.current + dt * speed) % 1;
-    ref.current?.position.lerpVectors(srcV, tgtV, t.current);
-  });
-  return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[0.055, 8, 8]}/>
-      <meshBasicMaterial color={color} transparent opacity={0.9}
-        blending={THREE.AdditiveBlending} depthWrite={false}/>
-    </mesh>
-  );
-}
-
 // ── Single edge ─────────────────────────────────────────────────────────────
 function Edge3D({ edge, nodes, hovered, onEnter, onLeave, onDelete }: {
   edge: Edge; nodes: NodeData[];
@@ -134,41 +94,40 @@ function Edge3D({ edge, nodes, hovered, onEnter, onLeave, onDelete }: {
 
   const sx = src?.x ?? 0, sy = src?.y ?? 0, sz = src?.z ?? 0;
   const tx = tgt?.x ?? 0, ty = tgt?.y ?? 0, tz = tgt?.z ?? 0;
-  const p0 = useMemo((): [number,number,number] => [sx,sy,sz], [sx,sy,sz]);
-  const p1 = useMemo((): [number,number,number] => [tx,ty,tz], [tx,ty,tz]);
-  const mid = useMemo(() => [(sx+tx)/2, (sy+ty)/2, (sz+tz)/2] as [number,number,number], [sx,sy,sz,tx,ty,tz]);
+  const p0  = useMemo((): [number,number,number] => [sx,sy,sz], [sx,sy,sz]);
+  const p1  = useMemo((): [number,number,number] => [tx,ty,tz], [tx,ty,tz]);
+  const mid = useMemo(() => [(sx+tx)/2,(sy+ty)/2,(sz+tz)/2] as [number,number,number], [sx,sy,sz,tx,ty,tz]);
 
   if (!src || !tgt) return null;
 
-  const col = edge.isProjectLink ? '#a78bfa'
-    : edge.manual ? '#e2e8f0'
-    : edge.topicMapping?.topicType === 'needed' ? '#22d3ee'
-    : '#64748b';
-  const dotCol   = edge.isProjectLink ? '#c4b5fd' : edge.manual ? '#f1f5f9' : col;
-  const dotSpeed = edge.manual ? 0.22 : edge.isProjectLink ? 0.17 : 0.15;
+  const col = edge.isProjectLink ? '#8b5cf6'
+    : edge.topicMapping?.topicType === 'needed' ? '#6366f1'
+    : '#94a3b8';
 
   return (
     <group onPointerEnter={onEnter} onPointerLeave={onLeave}>
-      {/* Wide glow */}
-      <Line points={[p0, p1]} color={col}
-        lineWidth={hovered ? 10 : 5} transparent opacity={hovered ? 0.09 : 0.04}/>
-      {/* Core line */}
-      <Line points={[p0, p1]} color={col}
-        lineWidth={hovered ? 1.8 : 0.9}
-        transparent opacity={hovered ? 0.75 : edge.manual ? 0.5 : 0.3}/>
-      {/* Dot */}
-      <TravellingDot p0={p0} p1={p1} color={dotCol} speed={dotSpeed}/>
-      {/* Delete button */}
+      <Line
+        points={[p0, p1]}
+        color={col}
+        lineWidth={hovered ? 2 : 1}
+        transparent
+        opacity={hovered ? 0.7 : edge.isProjectLink ? 0.45 : 0.3}
+      />
       {hovered && !edge.isProjectLink && (
         <Html position={mid} center zIndexRange={[50, 0]}>
           <button
             onClick={e => { e.stopPropagation(); onDelete(); }}
             onPointerEnter={onEnter} onPointerLeave={onLeave}
             style={{
-              background: 'rgba(0,0,0,0.88)', border: '1px solid rgba(239,68,68,0.5)',
-              color: '#f87171', borderRadius: '50%', width: 22, height: 22,
-              fontSize: 15, fontWeight: 700, cursor: 'pointer',
+              background: 'white',
+              border: '1px solid #fca5a5',
+              color: '#ef4444',
+              borderRadius: '50%',
+              width: 22, height: 22,
+              fontSize: 15, fontWeight: 700,
+              cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
             }}
           >×</button>
         </Html>
@@ -177,38 +136,37 @@ function Edge3D({ edge, nodes, hovered, onEnter, onLeave, onDelete }: {
   );
 }
 
-// ── Node sphere ─────────────────────────────────────────────────────────────
-function NodeMesh({ node, edges, orbitRef, setNodes, connectMode, onClickNode, onBeginConnect }: {
+// ── Node card ────────────────────────────────────────────────────────────────
+function NodeCard({ node, edges, orbitRef, setNodes, connectMode, onClickNode, onBeginConnect, globalMode }: {
   node: NodeData; edges: Edge[];
   orbitRef: React.RefObject<any>;
   setNodes: React.Dispatch<React.SetStateAction<NodeData[]>>;
   connectMode: ConnectMode | null;
   onClickNode: () => void;
   onBeginConnect: () => void;
+  globalMode: boolean;
 }) {
   const { camera, gl } = useThree();
   const [hovered, setHovered] = useState(false);
-  const outerRef   = useRef<THREE.Mesh>(null);
-  const importance = calcImportance(node, edges);
-  const radius     = Math.max(0.2, 0.15 + importance * 0.06);
-  const col        = TYPE_COLOR[node.type] ?? '#ffffff';
+
+  const isCenter   = !globalMode && node.x === 0 && node.y === 0 && node.z === 0;
   const isConnSrc  = connectMode?.sourceId === node.id && connectMode?.sourceType === node.type;
-  const isConnTgt  = connectMode && connectMode.sourceId !== node.id && node.type !== 'project';
+  const isConnTgt  = !!(connectMode && connectMode.sourceId !== node.id && node.type !== 'project');
+  const accent     = TYPE_ACCENT[node.type] ?? '#94a3b8';
+  const importance = calcImportance(node, edges);
 
-  // Font size based on importance
-  const fontSize = Math.max(11, Math.min(22, 10 + importance * 1.8));
-  const fw       = importance >= 4 ? 700 : importance >= 2 ? 600 : 400;
-  const title    = node.title.length > 36 ? node.title.slice(0, 34) + '…' : node.title;
+  // Card dimensions (world units, used for hit plane)
+  const cardW = isCenter ? 4.8 : importance >= 4 ? 3.6 : 3.0;
+  const cardH = isCenter ? 2.0 : 1.3;
 
-  // Pulse animation on outer glow
-  useFrame(({ clock }) => {
-    if (!outerRef.current) return;
-    const mat = outerRef.current.material as THREE.MeshBasicMaterial;
-    const base  = isConnSrc ? 0.20 : hovered ? 0.13 : 0.05;
-    mat.opacity = base + Math.sin(clock.elapsedTime * 2) * 0.025;
-  });
+  // Text truncation
+  const maxTitleLen = isCenter ? 48 : 32;
+  const title = node.title.length > maxTitleLen ? node.title.slice(0, maxTitleLen - 2) + '…' : node.title;
+  const desc  = node.summary
+    ? (node.summary.length > 65 ? node.summary.slice(0, 63) + '…' : node.summary)
+    : null;
 
-  // Pointer down → start drag or connect-target click
+  // Pointer-drag logic
   const onPD = (e: any) => {
     e.stopPropagation();
     const hasMoved = { v: false };
@@ -220,7 +178,7 @@ function NodeMesh({ node, edges, orbitRef, setNodes, connectMode, onClickNode, o
     if (orbitRef.current) orbitRef.current.enabled = false;
 
     const onMove = (ev: PointerEvent) => {
-      const rect = canvas.getBoundingClientRect();
+      const rect  = canvas.getBoundingClientRect();
       const mouse = new THREE.Vector2(
         ((ev.clientX - rect.left) / rect.width) * 2 - 1,
         -((ev.clientY - rect.top) / rect.height) * 2 + 1
@@ -249,75 +207,146 @@ function NodeMesh({ node, edges, orbitRef, setNodes, connectMode, onClickNode, o
     document.addEventListener('pointerup', onUp);
   };
 
+  // Card visual styles
+  const cardBg      = isConnSrc ? `${accent}12` : 'rgba(255,255,255,0.97)';
+  const borderColor = isConnSrc ? accent
+    : isCenter ? accent
+    : hovered ? `${accent}90`
+    : '#d1d5db';
+  const borderW     = isCenter || isConnSrc ? 2 : 1;
+  const shadow      = hovered || isCenter
+    ? `0 6px 24px rgba(0,0,0,0.13), 0 0 0 2px ${accent}30`
+    : '0 2px 10px rgba(0,0,0,0.08)';
+
   return (
     <group position={[node.x, node.y, node.z]}>
-      {/* Outer glow halo */}
-      <mesh ref={outerRef}>
-        <sphereGeometry args={[radius * 3, 10, 10]}/>
-        <meshBasicMaterial color={col} transparent opacity={0.05}
-          blending={THREE.AdditiveBlending} depthWrite={false} side={THREE.BackSide}/>
-      </mesh>
-
-      {/* Core sphere */}
+      {/* Invisible hit plane */}
       <mesh
         onPointerDown={onPD}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <sphereGeometry args={[radius, 22, 22]}/>
-        <meshStandardMaterial
-          color={col} emissive={col}
-          emissiveIntensity={isConnSrc ? 1.6 : hovered ? 1.1 : 0.55}
-          roughness={0.18} metalness={0.15}
-        />
+        <planeGeometry args={[cardW, cardH]}/>
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} side={THREE.DoubleSide}/>
       </mesh>
 
-      {/* Connect-target ring */}
+      {/* Connect-target ring (glowing outline on the plane) */}
       {isConnTgt && (
         <mesh>
-          <torusGeometry args={[radius * 1.7, 0.04, 8, 32]}/>
-          <meshBasicMaterial color={col} transparent opacity={0.55} blending={THREE.AdditiveBlending}/>
+          <planeGeometry args={[cardW + 0.2, cardH + 0.2]}/>
+          <meshBasicMaterial color={accent} transparent opacity={0.18} side={THREE.DoubleSide} depthWrite={false}/>
         </mesh>
       )}
 
-      {/* Text label */}
-      <Html
-        position={[0, radius + 0.28, 0]}
-        center
-        distanceFactor={14}
-        style={{ pointerEvents: 'none' }}
-        zIndexRange={[20, 0]}
-      >
+      {/* Visual card (Html overlay) */}
+      <Html center distanceFactor={14} zIndexRange={[20, 0]} style={{ pointerEvents: 'none' }}>
         <div style={{
-          color: hovered || isConnSrc ? '#ffffff' : col,
-          fontSize: `${fontSize}px`,
-          fontWeight: fw,
-          whiteSpace: 'nowrap',
+          background: cardBg,
+          border: `${borderW}px solid ${borderColor}`,
+          borderRadius: isCenter ? 14 : 10,
+          padding: isCenter ? '10px 14px 10px 17px' : '6px 10px 6px 14px',
+          minWidth: isCenter ? 200 : 130,
+          maxWidth: isCenter ? 250 : 190,
+          boxShadow: shadow,
           fontFamily: '"Inter", system-ui, sans-serif',
-          textShadow: `0 0 14px ${col}cc, 0 0 28px ${col}66`,
           userSelect: 'none',
-          letterSpacing: '0.015em',
-          lineHeight: 1,
-          transition: 'color 0.15s',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'border-color 0.15s, box-shadow 0.15s',
         }}>
-          {title}
+          {/* Left accent bar */}
+          <div style={{
+            position: 'absolute', left: 0, top: 0, bottom: 0,
+            width: isCenter ? 4 : 3,
+            background: accent,
+            borderRadius: '10px 0 0 10px',
+          }}/>
+
+          {/* Type badge */}
+          <div style={{
+            fontSize: 9,
+            fontWeight: 600,
+            color: accent,
+            letterSpacing: '0.07em',
+            textTransform: 'uppercase',
+            marginBottom: isCenter ? 4 : 2,
+            lineHeight: 1,
+          }}>
+            {TYPE_LABEL[node.type] ?? node.type}
+          </div>
+
+          {/* Title */}
+          <div style={{
+            fontSize: isCenter ? 13 : 11,
+            fontWeight: isCenter ? 700 : 600,
+            color: '#0f172a',
+            lineHeight: 1.35,
+          }}>
+            {title}
+          </div>
+
+          {/* Description — only for center node or if important */}
+          {desc && (isCenter || importance >= 3) && (
+            <div style={{
+              fontSize: 9.5,
+              color: '#64748b',
+              marginTop: 3,
+              lineHeight: 1.45,
+            }}>
+              {desc}
+            </div>
+          )}
+
+          {/* Vote count pill */}
+          {node.voteCount > 0 && (
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 3,
+              marginTop: 5,
+              background: `${accent}15`,
+              border: `1px solid ${accent}30`,
+              borderRadius: 100,
+              padding: '1px 6px',
+              fontSize: 9,
+              fontWeight: 600,
+              color: accent,
+            }}>
+              ★ {node.voteCount}
+            </div>
+          )}
+
+          {/* Pulsing ring for connect target */}
+          {isConnTgt && (
+            <div style={{
+              position: 'absolute', inset: -2,
+              border: `2px dashed ${accent}`,
+              borderRadius: 12,
+              pointerEvents: 'none',
+              animation: 'spin 2s linear infinite',
+            }}/>
+          )}
         </div>
       </Html>
 
-      {/* Connect button (hover, not in connect mode, not project) */}
+      {/* Connect button — visible on hover */}
       {hovered && !connectMode && node.type !== 'project' && (
-        <Html position={[radius + 0.55, radius + 0.4, 0]} center zIndexRange={[30, 0]}>
+        <Html
+          position={[cardW / 2 + 0.3, cardH / 2 - 0.05, 0]}
+          center
+          zIndexRange={[30, 0]}
+        >
           <button
             onClick={e => { e.stopPropagation(); onBeginConnect(); }}
             title="Bağlantı oluştur"
             style={{
-              background: 'rgba(0,0,0,0.82)',
-              border: `1px solid ${col}88`,
-              color: col, borderRadius: '50%',
-              width: 20, height: 20,
-              fontSize: 14, fontWeight: 700,
-              cursor: 'pointer', lineHeight: 1,
+              background: 'white',
+              border: `1.5px solid ${accent}`,
+              color: accent,
+              borderRadius: '50%',
+              width: 22, height: 22,
+              fontSize: 16, fontWeight: 700,
+              cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 2px 8px ${accent}40`,
             }}
           >+</button>
         </Html>
@@ -326,15 +355,14 @@ function NodeMesh({ node, edges, orbitRef, setNodes, connectMode, onClickNode, o
   );
 }
 
-// ── Scene (inside Canvas) ───────────────────────────────────────────────────
+// ── Scene (inside Canvas) ────────────────────────────────────────────────────
 function Scene({ nodes, edges, orbitRef, setNodes, connectMode, onClickNode, onBeginConnect,
-  hoveredEdgeIdx, setHoveredEdgeIdx, onDeleteEdge }: any) {
+  hoveredEdgeIdx, setHoveredEdgeIdx, onDeleteEdge, globalMode }: any) {
   return (
     <>
-      <color attach="background" args={['#000000']}/>
-      <ambientLight intensity={0.12}/>
-      <pointLight position={[0, 12, 12]} intensity={0.6} color="#2a4a7a"/>
-      <pointLight position={[-12, -6, -6]} intensity={0.35} color="#1a2a4a"/>
+      <color attach="background" args={['#e8ecf0']}/>
+      <ambientLight intensity={1.4}/>
+      <directionalLight position={[5, 8, 6]} intensity={0.4} color="#ffffff"/>
       <OrbitControls
         ref={orbitRef}
         enableDamping
@@ -343,7 +371,6 @@ function Scene({ nodes, edges, orbitRef, setNodes, connectMode, onClickNode, onB
         maxDistance={40}
         rotateSpeed={0.6}
       />
-      <StarField/>
       {edges.map((edge: Edge, i: number) => (
         <Edge3D
           key={`${edge.sourceId}-${edge.sourceType}-${edge.targetId}-${edge.targetType}`}
@@ -355,12 +382,13 @@ function Scene({ nodes, edges, orbitRef, setNodes, connectMode, onClickNode, onB
         />
       ))}
       {nodes.map((node: NodeData) => (
-        <NodeMesh
+        <NodeCard
           key={nodeKey(node.id, node.type)}
           node={node} edges={edges}
           orbitRef={orbitRef}
           setNodes={setNodes}
           connectMode={connectMode}
+          globalMode={globalMode}
           onClickNode={() => onClickNode(node)}
           onBeginConnect={() => onBeginConnect(node.id, node.type)}
         />
@@ -369,7 +397,7 @@ function Scene({ nodes, edges, orbitRef, setNodes, connectMode, onClickNode, onB
   );
 }
 
-// ── Main component ──────────────────────────────────────────────────────────
+// ── Main component ───────────────────────────────────────────────────────────
 interface RelationGraphProps {
   selectedId?: number;
   selectedType?: 'research' | 'idea';
@@ -393,11 +421,11 @@ export function RelationGraph({
   const [validation, setValidation]     = useState<ValidationState | null>(null);
   const [topicPicker, setTopicPicker]   = useState<{ ideaId: number; researchId: number; neededTopics: string[]; optionalTopics: string[] } | null>(null);
   const [connectMode, setConnectMode]   = useState<ConnectMode | null>(null);
-  const orbitRef  = useRef<any>(null);
-  const nodesRef  = useRef(nodes);
+  const orbitRef = useRef<any>(null);
+  const nodesRef = useRef(nodes);
   useEffect(() => { nodesRef.current = nodes; }, [nodes]);
 
-  // ── Build graph ────────────────────────────────────────────────────────
+  // ── Build graph ──────────────────────────────────────────────────────────
   const buildGraph = useCallback(() => {
     if (globalMode) {
       const newNodes: NodeData[] = [], newEdges: Edge[] = [];
@@ -439,7 +467,9 @@ export function RelationGraph({
       setNodes(newNodes); setEdges(newEdges);
     } else {
       if (selectedId===undefined||selectedType===undefined) return;
-      const center = selectedType==='research' ? allResearch.find(r=>r.id===selectedId) : allIdeas.find(i=>i.id===selectedId);
+      const center = selectedType==='research'
+        ? allResearch.find(r=>r.id===selectedId)
+        : allIdeas.find(i=>i.id===selectedId);
       if (!center) return;
       const newNodes: NodeData[] = [{ id:center.id, type:selectedType, title:center.title,
         summary: selectedType==='research'?(center as Research).summary??'':(center as Idea).description??'',
@@ -478,14 +508,14 @@ export function RelationGraph({
 
   useEffect(() => { buildGraph(); }, [buildGraph]);
 
-  // ESC cancel connect mode
+  // ESC cancels connect mode
   useEffect(() => {
     const fn = (e: KeyboardEvent) => { if (e.key==='Escape') setConnectMode(null); };
     window.addEventListener('keydown', fn);
     return () => window.removeEventListener('keydown', fn);
   }, []);
 
-  // ── Node click handler ───────────────────────────────────────────────
+  // ── Node click ───────────────────────────────────────────────────────────
   const handleNodeClick = useCallback((node: NodeData) => {
     if (connectMode) {
       if (connectMode.sourceId !== node.id && node.type !== 'project') {
@@ -499,7 +529,7 @@ export function RelationGraph({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectMode, onOpenProject, onNodeClick]);
 
-  // ── Edge / validation logic ───────────────────────────────────────────
+  // ── Edge / validation ────────────────────────────────────────────────────
   const startValidation = async (fromId: number, fromType: string, toId: number, toType: string) => {
     let ideaId: number|null = null, researchId: number|null = null;
     if (fromType==='idea'&&toType==='research')      {ideaId=fromId; researchId=toId;}
@@ -546,11 +576,14 @@ export function RelationGraph({
     else flash('Silinemedi','err');
   };
 
-  const flash = (text:string,type:'ok'|'err'|'info') => {setFlashMsg({text,type});setTimeout(()=>setFlashMsg(null),3000);};
+  const flash = (text:string,type:'ok'|'err'|'info') => {
+    setFlashMsg({text,type});
+    setTimeout(()=>setFlashMsg(null),3000);
+  };
 
-  // ── Render ────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div className="absolute inset-0" style={{background:'#000'}}>
+    <div className="absolute inset-0" style={{background:'#e8ecf0'}}>
       {/* 3D Canvas */}
       <Canvas
         camera={{ position:[0,0,18], fov:60 }}
@@ -564,6 +597,7 @@ export function RelationGraph({
             orbitRef={orbitRef}
             setNodes={setNodes}
             connectMode={connectMode}
+            globalMode={globalMode}
             onClickNode={handleNodeClick}
             onBeginConnect={(id:number, type:string) => setConnectMode({sourceId:id,sourceType:type})}
             hoveredEdgeIdx={hoveredEdgeIdx}
@@ -573,23 +607,38 @@ export function RelationGraph({
         </Suspense>
       </Canvas>
 
-      {/* ── HTML UI overlay ─────────────────────────────────────────── */}
+      {/* ── HTML UI overlay ─────────────────────────────────────────────────── */}
       <div className="absolute inset-0 pointer-events-none" style={{zIndex:10}}>
 
         {/* Top-left bar */}
         <div className="absolute top-4 left-4 flex items-center gap-2 pointer-events-auto">
-          <button onClick={onBack}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium text-slate-400 hover:text-white transition-all"
-            style={{background:'rgba(0,0,0,0.72)',border:'1px solid rgba(255,255,255,0.1)',backdropFilter:'blur(12px)'}}>
+          <button
+            onClick={onBack}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium transition-all"
+            style={{
+              background:'white',
+              border:'1px solid #e2e8f0',
+              color:'#475569',
+              boxShadow:'0 2px 8px rgba(0,0,0,0.08)',
+            }}
+          >
             <ArrowLeft size={14}/> Listeye Dön
           </button>
-          <span className="text-xs text-slate-500 px-2.5 py-1 rounded-full font-mono"
-            style={{background:'rgba(0,0,0,0.6)',border:'1px solid rgba(255,255,255,0.07)'}}>
+          <span
+            className="text-xs px-2.5 py-1 rounded-full font-mono"
+            style={{background:'white',border:'1px solid #e2e8f0',color:'#94a3b8',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}
+          >
             {globalMode?'Genel · ':''}{nodes.length} düğüm · {edges.length} bağlantı
           </span>
           {flashMsg && (
-            <span className={`text-xs px-3 py-1 rounded-full border font-medium ${flashMsg.type==='ok'?'border-emerald-500/30 text-emerald-400':flashMsg.type==='err'?'border-red-500/30 text-red-400':'border-cyan-500/30 text-cyan-400'}`}
-              style={{background:'rgba(0,0,0,0.85)'}}>
+            <span
+              className={`text-xs px-3 py-1 rounded-full border font-medium ${
+                flashMsg.type==='ok'?'border-emerald-200 text-emerald-700 bg-emerald-50':
+                flashMsg.type==='err'?'border-red-200 text-red-700 bg-red-50':
+                'border-indigo-200 text-indigo-700 bg-indigo-50'
+              }`}
+              style={{boxShadow:'0 1px 4px rgba(0,0,0,0.06)'}}
+            >
               {flashMsg.text}
             </span>
           )}
@@ -597,14 +646,16 @@ export function RelationGraph({
 
         {/* Legend */}
         {globalMode && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-4 rounded-full px-4 py-2"
-            style={{background:'rgba(0,0,0,0.65)',border:'1px solid rgba(255,255,255,0.07)',pointerEvents:'none'}}>
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-4 rounded-full px-4 py-2"
+            style={{background:'white',border:'1px solid #e2e8f0',boxShadow:'0 2px 8px rgba(0,0,0,0.07)',pointerEvents:'none'}}
+          >
             {(['research','idea','project'] as const).map((t,i) => (
               <React.Fragment key={t}>
-                {i>0 && <span className="text-slate-700">·</span>}
-                <span className="flex items-center gap-1.5 text-xs font-mono" style={{color:TYPE_COLOR[t]}}>
-                  <span className="w-1.5 h-1.5 rounded-full inline-block" style={{background:TYPE_COLOR[t]}}/>
-                  {t==='research'?'Araştırma':t==='idea'?'Fikir':'Proje'}
+                {i>0 && <span className="text-slate-200">·</span>}
+                <span className="flex items-center gap-1.5 text-xs font-semibold" style={{color:TYPE_ACCENT[t]}}>
+                  <span className="w-2 h-2 rounded-sm inline-block" style={{background:TYPE_ACCENT[t]}}/>
+                  {TYPE_LABEL[t]}
                 </span>
               </React.Fragment>
             ))}
@@ -613,52 +664,64 @@ export function RelationGraph({
 
         {/* Connect mode banner */}
         {connectMode && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2.5 rounded-full pointer-events-auto"
-            style={{background:'rgba(34,211,238,0.1)',border:'1px solid rgba(34,211,238,0.4)'}}>
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"/>
-            <span className="text-sm text-cyan-300 font-medium">Bağlanacak düğüme tıklayın</span>
-            <button onClick={()=>setConnectMode(null)} className="text-cyan-500 hover:text-cyan-300 text-lg leading-none ml-1">×</button>
+          <div
+            className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-3 px-4 py-2.5 rounded-full pointer-events-auto"
+            style={{background:'white',border:'1px solid #c7d2fe',boxShadow:'0 4px 16px rgba(99,102,241,0.15)'}}
+          >
+            <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"/>
+            <span className="text-sm text-indigo-700 font-medium">Bağlanacak düğüme tıklayın</span>
+            <button onClick={()=>setConnectMode(null)} className="text-indigo-400 hover:text-indigo-600 text-lg leading-none ml-1">×</button>
           </div>
         )}
 
         {/* Controls hint */}
-        <div className="absolute bottom-4 left-4 text-slate-700 text-[11px] font-mono" style={{pointerEvents:'none',lineHeight:1.9}}>
+        <div
+          className="absolute bottom-4 left-4 text-slate-400 text-[11px] font-mono"
+          style={{pointerEvents:'none',lineHeight:1.9}}
+        >
           <div>Sol sürükle: döndür · Scroll: zoom · Orta tuş: kaydır</div>
           <div>Düğüm sürükle: taşı · Düğüm tıkla: aç · +: bağlantı ekle</div>
         </div>
 
         {/* AI Validation popup */}
         {validation && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-5 w-80 pointer-events-auto"
-            style={{background:'rgba(5,7,15,0.97)',border:'1px solid rgba(34,211,238,0.2)',backdropFilter:'blur(24px)',boxShadow:'0 24px 60px rgba(0,0,0,0.9)'}}>
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-5 w-80 pointer-events-auto"
+            style={{background:'white',border:'1px solid #e2e8f0',boxShadow:'0 24px 60px rgba(0,0,0,0.14)'}}
+          >
             {validation.status==='loading' ? (
               <div className="flex flex-col items-center gap-3 py-2">
-                <Loader2 size={28} className="text-cyan-400 animate-spin"/>
-                <p className="text-sm font-semibold text-slate-200">AI Değerlendiriyor...</p>
-                <p className="text-xs text-slate-500 text-center">Bağlantı analiz ediliyor</p>
+                <Loader2 size={28} className="text-indigo-500 animate-spin"/>
+                <p className="text-sm font-semibold text-slate-700">AI Değerlendiriyor...</p>
+                <p className="text-xs text-slate-400 text-center">Bağlantı analiz ediliyor</p>
               </div>
             ) : validation.status==='valid' ? (
               <div className="flex flex-col items-center gap-3 py-2">
-                <CheckCircle size={28} className="text-emerald-400"/>
-                <p className="text-sm font-semibold text-slate-200">Bağlantı Uygun</p>
-                <p className="text-xs text-slate-400 text-center">{validation.reason}</p>
-                <div className="w-full rounded-full h-1.5" style={{background:'rgba(255,255,255,0.06)'}}>
-                  <div className="bg-emerald-400 h-1.5 rounded-full" style={{width:`${validation.confidence}%`}}/>
+                <CheckCircle size={28} className="text-emerald-500"/>
+                <p className="text-sm font-semibold text-slate-700">Bağlantı Uygun</p>
+                <p className="text-xs text-slate-500 text-center">{validation.reason}</p>
+                <div className="w-full rounded-full h-1.5 bg-slate-100">
+                  <div className="bg-emerald-500 h-1.5 rounded-full" style={{width:`${validation.confidence}%`}}/>
                 </div>
-                <p className="text-xs text-emerald-400 font-medium">Kaydediliyor...</p>
+                <p className="text-xs text-emerald-600 font-medium">Kaydediliyor...</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3 py-2">
-                <AlertTriangle size={28} className="text-amber-400"/>
-                <p className="text-sm font-semibold text-slate-200">Bağlantı Önerilmiyor</p>
-                <p className="text-xs text-slate-400 text-center">{validation.reason}</p>
-                <div className="w-full rounded-full h-1.5" style={{background:'rgba(255,255,255,0.06)'}}>
-                  <div className="bg-amber-400 h-1.5 rounded-full" style={{width:`${validation.confidence}%`}}/>
-                </div>
-                <div className="flex gap-2 mt-1 w-full">
-                  <button onClick={()=>setValidation(null)} className="flex-1 py-1.5 text-xs font-medium text-slate-400 rounded-lg" style={{border:'1px solid rgba(255,255,255,0.1)'}}>İptal</button>
-                  <button onClick={()=>{const v=validation;setValidation(null);commitEdge(v.fromId,v.fromType,v.toId,v.toType);}} className="flex-1 py-1.5 text-xs font-medium text-amber-300 rounded-lg" style={{background:'rgba(251,191,36,0.08)',border:'1px solid rgba(251,191,36,0.25)'}}>Yine de Bağla</button>
-                </div>
+                <AlertTriangle size={28} className="text-amber-500"/>
+                <p className="text-sm font-semibold text-slate-700">Bağlantı Önerilmiyor</p>
+                <p className="text-xs text-slate-500 text-center">{validation.reason}</p>
+                {validation.confidence !== undefined && (
+                  <div className="w-full rounded-full h-1.5 bg-slate-100">
+                    <div className="bg-amber-400 h-1.5 rounded-full" style={{width:`${validation.confidence}%`}}/>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    commitEdge(validation.fromId,validation.fromType,validation.toId,validation.toType);
+                    setValidation(null);
+                  }}
+                  className="text-xs text-slate-500 hover:text-slate-700 underline"
+                >Yine de bağla</button>
               </div>
             )}
           </div>
@@ -666,47 +729,55 @@ export function RelationGraph({
 
         {/* Topic picker */}
         {topicPicker && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-5 w-96 pointer-events-auto"
-            style={{background:'rgba(5,7,15,0.97)',border:'1px solid rgba(34,211,238,0.2)',backdropFilter:'blur(24px)',boxShadow:'0 24px 60px rgba(0,0,0,0.9)'}}>
-            <div className="flex items-center gap-2 mb-3">
-              <BookOpen size={16} className="text-cyan-400"/>
-              <p className="text-sm font-semibold text-slate-200">Araştırma Konusu Eşleştir</p>
-              <button onClick={()=>setTopicPicker(null)} className="ml-auto text-slate-500 hover:text-slate-300 text-lg leading-none">×</button>
-            </div>
-            {topicPicker.neededTopics.length>0&&(
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl p-5 w-96 pointer-events-auto"
+            style={{background:'white',border:'1px solid #e2e8f0',boxShadow:'0 24px 60px rgba(0,0,0,0.14)'}}
+          >
+            <p className="text-sm font-semibold text-slate-700 mb-1">Araştırma Konusu Eşleştir</p>
+            <p className="text-xs text-slate-400 mb-4">Bu araştırma hangi konuya katkı sağlıyor?</p>
+            {topicPicker.neededTopics.length > 0 && (
               <div className="mb-3">
-                <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider mb-1.5 font-mono">Zorunlu Konular</p>
-                <div className="flex flex-col gap-1">
-                  {topicPicker.neededTopics.map(t=>(
-                    <button key={t} onClick={()=>saveTopicMapping(t,'needed')}
-                      className="text-left text-xs px-3 py-2 rounded-lg text-cyan-300 hover:text-cyan-200 flex items-center gap-2"
-                      style={{background:'rgba(34,211,238,0.05)',border:'1px solid rgba(34,211,238,0.15)'}}>
-                      <Tag size={10}/>{t}
-                    </button>
+                <p className="text-[10px] font-semibold text-indigo-600 uppercase tracking-wide mb-1.5">Gerekli Konular</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {topicPicker.neededTopics.map(t => (
+                    <button key={t}
+                      onClick={() => saveTopicMapping(t,'needed')}
+                      className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+                      style={{background:'#eef2ff',color:'#4338ca',border:'1px solid #c7d2fe'}}
+                    >{t}</button>
                   ))}
                 </div>
               </div>
             )}
-            {topicPicker.optionalTopics.length>0&&(
-              <div className="mb-3">
-                <p className="text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-1.5 font-mono">Opsiyonel Konular</p>
-                <div className="flex flex-col gap-1">
-                  {topicPicker.optionalTopics.map(t=>(
-                    <button key={t} onClick={()=>saveTopicMapping(t,'optional')}
-                      className="text-left text-xs px-3 py-2 rounded-lg text-amber-300 hover:text-amber-200 flex items-center gap-2"
-                      style={{background:'rgba(251,191,36,0.05)',border:'1px solid rgba(251,191,36,0.15)'}}>
-                      <Tag size={10}/>{t}
-                    </button>
+            {topicPicker.optionalTopics.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">İsteğe Bağlı</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {topicPicker.optionalTopics.map(t => (
+                    <button key={t}
+                      onClick={() => saveTopicMapping(t,'optional')}
+                      className="px-2.5 py-1 rounded-full text-xs font-medium transition-colors"
+                      style={{background:'#f8fafc',color:'#64748b',border:'1px solid #e2e8f0'}}
+                    >{t}</button>
                   ))}
                 </div>
               </div>
             )}
-            <button onClick={()=>setTopicPicker(null)} className="w-full py-2 text-xs text-slate-500 hover:text-slate-400 rounded-lg" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
-              Eşleştirme yapma
-            </button>
+            <button
+              onClick={() => setTopicPicker(null)}
+              className="w-full text-xs text-slate-400 hover:text-slate-600 pt-2 border-t border-slate-100"
+            >Geç</button>
           </div>
         )}
       </div>
+
+      {/* CSS for connect-target ring animation */}
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
