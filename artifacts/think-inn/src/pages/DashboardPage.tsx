@@ -311,11 +311,15 @@ export default function DashboardPage() {
                         style={{ width: `${stage.progress}%` }}
                       />
                     </div>
-                    {/* Stage name + count */}
-                    <div className="mb-3 flex items-center justify-between">
-                      <span className={`overline ${active ? "text-primary" : ""}`}>{stage.name}</span>
+                    {/* Stage name + count — uzun TR etiketler taşmasın diye küçük, sarabilen, min-w-0 */}
+                    <div className="mb-3 flex min-h-[28px] items-start justify-between gap-1.5">
                       <span
-                        className="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                        className={`min-w-0 text-[9px] font-bold uppercase leading-[1.15] tracking-[0.06em] ${active ? "text-primary" : "text-on-surface-variant"}`}
+                      >
+                        {stage.name}
+                      </span>
+                      <span
+                        className="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-bold leading-none"
                         style={active ? { background: "rgba(20,99,243,0.10)", color: "#0E54D8" } : { background: "#EEF2FB", color: "#94A0B8" }}
                       >
                         {stage.items.length}
