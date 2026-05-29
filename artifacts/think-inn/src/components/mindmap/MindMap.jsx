@@ -264,7 +264,9 @@ export default function MindMap({ data }) {
         if (showLabel) {
           const fs = Math.max(10, 11 * P.s);
           ctx.font = "600 " + fs + "px Inter, Manrope, system-ui, sans-serif";
-          const label = n.name || "";
+          // Uzun başlıklar haritada üst üste binmesin — kısalt (… ile)
+          const rawLabel = n.name || "";
+          const label = rawLabel.length > 26 ? rawLabel.slice(0, 26).trimEnd() + "…" : rawLabel;
           const tw = ctx.measureText(label).width;
           const ly = P.sy + P.rad + 9;
           ctx.globalAlpha = Math.min(1, a + 0.15);
