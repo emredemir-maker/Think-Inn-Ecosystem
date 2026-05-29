@@ -48,3 +48,5 @@ Thumbs.db
 .cache/
 .local/
 .vercel
+.gstack/
+.design-audit/
