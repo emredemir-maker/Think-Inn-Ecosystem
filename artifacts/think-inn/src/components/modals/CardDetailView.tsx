@@ -53,6 +53,11 @@ async function downscaleImage(file: File, maxW = 1280, quality = 0.72): Promise<
   }
 }
 
+// Lede/önizleme için markdown işaretlerini temizle (---, #, *, ` vs. ham görünmesin)
+function plainText(s?: string) {
+  return (s || "").replace(/[`#*_>]/g, "").replace(/-{2,}/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function md(content: string) {
   return (
     <div className="dp-prose">
@@ -316,9 +321,9 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               </span>
             </div>
             <h1>{idea.title}</h1>
-            {idea.description && (
-              <p className="lede">{idea.description.length > 180 ? idea.description.slice(0, 180) + "…" : idea.description}</p>
-            )}
+            {idea.description && (() => { const t = plainText(idea.description); return (
+              <p className="lede">{t.length > 180 ? t.slice(0, 180) + "…" : t}</p>
+            ); })()}
             <div className="meta-row">
               <span className="item"><Link2 size={14} color="#64708B" /><b>{links}</b> bağlantı</span>
               <span className="item"><Users size={14} color="#64708B" /><b>{contributors}</b> katkıda bulunan</span>
@@ -966,7 +971,9 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             </span>
           </div>
           <h1>{idea.title}</h1>
-          {idea.description && <p className="lede">{(idea as any).category ? (idea as any).category + " · " : ""}{idea.description.length > 220 ? idea.description.slice(0, 220) + "…" : idea.description}</p>}
+          {idea.description && (() => { const t = plainText(idea.description); return (
+            <p className="lede">{(idea as any).category ? (idea as any).category + " · " : ""}{t.length > 220 ? t.slice(0, 220) + "…" : t}</p>
+          ); })()}
 
           <div style={{ position: "relative", marginTop: 18 }}>
             <div className="project-progress-bar">
