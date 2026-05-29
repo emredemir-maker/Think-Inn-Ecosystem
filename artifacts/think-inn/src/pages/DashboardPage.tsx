@@ -284,9 +284,9 @@ export default function DashboardPage() {
           {/* Pipeline */}
           <div className="rounded-[18px] border border-outline-variant bg-white p-[22px] shadow-[0_1px_2px_rgba(7,27,58,0.04)]">
             <div className="mb-[18px] flex items-center justify-between">
-              <h3 className="font-heading text-[18px] font-bold text-on-surface">
+              <h2 className="font-heading text-[18px] font-bold text-on-surface">
                 İnovasyon Hattı
-              </h3>
+              </h2>
               <div className="flex items-center gap-3.5">
                 <span className="flex items-center gap-1.5 text-[12px] text-on-surface-variant">
                   <span className="size-2 rounded-full bg-primary" />
@@ -376,9 +376,9 @@ export default function DashboardPage() {
               <div className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg text-white shadow-sm">
                 <Icon name="auto_awesome" size={16} filled />
               </div>
-              <h3 className="font-heading text-[18px] font-bold text-on-surface">
+              <h2 className="font-heading text-[18px] font-bold text-on-surface">
                 think-Inn AI Analizi
-              </h3>
+              </h2>
             </div>
 
             <div className="flex flex-col gap-2.5">
@@ -546,9 +546,9 @@ export default function DashboardPage() {
           {/* Activity */}
           <div className="rounded-[18px] border border-outline-variant bg-white p-[22px] shadow-[0_1px_2px_rgba(7,27,58,0.04)]">
             <div className="mb-[18px] flex items-center justify-between">
-              <h3 className="font-heading text-[18px] font-bold text-on-surface">
+              <h2 className="font-heading text-[18px] font-bold text-on-surface">
                 Son Hareketler
-              </h3>
+              </h2>
               <Icon name="history" size={18} className="text-on-surface-variant" />
             </div>
             {recentActivity.length > 0 ? (
@@ -595,9 +595,9 @@ export default function DashboardPage() {
           {/* Map preview */}
           <div className="rounded-[18px] border border-outline-variant bg-white p-[22px] shadow-[0_1px_2px_rgba(7,27,58,0.04)]">
             <div className="mb-[18px] flex items-center justify-between">
-              <h3 className="font-heading text-[18px] font-bold text-on-surface">
+              <h2 className="font-heading text-[18px] font-bold text-on-surface">
                 Ekosistem Haritası
-              </h3>
+              </h2>
               <button
                 onClick={() => navigate("/map")}
                 className="flex h-7 w-7 items-center justify-center rounded-lg border border-outline-variant bg-white text-on-surface-variant transition-colors hover:border-outline-strong"
