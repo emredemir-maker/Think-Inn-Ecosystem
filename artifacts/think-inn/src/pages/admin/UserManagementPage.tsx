@@ -40,8 +40,8 @@ interface UserStats {
 const ROLE_META: Record<UserRole, { label: string; color: string; icon: React.ReactNode }> = {
   super_admin: { label: "Süper Admin",      color: "rgba(239,68,68,0.9)",   icon: <ShieldAlert size={11} /> },
   moderator:   { label: "Moderatör",        color: "rgba(245,158,11,0.9)", icon: <Shield size={11} /> },
-  master:      { label: "Think-Inn Master", color: "rgba(139,92,246,0.9)", icon: <Crown size={11} /> },
-  user:        { label: "Think-Inn User",   color: "rgba(99,102,241,0.8)", icon: <User size={11} /> },
+  master:      { label: "Think-Inn Master", color: "rgba(122,92,255,0.9)", icon: <Crown size={11} /> },
+  user:        { label: "Think-Inn User",   color: "rgba(20,99,243,0.8)", icon: <User size={11} /> },
 };
 
 function RoleBadge({ role }: { role: UserRole }) {
@@ -77,14 +77,14 @@ function StatCard({ icon: Icon, label, value, color, sub }: {
   return (
     <div
       className="flex items-center gap-4 p-4 rounded-2xl"
-      style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${color}22` }}
+      style={{ background: "#F8FAFF", border: `1px solid ${color}22` }}
     >
       <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}18` }}>
         <Icon size={18} style={{ color }} />
       </div>
       <div>
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{label}</p>
+        <p className="text-2xl font-bold text-on-surface">{value}</p>
+        <p className="text-xs mt-0.5" style={{ color: "#64708B" }}>{label}</p>
         {sub && <p className="text-[10px] mt-0.5" style={{ color }}>{sub}</p>}
       </div>
     </div>
@@ -135,21 +135,21 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
-      <div className="absolute inset-0" style={{ background: "rgba(0,0,8,0.75)" }} onClick={onClose} />
+      <div className="absolute inset-0" style={{ background: "rgba(7,27,58,0.40)" }} onClick={onClose} />
       <motion.div
         className="relative z-10 w-full max-w-md rounded-2xl"
         initial={{ scale: 0.95, opacity: 0, y: 16 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.95, opacity: 0, y: 16 }}
-        style={{ background: "rgba(7,11,26,0.98)", border: "1px solid rgba(99,102,241,0.25)", boxShadow: "0 30px 60px rgba(0,0,0,0.6)" }}
+        style={{ width: "100%", maxWidth: 480, background: "#ffffff", border: "1px solid rgba(20,99,243,0.25)", boxShadow: "0 28px 80px rgba(7,27,58,0.20)" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid rgba(99,102,241,0.12)" }}>
+        <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: "1px solid rgba(20,99,243,0.12)" }}>
           <div className="flex items-center gap-2">
-            <UserPlus size={16} className="text-indigo-400" />
-            <span className="font-semibold text-slate-200">Yeni Kullanıcı Ekle</span>
+            <UserPlus size={16} className="text-primary" />
+            <span className="font-semibold text-on-surface">Yeni Kullanıcı Ekle</span>
           </div>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-300 transition-colors">
+          <button onClick={onClose} className="text-on-surface-variant hover:text-on-surface transition-colors">
             <X size={15} />
           </button>
         </div>
@@ -163,7 +163,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
                 className="px-3 py-2.5 rounded-xl text-sm flex items-center gap-2"
-                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#fca5a5" }}
+                style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#B0292B" }}
               >
                 <AlertTriangle size={13} className="flex-shrink-0" /> {error}
               </motion.div>
@@ -180,19 +180,19 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
           {/* Password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>Şifre</label>
+            <label className="text-xs font-medium" style={{ color: "#4A5673" }}>Şifre</label>
             <div className="relative">
-              <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+              <Lock size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
               <input
                 type={showPw ? "text" : "password"}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="En az 6 karakter"
                 required
-                className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm bg-transparent outline-none text-slate-200 placeholder:text-slate-600"
-                style={{ border: "1px solid rgba(99,102,241,0.2)" }}
+                className="w-full pl-9 pr-9 py-2.5 rounded-xl text-sm bg-transparent outline-none text-on-surface placeholder:text-on-surface-variant"
+                style={{ border: "1px solid rgba(20,99,243,0.2)" }}
               />
-              <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400">
+              <button type="button" onClick={() => setShowPw(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface-variant">
                 {showPw ? <EyeOff size={13} /> : <Eye size={13} />}
               </button>
             </div>
@@ -200,11 +200,11 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
           {/* Department */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>
-              Departman <span style={{ color: "rgba(255,255,255,0.2)" }}>(isteğe bağlı)</span>
+            <label className="text-xs font-medium" style={{ color: "#4A5673" }}>
+              Departman <span style={{ color: "#CBD3E2" }}>(isteğe bağlı)</span>
             </label>
             <div className="relative">
-              <Building2 size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+              <Building2 size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
               <select
                 value={department}
                 onChange={e => setDepartment(e.target.value)}
@@ -212,8 +212,8 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
                 className="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none appearance-none"
                 style={{
                   background: "transparent",
-                  border: "1px solid rgba(99,102,241,0.2)",
-                  color: department ? "#e2e8f0" : "rgba(255,255,255,0.3)",
+                  border: "1px solid rgba(20,99,243,0.2)",
+                  color: department ? "#071B3A" : "#94A0B8",
                   opacity: deptsLoading ? 0.5 : 1,
                 }}
               >
@@ -224,7 +224,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
                     : <>
                         <option value="">Seçin (isteğe bağlı)</option>
                         {depts.map(d => (
-                          <option key={d.id} value={d.name} style={{ background: "#0a0e2e" }}>{d.name}</option>
+                          <option key={d.id} value={d.name} style={{ background: "#ffffff" }}>{d.name}</option>
                         ))}
                       </>
                 }
@@ -234,7 +234,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 
           {/* Role */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>Rol</label>
+            <label className="text-xs font-medium" style={{ color: "#4A5673" }}>Rol</label>
             <div className="grid grid-cols-2 gap-2">
               {(["user", "master", "moderator", "super_admin"] as UserRole[]).map(r => (
                 <button
@@ -243,9 +243,9 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
                   onClick={() => setRole(r)}
                   className="flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-medium transition-all"
                   style={{
-                    background: role === r ? `${ROLE_META[r].color}18` : "rgba(255,255,255,0.03)",
-                    border: `1px solid ${role === r ? ROLE_META[r].color : "rgba(255,255,255,0.08)"}`,
-                    color: role === r ? ROLE_META[r].color : "rgba(255,255,255,0.4)",
+                    background: role === r ? `${ROLE_META[r].color}18` : "#F8FAFF",
+                    border: `1px solid ${role === r ? ROLE_META[r].color : "#E8EEF9"}`,
+                    color: role === r ? ROLE_META[r].color : "#64708B",
                   }}
                 >
                   {ROLE_META[r].icon} {ROLE_META[r].label}
@@ -259,8 +259,8 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl text-sm text-slate-400 transition-colors"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              className="flex-1 py-2.5 rounded-xl text-sm text-on-surface-variant transition-colors"
+              style={{ background: "#F8FAFF", border: "1px solid #E8EEF9" }}
             >
               İptal
             </button>
@@ -268,7 +268,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
               type="submit"
               disabled={mut.isPending}
               className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}
+              style={{ background: "linear-gradient(135deg, #1463F3, #7A5CFF)", boxShadow: "0 4px 16px rgba(20,99,243,0.3)" }}
             >
               {mut.isPending ? "Oluşturuluyor…" : "Kullanıcı Oluştur"}
             </button>
@@ -285,17 +285,17 @@ function FormField({ icon: Icon, label, type = "text", value, onChange, placehol
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>{label}</label>
+      <label className="text-xs font-medium" style={{ color: "#4A5673" }}>{label}</label>
       <div className="relative">
-        <Icon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" />
+        <Icon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
         <input
           type={type}
           value={value}
           onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
           required={required}
-          className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-transparent outline-none text-slate-200 placeholder:text-slate-600"
-          style={{ border: "1px solid rgba(99,102,241,0.2)" }}
+          className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm bg-transparent outline-none text-on-surface placeholder:text-on-surface-variant"
+          style={{ border: "1px solid rgba(20,99,243,0.2)" }}
         />
       </div>
     </div>
@@ -372,8 +372,8 @@ export default function UserManagementPage() {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">
-          <ShieldAlert size={32} className="text-red-400 mx-auto mb-3" />
-          <p className="text-slate-400">Bu sayfaya erişim yetkiniz yok.</p>
+          <ShieldAlert size={32} className="text-error mx-auto mb-3" />
+          <p className="text-on-surface-variant">Bu sayfaya erişim yetkiniz yok.</p>
         </div>
       </div>
     );
@@ -386,10 +386,10 @@ export default function UserManagementPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-xl font-bold text-slate-200 flex items-center gap-2">
-              <Users size={20} className="text-indigo-400" /> Kullanıcı Yönetimi
+            <h1 className="text-xl font-bold text-on-surface flex items-center gap-2">
+              <Users size={20} className="text-primary" /> Kullanıcı Yönetimi
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-on-surface-variant mt-0.5">
               {stats ? `Toplam ${stats.total} kullanıcı` : `${users.length} kullanıcı`}
             </p>
           </div>
@@ -397,7 +397,7 @@ export default function UserManagementPage() {
             <button
               onClick={() => setShowCreate(true)}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all"
-              style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 16px rgba(99,102,241,0.25)" }}
+              style={{ background: "linear-gradient(135deg, #1463F3, #7A5CFF)", boxShadow: "0 4px 16px rgba(20,99,243,0.25)" }}
             >
               <UserPlus size={14} /> Kullanıcı Ekle
             </button>
@@ -407,10 +407,10 @@ export default function UserManagementPage() {
         {/* Stats */}
         {stats && (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-            <StatCard icon={TrendingUp} label="Toplam" value={stats.total} color="#6366f1" />
-            <StatCard icon={UserCheck} label="Aktif" value={stats.active} color="#34d399" sub={`${stats.total > 0 ? Math.round(stats.active / stats.total * 100) : 0}%`} />
-            <StatCard icon={UserX} label="Pasif" value={stats.inactive} color="#f87171" />
-            <StatCard icon={Crown} label="Master" value={(stats.byRole.master ?? 0) + (stats.byRole.moderator ?? 0) + (stats.byRole.super_admin ?? 0)} color="#a78bfa" sub="Üst roller" />
+            <StatCard icon={TrendingUp} label="Toplam" value={stats.total} color="#1463F3" />
+            <StatCard icon={UserCheck} label="Aktif" value={stats.active} color="#0F8C66" sub={`${stats.total > 0 ? Math.round(stats.active / stats.total * 100) : 0}%`} />
+            <StatCard icon={UserX} label="Pasif" value={stats.inactive} color="#DC2626" />
+            <StatCard icon={Crown} label="Master" value={(stats.byRole.master ?? 0) + (stats.byRole.moderator ?? 0) + (stats.byRole.super_admin ?? 0)} color="#7A5CFF" sub="Üst roller" />
           </div>
         )}
 
@@ -418,14 +418,14 @@ export default function UserManagementPage() {
         <div className="flex gap-2 mb-4 flex-wrap">
           <div
             className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1 min-w-40"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.15)" }}
+            style={{ background: "#F8FAFF", border: "1px solid rgba(20,99,243,0.15)" }}
           >
-            <Search size={13} className="text-slate-500 shrink-0" />
+            <Search size={13} className="text-on-surface-variant shrink-0" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Ad, e-posta veya kullanıcı adı ara…"
-              className="bg-transparent text-sm text-slate-300 placeholder:text-slate-600 outline-none w-full"
+              className="bg-transparent text-sm text-on-surface placeholder:text-on-surface-variant outline-none w-full"
             />
           </div>
           <FilterSelect value={roleFilter} onChange={setRoleFilter} options={[
@@ -445,21 +445,21 @@ export default function UserManagementPage() {
         {/* Table */}
         <div
           className="flex-1 overflow-auto rounded-2xl"
-          style={{ border: "1px solid rgba(99,102,241,0.15)" }}
+          style={{ border: "1px solid rgba(20,99,243,0.15)" }}
         >
           {isLoading ? (
-            <div className="flex items-center justify-center h-40 text-slate-500 text-sm">Yükleniyor…</div>
+            <div className="flex items-center justify-center h-40 text-on-surface-variant text-sm">Yükleniyor…</div>
           ) : users.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2">
-              <Users size={28} className="text-slate-700" />
-              <p className="text-slate-500 text-sm">Kullanıcı bulunamadı</p>
+              <Users size={28} className="text-outline-variant" />
+              <p className="text-on-surface-variant text-sm">Kullanıcı bulunamadı</p>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(99,102,241,0.12)" }}>
+                <tr style={{ background: "#F8FAFF", borderBottom: "1px solid rgba(20,99,243,0.12)" }}>
                   {["Kullanıcı", "Rol", "Durum", "Son Aktif", "Katılım", ""].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">{h}</th>
+                    <th key={h} className="px-4 py-3 text-left text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -470,10 +470,10 @@ export default function UserManagementPage() {
                     onClick={() => setSelectedUser(u)}
                     className="cursor-pointer transition-colors"
                     style={{
-                      borderBottom: "1px solid rgba(99,102,241,0.07)",
-                      background: selectedUser?.id === u.id ? "rgba(99,102,241,0.08)" : "transparent",
+                      borderBottom: "1px solid rgba(20,99,243,0.07)",
+                      background: selectedUser?.id === u.id ? "rgba(20,99,243,0.08)" : "transparent",
                     }}
-                    onMouseEnter={(e) => { if (selectedUser?.id !== u.id) (e.currentTarget as HTMLElement).style.background = "rgba(255,255,255,0.02)"; }}
+                    onMouseEnter={(e) => { if (selectedUser?.id !== u.id) (e.currentTarget as HTMLElement).style.background = "#F4F7FE"; }}
                     onMouseLeave={(e) => { if (selectedUser?.id !== u.id) (e.currentTarget as HTMLElement).style.background = "transparent"; }}
                   >
                     <td className="px-4 py-3">
@@ -481,31 +481,31 @@ export default function UserManagementPage() {
                         <div
                           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
                           style={{
-                            background: u.isActive ? "rgba(99,102,241,0.3)" : "rgba(100,116,139,0.2)",
-                            border: u.isActive ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(100,116,139,0.3)",
+                            background: u.isActive ? "#1463F3" : "#94A0B8",
+                            border: u.isActive ? "1px solid #1463F3" : "1px solid #CBD3E2",
                           }}
                         >
                           {u.displayName[0]?.toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-medium text-slate-200">{u.displayName}</p>
-                          <p className="text-[11px] text-slate-500">@{u.username}</p>
+                          <p className="font-medium text-on-surface">{u.displayName}</p>
+                          <p className="text-[11px] text-on-surface-variant">@{u.username}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3"><RoleBadge role={u.role} /></td>
                     <td className="px-4 py-3">
-                      <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${u.isActive ? "text-emerald-400" : "text-slate-500"}`}>
+                      <span className={`inline-flex items-center gap-1 text-[11px] font-medium ${u.isActive ? "text-emerald-400" : "text-on-surface-variant"}`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${u.isActive ? "bg-emerald-400" : "bg-slate-600"}`} />
                         {u.isActive ? "Aktif" : "Devre Dışı"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-[12px] text-slate-500">{timeAgo(u.lastActiveAt)}</td>
-                    <td className="px-4 py-3 text-[12px] text-slate-500">
+                    <td className="px-4 py-3 text-[12px] text-on-surface-variant">{timeAgo(u.lastActiveAt)}</td>
+                    <td className="px-4 py-3 text-[12px] text-on-surface-variant">
                       {new Date(u.createdAt).toLocaleDateString("tr-TR")}
                     </td>
                     <td className="px-4 py-3">
-                      <ChevronRight size={14} className="text-slate-600" />
+                      <ChevronRight size={14} className="text-on-surface-variant" />
                     </td>
                   </tr>
                 ))}
@@ -525,13 +525,13 @@ export default function UserManagementPage() {
             transition={{ type: "spring", damping: 22, stiffness: 300 }}
             className="w-80 shrink-0 flex flex-col overflow-hidden"
             style={{
-              background: "rgba(7,11,26,0.95)",
-              borderLeft: "1px solid rgba(99,102,241,0.15)",
+              background: "#ffffff",
+              borderLeft: "1px solid rgba(20,99,243,0.15)",
             }}
           >
-            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(99,102,241,0.12)" }}>
-              <p className="text-sm font-semibold text-slate-300">Kullanıcı Detayı</p>
-              <button onClick={() => setSelectedUser(null)} className="text-slate-500 hover:text-slate-300 transition-colors">
+            <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: "1px solid rgba(20,99,243,0.12)" }}>
+              <p className="text-sm font-semibold text-on-surface">Kullanıcı Detayı</p>
+              <button onClick={() => setSelectedUser(null)} className="text-on-surface-variant hover:text-on-surface transition-colors">
                 <X size={15} />
               </button>
             </div>
@@ -541,12 +541,12 @@ export default function UserManagementPage() {
               <div className="text-center">
                 <div
                   className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white mx-auto mb-3"
-                  style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.4), rgba(139,92,246,0.4))", border: "1px solid rgba(99,102,241,0.4)" }}
+                  style={{ background: "linear-gradient(135deg, #1463F3, #7A5CFF)", border: "1px solid #1463F3" }}
                 >
                   {(selectedDetail ?? selectedUser).displayName[0]?.toUpperCase()}
                 </div>
-                <p className="font-bold text-slate-200">{(selectedDetail ?? selectedUser).displayName}</p>
-                <p className="text-xs text-slate-500 mt-0.5">@{(selectedDetail ?? selectedUser).username}</p>
+                <p className="font-bold text-on-surface">{(selectedDetail ?? selectedUser).displayName}</p>
+                <p className="text-xs text-on-surface-variant mt-0.5">@{(selectedDetail ?? selectedUser).username}</p>
                 <div className="mt-2 flex justify-center">
                   <RoleBadge role={(selectedDetail ?? selectedUser).role} />
                 </div>
@@ -561,14 +561,14 @@ export default function UserManagementPage() {
                   icon={<Activity size={12} />}
                   label="Hesap"
                   value={(selectedDetail ?? selectedUser).isActive ? "Aktif" : "Devre Dışı"}
-                  valueClass={(selectedDetail ?? selectedUser).isActive ? "text-emerald-400" : "text-red-400"}
+                  valueClass={(selectedDetail ?? selectedUser).isActive ? "text-emerald-400" : "text-error"}
                 />
               </div>
 
               {/* Role change */}
               {isRole("super_admin") && (selectedDetail ?? selectedUser).id !== me?.id && (
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Rol Değiştir</p>
+                  <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Rol Değiştir</p>
                   <div className="grid grid-cols-2 gap-1.5">
                     {(["super_admin", "moderator", "master", "user"] as UserRole[]).map((r) => (
                       <button
@@ -577,9 +577,9 @@ export default function UserManagementPage() {
                         onClick={() => setConfirmAction({ type: "role", user: selectedDetail ?? selectedUser, value: r })}
                         className="px-2 py-1.5 rounded-lg text-[11px] font-medium transition-all disabled:opacity-30"
                         style={{
-                          background: (selectedDetail ?? selectedUser).role === r ? `${ROLE_META[r].color}22` : "rgba(255,255,255,0.04)",
-                          border: `1px solid ${(selectedDetail ?? selectedUser).role === r ? ROLE_META[r].color : "rgba(255,255,255,0.08)"}`,
-                          color: (selectedDetail ?? selectedUser).role === r ? ROLE_META[r].color : "#94a3b8",
+                          background: (selectedDetail ?? selectedUser).role === r ? `${ROLE_META[r].color}22` : "#F8FAFF",
+                          border: `1px solid ${(selectedDetail ?? selectedUser).role === r ? ROLE_META[r].color : "#E8EEF9"}`,
+                          color: (selectedDetail ?? selectedUser).role === r ? ROLE_META[r].color : "#64708B",
                         }}
                       >
                         {ROLE_META[r].label}
@@ -592,14 +592,14 @@ export default function UserManagementPage() {
               {/* Active toggle */}
               {(selectedDetail ?? selectedUser).id !== me?.id && (
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Hesap Durumu</p>
+                  <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Hesap Durumu</p>
                   <button
                     onClick={() => setConfirmAction({ type: "active", user: selectedDetail ?? selectedUser, value: String(!(selectedDetail ?? selectedUser).isActive) })}
                     className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
                     style={{
                       background: (selectedDetail ?? selectedUser).isActive ? "rgba(239,68,68,0.08)" : "rgba(52,211,153,0.08)",
                       border: `1px solid ${(selectedDetail ?? selectedUser).isActive ? "rgba(239,68,68,0.2)" : "rgba(52,211,153,0.2)"}`,
-                      color: (selectedDetail ?? selectedUser).isActive ? "#f87171" : "#34d399",
+                      color: (selectedDetail ?? selectedUser).isActive ? "#DC2626" : "#0F8C66",
                     }}
                   >
                     {(selectedDetail ?? selectedUser).isActive
@@ -612,7 +612,7 @@ export default function UserManagementPage() {
               {/* Page access */}
               {isRole("super_admin") && selectedDetail?.pageAccess && (
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">Sayfa Erişimi</p>
+                  <p className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Sayfa Erişimi</p>
                   <PageAccessDisplay access={selectedDetail.pageAccess} />
                 </div>
               )}
@@ -630,20 +630,20 @@ export default function UserManagementPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="absolute inset-0" style={{ background: "rgba(0,0,8,0.7)" }} onClick={() => setConfirmAction(null)} />
+            <div className="absolute inset-0" style={{ background: "rgba(7,27,58,0.40)" }} onClick={() => setConfirmAction(null)} />
             <motion.div
               className="relative z-10 w-full max-w-sm p-6 rounded-2xl"
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              style={{ background: "rgba(7,11,26,0.98)", border: "1px solid rgba(99,102,241,0.3)" }}
+              style={{ width: "100%", maxWidth: 400, background: "#ffffff", border: "1px solid rgba(20,99,243,0.3)", boxShadow: "0 28px 80px rgba(7,27,58,0.20)" }}
             >
               <AlertTriangle size={24} className="text-amber-400 mb-3" />
-              <p className="font-semibold text-slate-200 mb-1">
+              <p className="font-semibold text-on-surface mb-1">
                 {confirmAction.type === "role" ? "Rol Değiştir" : "Hesap Durumu Değiştir"}
               </p>
-              <p className="text-sm text-slate-400 mb-4">
-                <span className="text-slate-200 font-medium">{confirmAction.user.displayName}</span>
+              <p className="text-sm text-on-surface-variant mb-4">
+                <span className="text-on-surface font-medium">{confirmAction.user.displayName}</span>
                 {confirmAction.type === "role"
                   ? ` kullanıcısının rolü ${ROLE_META[confirmAction.value as UserRole]?.label} olarak değiştirilecek.`
                   : confirmAction.value === "true"
@@ -655,14 +655,14 @@ export default function UserManagementPage() {
                 onChange={(e) => setReason(e.target.value)}
                 placeholder="Neden? (isteğe bağlı)"
                 rows={2}
-                className="w-full px-3 py-2 rounded-xl text-sm text-slate-300 placeholder:text-slate-600 outline-none mb-4 resize-none"
-                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.2)" }}
+                className="w-full px-3 py-2 rounded-xl text-sm text-on-surface placeholder:text-on-surface-variant outline-none mb-4 resize-none"
+                style={{ background: "#F8FAFF", border: "1px solid rgba(20,99,243,0.2)" }}
               />
               <div className="flex gap-2">
                 <button
                   onClick={() => setConfirmAction(null)}
-                  className="flex-1 py-2 rounded-xl text-sm text-slate-400 transition-colors"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+                  className="flex-1 py-2 rounded-xl text-sm text-on-surface-variant transition-colors"
+                  style={{ background: "#F8FAFF", border: "1px solid #E8EEF9" }}
                 >
                   İptal
                 </button>
@@ -676,7 +676,7 @@ export default function UserManagementPage() {
                   }}
                   disabled={mutRole.isPending || mutActive.isPending}
                   className="flex-1 py-2 rounded-xl text-sm font-semibold text-white transition-all"
-                  style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.8),rgba(139,92,246,0.8))", border: "1px solid rgba(99,102,241,0.4)" }}
+                  style={{ background: "linear-gradient(135deg,rgba(20,99,243,0.8),rgba(122,92,255,0.8))", border: "1px solid rgba(20,99,243,0.4)" }}
                 >
                   {mutRole.isPending || mutActive.isPending ? "İşleniyor…" : "Onayla"}
                 </button>
@@ -739,16 +739,16 @@ function FilterSelect({ value, onChange, options }: {
   return (
     <div
       className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl cursor-pointer"
-      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.15)" }}
+      style={{ background: "#F8FAFF", border: "1px solid rgba(20,99,243,0.15)" }}
     >
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="bg-transparent text-sm text-slate-400 outline-none cursor-pointer pr-4 appearance-none"
+        className="bg-transparent text-sm text-on-surface-variant outline-none cursor-pointer pr-4 appearance-none"
       >
-        {options.map((o) => <option key={o.value} value={o.value} style={{ background: "#0a0e2e" }}>{o.label}</option>)}
+        {options.map((o) => <option key={o.value} value={o.value} style={{ background: "#ffffff" }}>{o.label}</option>)}
       </select>
-      <ChevronDown size={12} className="text-slate-500 pointer-events-none absolute right-2.5" />
+      <ChevronDown size={12} className="text-on-surface-variant pointer-events-none absolute right-2.5" />
     </div>
   );
 }
@@ -759,12 +759,12 @@ function InfoRow({ icon, label, value, valueClass }: {
   return (
     <div
       className="flex items-center justify-between px-3 py-2 rounded-xl"
-      style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(99,102,241,0.08)" }}
+      style={{ background: "#F8FAFF", border: "1px solid rgba(20,99,243,0.08)" }}
     >
-      <span className="flex items-center gap-1.5 text-[11px] text-slate-500">
+      <span className="flex items-center gap-1.5 text-[11px] text-on-surface-variant">
         {icon} {label}
       </span>
-      <span className={`text-[12px] font-medium ${valueClass ?? "text-slate-300"}`}>{value}</span>
+      <span className={`text-[12px] font-medium ${valueClass ?? "text-on-surface"}`}>{value}</span>
     </div>
   );
 }
@@ -777,7 +777,7 @@ const PAGE_LABELS: Record<string, string> = {
 
 function PageAccessDisplay({ access }: { access: Array<{ page: string; granted: boolean }> }) {
   if (access.length === 0) {
-    return <p className="text-xs text-slate-600 italic">Rol varsayılanları geçerli</p>;
+    return <p className="text-xs text-on-surface-variant italic">Rol varsayılanları geçerli</p>;
   }
   return (
     <div className="space-y-1.5">
@@ -785,12 +785,12 @@ function PageAccessDisplay({ access }: { access: Array<{ page: string; granted: 
         <div
           key={page}
           className="flex items-center justify-between px-3 py-1.5 rounded-lg text-[12px]"
-          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(99,102,241,0.08)" }}
+          style={{ background: "#F8FAFF", border: "1px solid rgba(20,99,243,0.08)" }}
         >
-          <span className="text-slate-400">{PAGE_LABELS[page] ?? page}</span>
+          <span className="text-on-surface-variant">{PAGE_LABELS[page] ?? page}</span>
           {granted
             ? <CheckCircle size={13} className="text-emerald-400" />
-            : <X size={13} className="text-red-400" />}
+            : <X size={13} className="text-error" />}
         </div>
       ))}
     </div>
