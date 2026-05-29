@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn | Araştırma Veritabanı</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Manrope:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@100..900&amp;family=Montserrat:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ai-gradient {
+            background: linear-gradient(135deg, #18C9E8 0%, #1463F3 50%, #7A5CFF 100%);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c2c6d8;
+            border-radius: 10px;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#ccdafc",
+                        "surface-variant": "#d7e2ff",
+                        "secondary-container": "#c6d7ff",
+                        "tertiary-container": "#00798d",
+                        "on-error": "#ffffff",
+                        "secondary": "#4e5e81",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "primary": "#004cc5",
+                        "tertiary-fixed": "#aaedff",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#c2c6d8",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-tertiary-fixed": "#001f26",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-container-low": "#f1f3ff",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "primary-fixed": "#dbe1ff",
+                        "inverse-surface": "#22304a",
+                        "surface-container-high": "#e0e8ff",
+                        "on-background": "#0c1b34",
+                        "surface-container": "#e8eeff",
+                        "on-secondary-container": "#4c5d80",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "background": "#f9f9ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "surface": "#f9f9ff",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-tertiary-container": "#dbf7ff",
+                        "tertiary": "#005f6e",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "outline": "#737687",
+                        "on-primary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-tertiary": "#ffffff",
+                        "on-primary-fixed": "#00184a",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-primary-container": "#f0f1ff",
+                        "on-surface": "#0c1b34",
+                        "on-surface-variant": "#424655",
+                        "inverse-primary": "#b3c5ff",
+                        "primary-container": "#1463f3",
+                        "surface-tint": "#0054d7",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "base": "8px",
+                        "lg": "48px",
+                        "xl": "80px",
+                        "margin-desktop": "40px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "headline-lg": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "label-md": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "body-md": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background font-body-md text-on-background selection:bg-primary selection:text-white">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component Integration) -->
+<aside class="w-64 border-r border-outline-variant bg-surface-container-lowest flex flex-col shrink-0">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 ai-gradient rounded-xl flex items-center justify-center text-white shadow-lg">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<div>
+<h1 class="font-headline-sm text-primary tracking-tight">think-Inn</h1>
+<p class="text-[10px] font-label-md text-outline uppercase tracking-widest">Innovation Intel</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary-container text-white shadow-md" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="font-label-md">Araştırmalar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-md">Projeler</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-label-md">Analizler</span>
+</a>
+<div class="pt-8 pb-2 px-3 text-[10px] font-label-md text-outline uppercase tracking-widest">Koleksiyonlarım</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined text-secondary">folder_special</span>
+<span class="font-label-md">Yeşil Enerji 2024</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined text-secondary">folder_special</span>
+<span class="font-label-md">AI Etik Kuralları</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 p-2 rounded-xl bg-surface-container-low">
+<img class="size-10 rounded-full object-cover" data-alt="Close up portrait of a professional technology researcher in a modern office, soft natural lighting, high resolution photography, corporate style, deep navy and white tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBG8Cd_gR6otmQ1Pt8HA-we0u8ga39hJYXg6kh4vE5GNfZdZpepkTb3ihdXNEUmFzoILcFt_3O84I2W-vkFvhmw3EqJ4FRmDZUitw5CvDbMVErroha2rXEulGQLCgQiVh-trp9mnM871JJh_8nne0K3UgIsoqUD2EcYNUP6CPaSa7Ge2oX2gyPnSY-daDUeKQBOfXBE3RZeVHZwO9FAI-im52XGtDBIJzkJBQa5oWCRhwF_ZUYbIacxiRrl8LmcPSntO6NgBncIwpMu"/>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate">Dr. Arda Yılmaz</p>
+<p class="text-[10px] text-outline truncate">Baş Araştırmacı</p>
+</div>
+<button class="ml-auto text-outline hover:text-primary">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-background overflow-hidden">
+<!-- TopAppBar -->
+<header class="h-16 border-b border-outline-variant bg-surface-container-lowest flex items-center justify-between px-8 shrink-0">
+<div class="flex-1 max-w-2xl relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-outline-variant" placeholder="Global veritabanında ara (DOI, Anahtar Kelime, Yazar...)" type="text"/>
+</div>
+<div class="flex items-center gap-4 ml-8">
+<button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-error rounded-full border-2 border-white"></span>
+</button>
+<div class="h-8 w-px bg-outline-variant"></div>
+<button class="ai-gradient text-white px-4 py-2 rounded-lg font-label-md shadow-sm hover:shadow-md transition-shadow flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+<span>AI Asistan</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<div class="p-8 max-w-[1400px] mx-auto space-y-8">
+<!-- Header & Total Count -->
+<div class="flex items-end justify-between">
+<div>
+<h2 class="font-headline-lg text-on-background">Araştırma Veritabanı</h2>
+<p class="text-on-surface-variant mt-1 flex items-center gap-2">
+<span class="font-bold text-primary">12,450+</span> aktif doküman içerisinde tarama yapıyorsunuz.
+                        </p>
+</div>
+<button class="bg-primary text-white px-6 py-2.5 rounded-lg font-label-md flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Yeni Kaynak Ekle</span>
+</button>
+</div>
+<!-- AI Insights Panel -->
+<section class="grid grid-cols-3 gap-6">
+<div class="col-span-2 glass-card rounded-2xl p-6 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-6xl text-primary">auto_awesome</span>
+</div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<h3 class="font-headline-sm">Trend Teknoloji Başlıkları</h3>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold border border-primary/20">#GenerativeAI</span>
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary rounded-full text-xs font-bold border border-tertiary/20">#SolidStateBatteries</span>
+<span class="px-3 py-1 bg-secondary/10 text-secondary rounded-full text-xs font-bold border border-secondary/20">#QuantumEncryption</span>
+<span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-xs font-bold border border-primary/20">#BioInformatics</span>
+<span class="px-3 py-1 bg-tertiary/10 text-tertiary rounded-full text-xs font-bold border border-tertiary/20">#CarbonCapture</span>
+</div>
+<p class="text-xs text-outline mt-4">AI Analizi: <span class="text-on-surface">"Solid State Batteries"</span> aramaları son 30 günde %42 arttı.</p>
+</div>
+</div>
+<div class="glass-card rounded-2xl p-6 bg-primary-container text-white">
+<h3 class="font-headline-sm mb-3">Size Özel Öneriler</h3>
+<div class="space-y-3">
+<div class="flex items-start gap-3 group cursor-pointer">
+<div class="size-8 shrink-0 bg-white/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">article</span>
+</div>
+<div>
+<p class="text-xs font-bold group-hover:underline line-clamp-1">Decentralized Power Grids...</p>
+<p class="text-[10px] opacity-70">İlgi alanınıza %98 uyumlu</p>
+</div>
+</div>
+<div class="flex items-start gap-3 group cursor-pointer">
+<div class="size-8 shrink-0 bg-white/20 rounded flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">history_edu</span>
+</div>
+<div>
+<p class="text-xs font-bold group-hover:underline line-clamp-1">Transformer-based Logic...</p>
+<p class="text-[10px] opacity-70">Projelerinizle bağlantılı</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Search & Filters -->
+<section class="bg-surface-container-low p-4 rounded-2xl space-y-4">
+<div class="flex flex-wrap gap-3">
+<!-- Doc Type -->
+<div class="relative group">
+<button class="bg-white px-4 py-2 rounded-xl border border-outline-variant flex items-center gap-2 text-sm font-semibold hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-sm text-outline">description</span>
+                                Doküman Tipi
+                                <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<!-- Date Range -->
+<div class="relative group">
+<button class="bg-white px-4 py-2 rounded-xl border border-outline-variant flex items-center gap-2 text-sm font-semibold hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-sm text-outline">calendar_month</span>
+                                Tarih Aralığı
+                                <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<!-- Tech Tag -->
+<div class="relative group">
+<button class="bg-white px-4 py-2 rounded-xl border border-outline-variant flex items-center gap-2 text-sm font-semibold hover:border-primary transition-colors">
+<span class="material-symbols-outlined text-sm text-outline">hub</span>
+                                Teknoloji Odağı
+                                <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+<div class="h-8 w-px bg-outline-variant mx-1"></div>
+<!-- Applied Filters -->
+<div class="flex items-center gap-2">
+<div class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs flex items-center gap-1 border border-primary/20">
+                                AI &amp; ML
+                                <span class="material-symbols-outlined text-[10px] cursor-pointer">close</span>
+</div>
+<div class="bg-tertiary/10 text-tertiary px-3 py-1 rounded-full text-xs flex items-center gap-1 border border-tertiary/20">
+                                2023-2024
+                                <span class="material-symbols-outlined text-[10px] cursor-pointer">close</span>
+</div>
+<button class="text-[10px] font-bold text-outline uppercase hover:text-error transition-colors">Temizle</button>
+</div>
+</div>
+</section>
+<!-- Results Grid -->
+<section class="grid grid-cols-1 gap-4">
+<!-- Item 1 -->
+<div class="glass-card hover:shadow-xl hover:-translate-y-0.5 transition-all p-6 rounded-2xl flex gap-6 items-start">
+<div class="relative size-16 shrink-0">
+<!-- AI Score Hexagon -->
+<div class="absolute inset-0 ai-gradient [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] flex flex-col items-center justify-center text-white">
+<span class="text-[10px] font-bold opacity-80">SCORE</span>
+<span class="text-xl font-bold leading-none">94</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-headline-sm text-on-background hover:text-primary cursor-pointer transition-colors leading-tight">Advancements in Decentralized Neural Networks for Privacy-Preserving AI</h4>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-[10px] font-bold text-outline uppercase">Paper</span>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 text-[10px] font-bold text-tertiary uppercase">Peer Reviewed</span>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant font-medium">Dr. Elena Rodriguez, MIT CSAIL • Published: 14 Oct 2023</p>
+<div class="flex gap-2 mt-3">
+<span class="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded uppercase tracking-wider">Neural Networks</span>
+<span class="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded uppercase tracking-wider">Cybersecurity</span>
+<span class="text-[10px] font-bold text-primary bg-primary/5 px-2 py-1 rounded uppercase tracking-wider">Edge Computing</span>
+</div>
+<div class="flex items-center gap-6 mt-6 border-t border-outline-variant pt-4">
+<button class="flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">bookmark_add</span>
+                                    Koleksiyona Ekle
+                                </button>
+<button class="flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+                                    AI Özet
+                                </button>
+<button class="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline ml-auto">
+<span class="material-symbols-outlined text-lg">open_in_new</span>
+                                    Tam Metni Görüntüle
+                                </button>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="glass-card hover:shadow-xl hover:-translate-y-0.5 transition-all p-6 rounded-2xl flex gap-6 items-start">
+<div class="relative size-16 shrink-0">
+<div class="absolute inset-0 bg-surface-dim [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] flex flex-col items-center justify-center text-on-background">
+<span class="text-[10px] font-bold opacity-50">SCORE</span>
+<span class="text-xl font-bold leading-none">82</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-headline-sm text-on-background hover:text-primary cursor-pointer transition-colors leading-tight">Next-Gen Solid State Battery Architectures: A Multi-Year Roadmap</h4>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-[10px] font-bold text-outline uppercase">Patent</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-[10px] font-bold text-outline uppercase">Industry</span>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant font-medium">Tesla Energy R&amp;D • Filed: Jan 2024 • Patent ID: US12/994,112</p>
+<div class="flex gap-2 mt-3">
+<span class="text-[10px] font-bold text-tertiary bg-tertiary/5 px-2 py-1 rounded uppercase tracking-wider">Energy Storage</span>
+<span class="text-[10px] font-bold text-tertiary bg-tertiary/5 px-2 py-1 rounded uppercase tracking-wider">Materials Science</span>
+</div>
+<div class="flex items-center gap-6 mt-6 border-t border-outline-variant pt-4">
+<button class="flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">bookmark_add</span>
+                                    Koleksiyona Ekle
+                                </button>
+<button class="flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+                                    AI Özet
+                                </button>
+<button class="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline ml-auto">
+<span class="material-symbols-outlined text-lg">open_in_new</span>
+                                    Tam Metni Görüntüle
+                                </button>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="glass-card hover:shadow-xl hover:-translate-y-0.5 transition-all p-6 rounded-2xl flex gap-6 items-start">
+<div class="relative size-16 shrink-0">
+<div class="absolute inset-0 ai-gradient [clip-path:polygon(50%_0%,100%_25%,100%_75%,50%_100%,0%_75%,0%_25%)] flex flex-col items-center justify-center text-white">
+<span class="text-[10px] font-bold opacity-80">SCORE</span>
+<span class="text-xl font-bold leading-none">89</span>
+</div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-headline-sm text-on-background hover:text-primary cursor-pointer transition-colors leading-tight">Biotechnology Trends 2025: CRIPSR beyond Genome Editing</h4>
+<div class="flex gap-2">
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-[10px] font-bold text-outline uppercase">Report</span>
+<span class="px-2 py-0.5 rounded bg-primary-container text-[10px] font-bold text-white uppercase">Premium</span>
+</div>
+</div>
+<p class="text-sm text-on-surface-variant font-medium">Gartner Research • Published: Dec 2023</p>
+<div class="flex gap-2 mt-3">
+<span class="text-[10px] font-bold text-secondary bg-secondary/5 px-2 py-1 rounded uppercase tracking-wider">CRISPR</span>
+<span class="text-[10px] font-bold text-secondary bg-secondary/5 px-2 py-1 rounded uppercase tracking-wider">Gene Therapy</span>
+</div>
+<div class="flex items-center gap-6 mt-6 border-t border-outline-variant pt-4">
+<button class="flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">bookmark_add</span>
+                                    Koleksiyona Ekle
+                                </button>
+<button class="flex items-center gap-1.5 text-xs font-bold text-secondary hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+                                    AI Özet
+                                </button>
+<button class="flex items-center gap-1.5 text-xs font-bold text-primary hover:underline ml-auto">
+<span class="material-symbols-outlined text-lg">open_in_new</span>
+                                    Tam Metni Görüntüle
+                                </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Pagination -->
+<div class="flex justify-center gap-2 pt-8">
+<button class="size-10 rounded-lg border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-10 rounded-lg bg-primary text-white font-bold">1</button>
+<button class="size-10 rounded-lg border border-outline-variant font-bold hover:bg-surface-container-low transition-colors">2</button>
+<button class="size-10 rounded-lg border border-outline-variant font-bold hover:bg-surface-container-low transition-colors">3</button>
+<button class="size-10 rounded-lg border border-outline-variant flex items-center justify-center hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Right Sidebar: Saved Collections -->
+<aside class="w-72 border-l border-outline-variant bg-surface-container-lowest p-6 flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-headline-sm">Koleksiyonlar</h3>
+<button class="text-primary hover:bg-primary/10 p-1 rounded">
+<span class="material-symbols-outlined">add_box</span>
+</button>
+</div>
+<div class="space-y-6">
+<!-- Pinned Folders -->
+<div>
+<p class="text-[10px] font-label-md text-outline uppercase tracking-widest mb-3">Sabitlenenler</p>
+<div class="space-y-2">
+<div class="p-3 rounded-xl border border-primary/20 bg-primary/5 cursor-pointer hover:bg-primary/10 transition-colors">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<p class="text-sm font-bold truncate">Star Items</p>
+</div>
+<p class="text-[10px] text-outline">12 Doküman • Son güncelleme bugün</p>
+</div>
+</div>
+</div>
+<!-- All Collections -->
+<div>
+<p class="text-[10px] font-label-md text-outline uppercase tracking-widest mb-3">Tüm Klasörler</p>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-secondary">folder</span>
+<div class="min-w-0">
+<p class="text-xs font-bold truncate">Yarı İletkenler</p>
+<p class="text-[10px] text-outline">8 Doküman</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-secondary">folder</span>
+<div class="min-w-0">
+<p class="text-xs font-bold truncate">Sürdürülebilirlik</p>
+<p class="text-[10px] text-outline">24 Doküman</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-secondary">folder</span>
+<div class="min-w-0">
+<p class="text-xs font-bold truncate">NLP Modelleri</p>
+<p class="text-[10px] text-outline">15 Doküman</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Ad/Insight Promo -->
+<div class="mt-auto pt-6">
+<div class="rounded-2xl p-4 bg-surface-container-high relative overflow-hidden group">
+<div class="absolute inset-0 ai-gradient opacity-0 group-hover:opacity-10 transition-opacity"></div>
+<h4 class="text-xs font-bold mb-2">Haftalık Bülten</h4>
+<p class="text-[10px] text-on-surface-variant mb-3 leading-relaxed">Projelerinizle ilgili en son makaleler her pazartesi kapınızda.</p>
+<button class="w-full py-2 bg-white text-primary text-[10px] font-bold rounded-lg border border-primary/20 hover:bg-primary hover:text-white transition-all">
+                        Abone Ol
+                    </button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+<script>
+    // Micro-interaction for search focus
+    const searchBar = document.querySelector('input[type="text"]');
+    const searchContainer = searchBar.parentElement;
+
+    searchBar.addEventListener('focus', () => {
+        searchContainer.classList.add('ring-2', 'ring-primary/20');
+    });
+
+    searchBar.addEventListener('blur', () => {
+        searchContainer.classList.remove('ring-2', 'ring-primary/20');
+    });
+
+    // Simple fade in effect for list items
+    document.querySelectorAll('.glass-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(10px)';
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+</script>
+</body></html>

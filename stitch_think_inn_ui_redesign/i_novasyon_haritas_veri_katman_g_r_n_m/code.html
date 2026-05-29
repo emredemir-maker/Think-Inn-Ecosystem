@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Innovation Hub - Innovation Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Manrope:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@100..900&amp;family=Montserrat:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .heatmap-pulse {
+      animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 0.2; transform: scale(1.5); }
+    }
+    .node-gradient {
+      background: linear-gradient(135deg, #1463f3 0%, #39d8f7 100%);
+    }
+    .impact-gradient {
+      background: linear-gradient(135deg, #004cc5 0%, #ba1a1a 100%);
+    }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "error": "#ba1a1a",
+            "on-background": "#0c1b34",
+            "tertiary-fixed-dim": "#39d8f7",
+            "surface-variant": "#d7e2ff",
+            "surface-container-high": "#e0e8ff",
+            "on-secondary-fixed": "#071b3a",
+            "on-primary-fixed-variant": "#003fa5",
+            "on-tertiary-fixed": "#001f26",
+            "tertiary-fixed": "#aaedff",
+            "inverse-on-surface": "#ecf0ff",
+            "on-surface": "#0c1b34",
+            "on-primary": "#ffffff",
+            "on-tertiary-container": "#dbf7ff",
+            "inverse-surface": "#22304a",
+            "tertiary": "#005f6e",
+            "secondary-fixed": "#d7e2ff",
+            "primary-container": "#1463f3",
+            "outline-variant": "#c2c6d8",
+            "surface-dim": "#ccdafc",
+            "on-tertiary-fixed-variant": "#004e5c",
+            "on-surface-variant": "#424655",
+            "surface-container": "#e8eeff",
+            "on-primary-container": "#f0f1ff",
+            "primary": "#004cc5",
+            "on-secondary-fixed-variant": "#364768",
+            "secondary-fixed-dim": "#b5c7ee",
+            "on-primary-fixed": "#00184a",
+            "surface-container-low": "#f1f3ff",
+            "surface-container-highest": "#d7e2ff",
+            "secondary": "#4e5e81",
+            "surface-tint": "#0054d7",
+            "on-secondary-container": "#4c5d80",
+            "on-error-container": "#93000a",
+            "surface": "#f9f9ff",
+            "surface-container-lowest": "#ffffff",
+            "background": "#f9f9ff",
+            "on-secondary": "#ffffff",
+            "surface-bright": "#f9f9ff",
+            "inverse-primary": "#b3c5ff",
+            "on-tertiary": "#ffffff",
+            "secondary-container": "#c6d7ff",
+            "primary-fixed-dim": "#b3c5ff",
+            "outline": "#737687",
+            "on-error": "#ffffff",
+            "error-container": "#ffdad6",
+            "tertiary-container": "#00798d",
+            "primary-fixed": "#dbe1ff"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "xs": "4px",
+            "margin-desktop": "40px",
+            "lg": "48px",
+            "sm": "12px",
+            "base": "8px",
+            "xl": "80px",
+            "gutter": "24px",
+            "margin-mobile": "16px",
+            "md": "24px"
+          },
+          "fontFamily": {
+            "headline-md": ["Montserrat"],
+            "display-lg": ["Montserrat"],
+            "headline-lg-mobile": ["Montserrat"],
+            "body-sm": ["Manrope"],
+            "body-lg": ["Manrope"],
+            "label-md": ["Manrope"],
+            "body-md": ["Manrope"],
+            "headline-sm": ["Montserrat"],
+            "headline-lg": ["Montserrat"]
+          },
+          "fontSize": {
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+            "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-hidden">
+<!-- TopNavBar Implementation -->
+<header class="bg-surface shadow-sm flex justify-between items-center w-full px-margin-desktop py-4 z-50 sticky top-0">
+<div class="flex items-center gap-base">
+<span class="text-headline-sm font-headline-sm font-bold text-primary">think-Inn</span>
+</div>
+<div class="hidden md:flex items-center gap-gutter">
+<nav class="flex gap-md">
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors px-3 py-2 rounded-lg text-label-md font-label-md" href="#">Dashboard</a>
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors px-3 py-2 rounded-lg text-label-md font-label-md" href="#">Ideas</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 text-label-md font-label-md" href="#">Map</a>
+<a class="text-on-surface-variant hover:bg-surface-container transition-colors px-3 py-2 rounded-lg text-label-md font-label-md" href="#">Community</a>
+</nav>
+<div class="flex items-center gap-sm">
+<button class="material-symbols-outlined text-primary p-2 hover:bg-surface-container rounded-full transition-colors">notifications</button>
+<button class="material-symbols-outlined text-primary p-2 hover:bg-surface-container rounded-full transition-colors">account_circle</button>
+</div>
+</div>
+</header>
+<div class="flex h-[calc(100vh-72px)] overflow-hidden">
+<!-- SideNavBar Implementation -->
+<aside class="flex flex-col h-screen fixed left-0 top-[72px] p-4 border-r border-outline-variant bg-surface-container-low w-64 hidden md:flex z-40">
+<div class="mb-gutter px-2">
+<div class="flex items-center gap-sm mb-base">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">hub</span>
+</div>
+<div>
+<p class="text-label-md font-label-md font-bold text-primary">Innovation Hub</p>
+<p class="text-xs text-on-surface-variant">Enterprise Tier</p>
+</div>
+</div>
+</div>
+<nav class="flex flex-col gap-xs flex-grow">
+<a class="flex items-center gap-sm p-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm p-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="text-label-md font-label-md">Ideas</span>
+</a>
+<a class="flex items-center gap-sm p-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">magnification_small</span>
+<span class="text-label-md font-label-md">Research</span>
+</a>
+<a class="flex items-center gap-sm p-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="text-label-md font-label-md">Projects</span>
+</a>
+<a class="flex items-center gap-sm p-3 text-primary font-bold bg-secondary-container rounded-lg scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-label-md font-label-md">Map</span>
+</a>
+<a class="flex items-center gap-sm p-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-label-md font-label-md">Community</span>
+</a>
+</nav>
+<button class="mt-auto bg-primary text-on-primary py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-sm shadow-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span>New Initiative</span>
+</button>
+</aside>
+<!-- Main Map Content Canvas -->
+<main class="flex-grow md:ml-64 relative bg-[#0c1b34] overflow-hidden">
+<!-- Map Visual Base -->
+<div class="absolute inset-0 transition-opacity duration-1000" id="map-canvas">
+<img alt="Global Innovation Map" class="w-full h-full object-cover opacity-30 grayscale blur-[2px]" data-alt="A high-contrast dark satellite view of a metropolitan global network with intricate glowing blue and purple data lines connecting major urban hubs. The lighting is dramatic and cinematic, suggesting a high-performance corporate data ecosystem. The aesthetic is modern and sleek, focusing on technological connectivity and global innovation density with soft neon ambient light effects." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN8zOP3mxpWtWeStDzCbrq4XIFKHRSIBzXwO-Jk-thUsvNsdUL20N8nKL7ORDJPCQjXylhFRGVuycNSNGOK6hvs3J1Vmre8EOoz5NAWNt6u6Gu-cI1RZbOlebAJpvXZRZvwWPamXBe4pqqv2iSEpA_isXOlc2C-pULuEn2ievYNu2-1NTsWELLLdoHFdI2t66rs2oallt8JpYxvGLQTp0aO3gxuFwXu9mQDZhmL2V_pPRNcOhBqB_mqAh3WcE967Ig_fGJxX7oUK_m"/>
+<!-- Connection Lines Layer (Visible by default) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-60" id="connections-layer">
+<path class="animate-[pulse_4s_infinite]" d="M200,300 Q400,100 600,300" fill="none" stroke="url(#lineGradient)" stroke-width="1.5"></path>
+<path d="M600,300 Q800,500 1000,400" fill="none" opacity="0.4" stroke="url(#lineGradient)" stroke-width="1"></path>
+<path d="M100,600 Q400,700 800,200" fill="none" stroke="url(#lineGradient)" stroke-width="1.2"></path>
+<defs>
+<lineargradient id="lineGradient" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" style="stop-color:#39d8f7;stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:#004cc5;stop-opacity:0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<!-- Heatmap Overlay (Hidden by default, toggled via JS) -->
+<div class="absolute inset-0 hidden transition-all duration-500 bg-primary/10" id="heatmap-layer">
+<!-- Procedural Heat Blobs -->
+<div class="absolute top-1/4 left-1/3 w-64 h-64 rounded-full bg-tertiary-fixed-dim/40 blur-[80px] heatmap-pulse"></div>
+<div class="absolute top-2/3 left-1/2 w-96 h-96 rounded-full bg-primary/30 blur-[100px] heatmap-pulse" style="animation-delay: 1s"></div>
+<div class="absolute top-1/2 left-1/4 w-48 h-48 rounded-full bg-error/20 blur-[60px] heatmap-pulse" style="animation-delay: 2s"></div>
+</div>
+<!-- Map Nodes -->
+<div class="relative w-full h-full" id="nodes-container">
+<!-- Node 1: Silicon Valley equivalent -->
+<div class="absolute top-[25%] left-[20%] group">
+<div class="node-gradient w-4 h-4 rounded-full shadow-[0_0_15px_#39d8f7] relative z-10 cursor-pointer"></div>
+<div class="absolute -inset-2 rounded-full border border-tertiary-fixed-dim/30 animate-ping opacity-20"></div>
+<div class="absolute left-6 top-1/2 -translate-y-1/2 bg-surface-container-lowest px-3 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-outline-variant whitespace-nowrap">
+<p class="text-xs font-bold text-primary">San Francisco Hub</p>
+<p class="text-[10px] text-on-surface-variant">Density: 9.8 (Critical)</p>
+</div>
+</div>
+<!-- Node 2: London equivalent -->
+<div class="absolute top-[35%] left-[48%] group">
+<div class="node-gradient w-3 h-3 rounded-full shadow-[0_0_10px_#39d8f7] relative z-10 cursor-pointer"></div>
+<div class="absolute left-5 top-1/2 -translate-y-1/2 bg-surface-container-lowest px-3 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-outline-variant whitespace-nowrap">
+<p class="text-xs font-bold text-primary">London Cluster</p>
+<p class="text-[10px] text-on-surface-variant">Density: 7.4 (High)</p>
+</div>
+</div>
+<!-- Node 3: Singapore equivalent -->
+<div class="absolute top-[65%] left-[75%] group">
+<div class="node-gradient w-5 h-5 rounded-full shadow-[0_0_20px_#39d8f7] relative z-10 cursor-pointer"></div>
+<div class="absolute -inset-3 rounded-full border border-tertiary-fixed-dim/30 animate-ping opacity-30"></div>
+<div class="absolute right-7 top-1/2 -translate-y-1/2 bg-surface-container-lowest px-3 py-1.5 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-outline-variant whitespace-nowrap">
+<p class="text-xs font-bold text-primary">Singapore Gateway</p>
+<p class="text-[10px] text-on-surface-variant">Density: 8.9 (Critical)</p>
+</div>
+</div>
+</div>
+</div>
+<!-- UI Overlays: Top Left Controls -->
+<div class="absolute top-gutter left-gutter z-30 flex flex-col gap-sm">
+<div class="glass-panel p-gutter rounded-xl border border-white/20 shadow-lg w-64">
+<h1 class="font-headline-sm text-on-background mb-xs">Innovation Map</h1>
+<p class="text-body-sm text-on-surface-variant mb-gutter leading-tight">Global visualization of research initiatives and market potential.</p>
+<div class="space-y-base">
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-primary-container text-on-primary font-bold shadow-md transition-all active:scale-95" id="btn-connections" onclick="toggleView('connections')">
+<span class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">hub</span>
+<span class="text-label-md">Connections</span>
+</span>
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</button>
+<button class="w-full flex items-center justify-between p-3 rounded-lg bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-all active:scale-95" id="btn-heatmap" onclick="toggleView('heatmap')">
+<span class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+<span class="text-label-md">Impact Heatmap</span>
+</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-sm rounded-xl border border-white/20 shadow-md flex items-center gap-gutter">
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-xs">Active Nodes</span>
+<span class="text-headline-md font-headline-md text-primary">1,402</span>
+</div>
+<div class="w-px h-8 bg-outline-variant/30"></div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-xs">Growth Rate</span>
+<span class="text-headline-md font-headline-md text-tertiary">+22%</span>
+</div>
+</div>
+</div>
+<!-- Legend (Bottom Right) -->
+<div class="absolute bottom-gutter right-gutter z-30">
+<div class="glass-panel p-md rounded-xl border border-white/20 shadow-xl w-48">
+<h3 class="text-label-md font-bold mb-sm flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">legend_toggle</span>
+            Legend
+          </h3>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm">
+<div class="w-3 h-3 rounded-full node-gradient"></div>
+<span class="text-xs text-on-surface-variant">Emerging Hub</span>
+</div>
+<div class="flex items-center gap-sm" id="legend-dynamic">
+<div class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(0,76,197,0.5)]"></div>
+<span class="text-xs text-on-surface-variant">Core Ecosystem</span>
+</div>
+<div class="mt-md pt-md border-t border-outline-variant/30">
+<p class="text-[10px] text-on-surface-variant font-bold uppercase mb-xs">Innovation Density</p>
+<div class="h-2 w-full rounded-full bg-gradient-to-r from-tertiary-fixed-dim via-primary to-error"></div>
+<div class="flex justify-between mt-1">
+<span class="text-[8px] text-on-surface-variant">Low</span>
+<span class="text-[8px] text-on-surface-variant">Extreme</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Map Floating Buttons Cluster (Center Bottom) -->
+<div class="absolute bottom-gutter left-1/2 -translate-x-1/2 z-30 flex gap-sm">
+<button class="bg-surface-container-lowest p-3 rounded-full shadow-lg border border-outline-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="bg-surface-container-lowest p-3 rounded-full shadow-lg border border-outline-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">zoom_out</span>
+</button>
+<button class="bg-surface-container-lowest p-3 rounded-full shadow-lg border border-outline-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+<div class="w-px h-10 bg-outline-variant/30 self-center mx-xs"></div>
+<button class="bg-primary text-on-primary py-3 px-6 rounded-full shadow-lg font-bold flex items-center gap-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">filter_list</span>
+<span>Filters</span>
+</button>
+</div>
+</main>
+</div>
+<script>
+    function toggleView(viewType) {
+      const connectionsLayer = document.getElementById('connections-layer');
+      const heatmapLayer = document.getElementById('heatmap-layer');
+      const nodes = document.querySelectorAll('.node-gradient');
+      const btnConnections = document.getElementById('btn-connections');
+      const btnHeatmap = document.getElementById('btn-heatmap');
+      const legendDynamic = document.getElementById('legend-dynamic');
+
+      if (viewType === 'heatmap') {
+        // Toggle Heatmap ON
+        heatmapLayer.classList.remove('hidden');
+        connectionsLayer.classList.add('opacity-10');
+        
+        // Change Node Colors to Impact Gradient
+        nodes.forEach(node => {
+          node.classList.remove('node-gradient');
+          node.classList.add('impact-gradient');
+          node.style.transform = 'scale(1.5)';
+          node.style.transition = 'all 0.5s ease';
+        });
+
+        // UI Button States
+        btnHeatmap.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-md');
+        btnHeatmap.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+        btnHeatmap.innerHTML = `
+          <span class="flex items-center gap-sm">
+            <span class="material-symbols-outlined text-[20px]">layers</span>
+            <span class="text-label-md">Impact Heatmap</span>
+          </span>
+          <span class="material-symbols-outlined text-[16px]">check_circle</span>
+        `;
+
+        btnConnections.classList.remove('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-md');
+        btnConnections.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        btnConnections.innerHTML = `
+          <span class="flex items-center gap-sm">
+            <span class="material-symbols-outlined text-[20px]">hub</span>
+            <span class="text-label-md">Connections</span>
+          </span>
+        `;
+
+        legendDynamic.innerHTML = `
+          <div class="w-3 h-3 rounded-full impact-gradient shadow-[0_0_8px_rgba(186,26,26,0.5)]"></div>
+          <span class="text-xs text-on-surface-variant">High Impact Zone</span>
+        `;
+
+      } else {
+        // Toggle Connections ON (Default)
+        heatmapLayer.classList.add('hidden');
+        connectionsLayer.classList.remove('opacity-10');
+        
+        // Restore Node Colors
+        nodes.forEach(node => {
+          node.classList.add('node-gradient');
+          node.classList.remove('impact-gradient');
+          node.style.transform = 'scale(1)';
+        });
+
+        // UI Button States
+        btnConnections.classList.add('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-md');
+        btnConnections.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+        btnConnections.innerHTML = `
+          <span class="flex items-center gap-sm">
+            <span class="material-symbols-outlined text-[20px]">hub</span>
+            <span class="text-label-md">Connections</span>
+          </span>
+          <span class="material-symbols-outlined text-[16px]">check_circle</span>
+        `;
+
+        btnHeatmap.classList.remove('bg-primary-container', 'text-on-primary', 'font-bold', 'shadow-md');
+        btnHeatmap.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+        btnHeatmap.innerHTML = `
+          <span class="flex items-center gap-sm">
+            <span class="material-symbols-outlined text-[20px]">layers</span>
+            <span class="text-label-md">Impact Heatmap</span>
+          </span>
+        `;
+
+        legendDynamic.innerHTML = `
+          <div class="w-3 h-3 rounded-full bg-primary shadow-[0_0_8px_rgba(0,76,197,0.5)]"></div>
+          <span class="text-xs text-on-surface-variant">Core Ecosystem</span>
+        `;
+      }
+    }
+  </script>
+</body></html>

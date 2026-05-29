@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Discussion Detail - think-Inn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d7e2ff",
+                        "outline": "#737687",
+                        "tertiary": "#005f6e",
+                        "primary-container": "#1463f3",
+                        "on-background": "#0c1b34",
+                        "on-secondary-fixed-variant": "#364768",
+                        "surface-bright": "#f9f9ff",
+                        "primary": "#004cc5",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#22304a",
+                        "on-tertiary-container": "#dbf7ff",
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#00798d",
+                        "on-secondary-fixed": "#071b3a",
+                        "surface-variant": "#d7e2ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "background": "#f9f9ff",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "secondary-container": "#c6d7ff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "surface-container-low": "#f1f3ff",
+                        "on-surface-variant": "#424655",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-dim": "#ccdafc",
+                        "tertiary-fixed": "#aaedff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-secondary-container": "#4c5d80",
+                        "on-surface": "#0c1b34",
+                        "on-primary-container": "#f0f1ff",
+                        "surface-container": "#e8eeff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "inverse-primary": "#b3c5ff",
+                        "outline-variant": "#c2c6d8",
+                        "on-tertiary-fixed": "#001f26",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#ba1a1a",
+                        "surface-tint": "#0054d7",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#4e5e81",
+                        "on-primary-fixed": "#00184a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "24px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "xl": "80px",
+                        "base": "8px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "40px",
+                        "sm": "12px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Montserrat"],
+                        "label-md": ["Manrope"],
+                        "body-sm": ["Manrope"],
+                        "headline-lg": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "body-lg": ["Manrope"],
+                        "body-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .hexagon-bg {
+            background-image: radial-gradient(circle at 2px 2px, rgba(0, 76, 197, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+        .tonal-layering {
+            box-shadow: 0px 4px 20px rgba(7, 27, 58, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-surface-bright text-on-surface font-body-md selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Bar -->
+<header class="flex justify-between items-center w-full px-margin-desktop py-4 z-40 bg-surface-bright shadow-sm fixed top-0 border-b border-outline-variant/30">
+<div class="flex items-center gap-base">
+<span class="font-headline-md text-headline-md font-bold text-primary">think-Inn</span>
+</div>
+<div class="hidden md:flex flex-1 max-w-xl mx-lg">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 focus:ring-2 focus:ring-primary transition-all text-body-md" placeholder="Search innovation network..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="hover:bg-surface-container transition-colors p-2 rounded-full relative">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span>
+</button>
+<button class="hover:bg-surface-container transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold overflow-hidden border-2 border-primary-fixed-dim">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a corporate executive in their late 40s, looking confidently at the camera. The lighting is soft and natural, coming from a large office window. The background is a slightly blurred modern corporate workspace with glass walls and minimalist furniture in shades of blue and white." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYQJG4PgVoZ0EWI5fRr8OGtMrwPS4biw05Pi8eMetVvbqrtWIC4SE2_K6zhGpji1PHH_AudIJXR-Xq8VFSgjvgWfhdMjmo2XqbbqCj-8scA4MObsA3x9-AnzRgDBq_Njt34CLQTjCo_GbH5tl2lnbnaw__i115ZlM9NRmRkuR4xnXJXMrBbgb-c0JSymF-XrYtYAqzblgyn1i0nMk98FNr2KbDJDIcgvUVAK7mCjlz2B5j9NYPextIL2YTcnipuI5I6ni5CdriSxI6"/>
+</div>
+</div>
+</header>
+<!-- Sidebar Navigation -->
+<aside class="hidden lg:flex flex-col h-full py-md px-sm z-50 h-screen w-64 fixed left-0 top-0 bg-surface border-r border-outline-variant pt-24">
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:text-primary transition-all hover:bg-surface-container-high rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:text-primary transition-all hover:bg-surface-container-high rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">lightbulb</span>
+<span class="font-label-md text-label-md">Ideas</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:text-primary transition-all hover:bg-surface-container-high rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">science</span>
+<span class="font-label-md text-label-md">Research</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:text-primary transition-all hover:bg-surface-container-high rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">assignment</span>
+<span class="font-label-md text-label-md">Projects</span>
+</a>
+<a class="flex items-center gap-3 text-on-surface-variant px-4 py-3 hover:text-primary transition-all hover:bg-surface-container-high rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">map</span>
+<span class="font-label-md text-label-md">Map</span>
+</a>
+<a class="flex items-center gap-3 bg-primary-container text-on-primary-container rounded-lg px-4 py-3 font-semibold shadow-sm" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-label-md text-label-md">Community</span>
+</a>
+</nav>
+<div class="mt-auto px-4 pb-8">
+<button class="w-full bg-gradient-to-r from-primary to-tertiary-container text-white py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined">add</span>
+<span class="text-sm">Submit New Idea</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-64 pt-24 pb-lg px-margin-mobile md:px-margin-desktop hexagon-bg min-h-screen">
+<div class="max-w-[1200px] mx-auto">
+<!-- Discussion Header Section -->
+<section class="mb-gutter">
+<nav class="flex items-center gap-2 text-on-surface-variant mb-4 text-sm">
+<a class="hover:text-primary" href="#">Community</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<a class="hover:text-primary" href="#">Technical Forums</a>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-on-surface font-medium">Discussion Detail</span>
+</nav>
+<div class="bg-surface-container-lowest p-gutter rounded-xl tonal-layering border border-outline-variant/30">
+<div class="flex flex-wrap items-center gap-sm mb-4">
+<span class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">AI Engineering</span>
+<span class="bg-secondary-fixed text-on-secondary-fixed px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">LLM</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-md">Scalable LLM Architectures for Edge Computing</h1>
+<div class="flex items-center justify-between flex-wrap gap-md">
+<div class="flex items-center gap-md">
+<img alt="Dr. Marcus Chen" class="w-12 h-12 rounded-full border-2 border-primary-fixed-dim" data-alt="A portrait of a male professor in his 50s with distinguished graying hair at the temples and thin-rimmed glasses. He is wearing a charcoal-colored turtleneck and looking thoughtfully into the distance. The background is a blurred library with warm wood tones and organized stacks of technical books, creating a learned and academic atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7LS-CaPW4UIiDsOCxltpMTg82vBK6L9EHsD5Sbqh4NGPaMzIPbIaF7YbzbLMHS8glehJMcflmS-B0yWX5Odw9dvSAqQM3GPOKzQoJpZW1p82mzDczBMwztPMs13rTGYoe5ZHmeAPgqfMK54kpIfCcUZdrtF6fb3sNVyFVvJ4_m3QBiLxt8sTZkkzJG-wBIsucBte-zlywHzmcVU6NDtm6oNE4SdvrwtvLmzJHUa_QY-OWtMtk2MOPKnVjwJHk9rtvY7BNezRg4WeU"/>
+<div>
+<p class="font-bold text-on-surface">Dr. Marcus Chen</p>
+<p class="text-on-surface-variant text-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                                    Posted 4 hours ago • Principal AI Architect
+                                </p>
+</div>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-2 bg-surface-container-high px-4 py-2 rounded-lg font-bold text-on-surface hover:bg-surface-container-highest transition-all">
+<span class="material-symbols-outlined">ios_share</span>
+                                Share to Project
+                            </button>
+<button class="flex items-center gap-2 bg-primary text-white px-6 py-2 rounded-lg font-bold shadow-md hover:bg-primary/90 transition-all active:scale-95">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">star</span>
+                                Follow Thread
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Main Discussion Content -->
+<div class="lg:col-span-8 space-y-gutter">
+<article class="bg-white p-gutter rounded-xl border border-outline-variant/30 tonal-layering">
+<div class="prose prose-slate max-w-none text-on-surface leading-relaxed">
+<p class="font-body-lg text-body-lg mb-md">The challenge of deploying Large Language Models (LLMs) on edge devices has historically been limited by memory bandwidth and computational power. However, with the emergence of 4-bit quantization and specialized NPU architectures, we are seeing a shift in what's possible at the periphery of the network.</p>
+<h3 class="font-headline-sm text-headline-sm mt-md mb-sm text-primary">Proposed Solution: Distributed Inference</h3>
+<p class="mb-md">We are currently investigating a 'Sharded Inference' model where a single 70B parameter model is logically split across a cluster of local edge nodes (e.g., smart gateways and specialized sensors). By utilizing a high-speed local mesh network, we can achieve latencies under 100ms for token generation, bypassing the need for cloud backhaul.</p>
+<div class="bg-surface-container-low p-md rounded-lg border-l-4 border-primary my-md italic text-on-surface-variant">
+                                "The goal isn't just to make the model smaller, but to make the infrastructure smarter. We're moving from a hub-and-spoke AI model to a true neural mesh."
+                            </div>
+<p class="mb-md">Current benchmarks show a 40% reduction in energy consumption compared to traditional cloud-relay methods. We are seeking collaborators with experience in <strong>FPGA-based acceleration</strong> and <strong>Zero-Knowledge proofs for decentralized model validation</strong>.</p>
+</div>
+<div class="mt-lg pt-md border-t border-outline-variant/20 flex items-center justify-between">
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-1 group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">thumb_up</span>
+<span class="font-bold text-on-surface">124</span>
+</button>
+<button class="flex items-center gap-1 group">
+<span class="material-symbols-outlined text-outline group-hover:scale-110 transition-transform">chat_bubble</span>
+<span class="font-bold text-on-surface">32</span>
+</button>
+</div>
+<button class="bg-gradient-to-r from-primary to-primary-container text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-primary/40 transition-all active:scale-95">
+                                Join Collaboration
+                            </button>
+</div>
+</article>
+<!-- Threaded Comments -->
+<div class="space-y-md">
+<h2 class="font-headline-sm text-headline-sm text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined">forum</span>
+                            Community Insights (32)
+                        </h2>
+<!-- Comment 1 -->
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 tonal-layering relative">
+<div class="flex items-start gap-md">
+<img alt="Sarah Lofton" class="w-10 h-10 rounded-full" data-alt="A close-up portrait of a woman in her mid-30s with sharp, intelligent features and short dark hair. She is wearing high-tech bone-conduction headphones and a minimalist gray technical blazer. The background is a clean, bright laboratory space with subtle blue accent lighting and a visible digital screen displaying complex neural network diagrams." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDymZW9sXDy592v9rRFYflo9wqhM4AC7qKVGKohcNTocCtUENoSUhwGrbIMleNgRqQ_JR9LmBhjb1MoT-uCw8PbimyWLB65ol8Ai4jr1bH_LMpJPDL9SBTvjF1ZDa_34_b8HZk0mK6IcziW51T0xaeiryv2UFgZL0VorycpA3ALNamEFJ_AL1-s54QnDC6QtJsGz7LrMvvzwnUGYzPUqwnHOeGvWVKTOWbT3A9keBKrDChDX9iDIlHi33AizsxkIERjtt1_ghNVn_Rn"/>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-on-surface">Sarah Lofton</span>
+<span class="bg-primary-container/10 text-primary text-[10px] px-2 py-0.5 rounded font-bold uppercase">Expert</span>
+<span class="text-outline text-xs">• 2 hours ago</span>
+</div>
+<p class="text-on-surface-variant mb-3">Excellent point regarding the mesh network. Have you considered using a Gossip Protocol for distributing the weights across the nodes? We found this significantly reduced overhead in our recent Robotics project.</p>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-1 text-xs font-bold text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">thumb_up</span>
+                                            18
+                                        </button>
+<button class="text-xs font-bold text-outline hover:text-primary transition-colors">Reply</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Comment 2 (Nested) -->
+<div class="ml-12 bg-surface-container-lowest p-md rounded-xl border border-outline-variant/30 tonal-layering">
+<div class="flex items-start gap-md">
+<img alt="Ahmed Khan" class="w-10 h-10 rounded-full" data-alt="A portrait of a young male engineer of South Asian descent wearing a modern navy blue hoodie and circular glasses. He has a friendly, engaged expression and is sitting in a collaborative coworking space. The background features soft bokeh of indoor plants and warm industrial-style pendant lights, suggesting a creative and innovative environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6TqF1vRNMCcN8S2QWJV7Luf_P1FRQBklComjD8g3x-oUgkXF13eMYvhweEBjnEsJDlQSWYhL-iX8kzOzE8Nc8TVJJ74K-tN7Nr9js-NbAO6rimCMJ8d9_T4cOOGPFb7Q8XZ6pTSsEwiB1z7FFHR_g1HcrZD3zPiYrSOLttVBu-b9oQBcKc-p0O7duRduyk7vR0fjSJJWzLTqce7q8fsm978ZHUvqf-oNi2XRl39LeujGktWaVFKX_S61xhujerzIYkEKw3BP0lH3X"/>
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="font-bold text-on-surface">Ahmed Khan</span>
+<span class="text-outline text-xs">• 1 hour ago</span>
+</div>
+<p class="text-on-surface-variant mb-3">@SarahLofton The Gossip Protocol approach is promising, but what about the synchronization penalty? In a high-churn edge environment, maintaining state might be costly.</p>
+<div class="flex items-center gap-md">
+<button class="flex items-center gap-1 text-xs font-bold text-outline hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">thumb_up</span>
+                                            5
+                                        </button>
+<button class="text-xs font-bold text-outline hover:text-primary transition-colors">Reply</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar: Resources & Contributors -->
+<div class="lg:col-span-4 space-y-gutter">
+<!-- Resource Sidebar -->
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 tonal-layering">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">library_books</span>
+                            Resources
+                        </h3>
+<div class="space-y-md">
+<a class="block group" href="#">
+<div class="p-3 bg-surface-container-low rounded-lg border border-transparent group-hover:border-primary/30 group-hover:bg-primary-container/5 transition-all">
+<p class="text-sm font-bold text-on-surface mb-1">Efficient Edge LLM (ArXiv '24)</p>
+<p class="text-xs text-on-surface-variant">Technical Research Paper • 4.2MB</p>
+</div>
+</a>
+<a class="block group" href="#">
+<div class="p-3 bg-surface-container-low rounded-lg border border-transparent group-hover:border-primary/30 group-hover:bg-primary-container/5 transition-all">
+<p class="text-sm font-bold text-on-surface mb-1">Neural Mesh Project</p>
+<p class="text-xs text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">location_on</span>
+                                        Silicon Valley Node • Active Project
+                                    </p>
+</div>
+</a>
+<a class="block group" href="#">
+<div class="p-3 bg-surface-container-low rounded-lg border border-transparent group-hover:border-primary/30 group-hover:bg-primary-container/5 transition-all">
+<p class="text-sm font-bold text-on-surface mb-1">VPU Documentation v2.1</p>
+<p class="text-xs text-on-surface-variant">System Specifications • SDK Included</p>
+</div>
+</a>
+</div>
+</div>
+<!-- Active Contributors -->
+<div class="bg-white p-md rounded-xl border border-outline-variant/30 tonal-layering">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-md flex items-center justify-between">
+                            Contributors
+                            <span class="text-xs font-medium text-outline">12 Active</span>
+</h3>
+<div class="flex flex-wrap gap-sm">
+<div class="group relative">
+<img alt="John Smith" class="w-10 h-10 rounded-full border-2 border-white group-hover:border-primary transition-all cursor-pointer" data-alt="A close-up shot of a diverse group of professional avatars." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ6eM73aMBBUAy81N2O6FW5e8uQk-el6AgvEOhjYJwrMVc0LCDdgH5Y3MVH_Kv5IP1PhqK290C1rR8YLhG5JDOOBbzHuL9zQiyyKibzj6tNk6CnzFfmcVd2BrcxCGAwxYFGjfj8rkKEPolUdpC3Nuuh700ge7F_0r5ci-HczjgXcIa7ZuXVJp0bSCJN4SB8q5lJEahrLgptqzNBwCOO8_Gx-TAG2WpduyGCdau0VGUB-DXMooonvPIm4TiCBtHn6WIIptGd-DiTQ2c"/>
+<span class="absolute -bottom-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-white"></span>
+</div>
+<div class="group relative">
+<img alt="Yuki Watanabe" class="w-10 h-10 rounded-full border-2 border-white group-hover:border-primary transition-all cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCDmX9KO2TY5fN5bs7PP9GLE35DdQQUeO5UJ9M0b-KCazt46ykutYqAr2mRlao8OynIgAiLjRwLF-GEy5XLEWR9YfPXJ7Z0Ss0cfD2lwcV_spF8ve1jgG9kXEj5WuzofNrWb6zOvm7Ww5TMEDby9FeDjUqS8gmj5jdrRXdi5kaCRs_IyeeZUxq7DTwznWJ01_1xjXO6GV4X631S1wqIfH8ySLXQVF8mwNwbPOw0ZCJxXYnmrsFAd9Sfq2zyjH3NXUamQ0h910ZGP_8p"/>
+</div>
+<div class="group relative">
+<img alt="Elena Rodriguez" class="w-10 h-10 rounded-full border-2 border-white group-hover:border-primary transition-all cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3al9hBddU81y8As8PoalqUhSLCv57iQqX7-mOIQd3HrMIi0y6m5mIp9JiA_4wS1qSMqYKnFJt4kX7fsV_e3p2ZNhm4Sz9RiaE1FWaZxH-7t3TGoe6t2q2871XkfyidU2RFKg_8s-DH-p-2R7IOiJ2zRyqNS1218SX9lbddyHav_qpAMSOrGfAtde7IXO5RuJ7Jik3dWX9dI_p7MvRNjGZhBCrWuvsZjxPsD4rL_OtHgoUzUVDS4QVz6tJdtuvI0YBj1Ta4-x7lGfc"/>
+</div>
+<div class="group relative">
+<img alt="Tom Baker" class="w-10 h-10 rounded-full border-2 border-white group-hover:border-primary transition-all cursor-pointer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG728_G-SiWWoVQ8fQYMyCTctIrIhM8SRdz2Zio6xltADFRLRdogvWICmBovUgJi02Ri-I4cZ3WubaL9gy4XQLk8j8_egvcX1-a6hdummycflPbTjS8cnApt3WAjKYPtwLTdOFDSN0kXoTc6iGcOzAWj6PPfWlomWOfXDimXZ9cuDtoj5qIQGJ2WBKiP547iD7SFXh_Nqul8wLSpW8jZCzTyq7j6Vf-RTmrKRi0AWqWluaAFws23jVCr6SLNWi-oAGyCMiSvM8ccmP"/>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center text-xs font-bold text-on-surface-variant cursor-pointer hover:bg-surface-container-highest transition-colors">
+                                +8
+                            </div>
+</div>
+<div class="mt-md space-y-sm">
+<div class="flex items-center justify-between text-sm">
+<span class="text-on-surface-variant">Engagement Score</span>
+<span class="font-bold text-primary">98/100</span>
+</div>
+<div class="w-full bg-surface-container-low h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[98%]"></div>
+</div>
+</div>
+</div>
+<!-- AI Insights Hexagon (Visual Polish) -->
+<div class="relative overflow-hidden bg-inverse-surface p-md rounded-xl text-white">
+<div class="absolute -right-4 -top-4 w-24 h-24 border-4 border-primary/20 rounded-full opacity-20"></div>
+<h4 class="font-bold mb-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                            AI Relevance Insight
+                        </h4>
+<p class="text-sm text-surface-variant leading-tight">This discussion aligns 92% with your current project "EdgeAI Vision". Joining could accelerate your throughput metrics by 15%.</p>
+<button class="mt-md text-xs font-bold text-primary-fixed-dim hover:underline uppercase tracking-widest">Analyze Impact</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Navigation -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface shadow-[0_-4px_10px_rgba(0,0,0,0.05)] flex justify-around py-3 z-50 border-t border-outline-variant/30">
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-bold">Explore</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">hub</span>
+<span class="text-[10px] font-bold">Community</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profile</span>
+</a>
+</nav>
+<script>
+        // Micro-interactions and simple hover effects
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mouseenter', () => {
+                // Subtle lift or effect could be added here
+            });
+        });
+
+        // Initialize any data needed for the view
+        console.log('think-Inn Discussion Detail loaded.');
+    </script>
+</body></html>

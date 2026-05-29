@@ -37,82 +37,44 @@ const TABS: { id: TabId; label: string; icon: import('lucide-react').LucideIcon;
   { id: "projects",  label: "Projeler",       icon: Building2, accent: "#a78bfa", glow: "rgba(167,139,250,0.3)" },
 ];
 
-/* ── Animated Background Orbs ──────────────────────────────────────── */
+/* ── Hero arka planı — light Material-You — dot grid + ambient gradients ── */
 function AnimatedHero() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#060b18] via-[#0b1230] to-[#10082a]" />
+      {/* Light base */}
+      <div className="absolute inset-0 bg-gradient-to-br from-surface via-surface-container-low to-surface-container" />
 
-      {/* Grid pattern */}
+      {/* Dot grid (network-canvas utility) */}
+      <div className="absolute inset-0 hexagon-bg opacity-60" />
+
+      {/* Soft ambient color glows */}
       <div
-        className="absolute inset-0 opacity-[0.045]"
+        className="absolute rounded-full blur-3xl"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(99,102,241,1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(99,102,241,1) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
+          width: 360,
+          height: 360,
+          top: -80,
+          right: -40,
+          background: 'radial-gradient(circle, var(--color-primary-fixed) 0%, transparent 70%)',
+          opacity: 0.55,
         }}
       />
-
-      {/* Floating orbs */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 400, height: 400, top: -100, right: -80, background: 'radial-gradient(circle, rgba(99,102,241,0.18) 0%, transparent 70%)' }}
-        animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 300, height: 300, bottom: -60, left: '10%', background: 'radial-gradient(circle, rgba(34,211,238,0.12) 0%, transparent 70%)' }}
-        animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
-        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-      />
-      <motion.div
-        className="absolute rounded-full"
-        style={{ width: 200, height: 200, top: '40%', left: '40%', background: 'radial-gradient(circle, rgba(167,139,250,0.1) 0%, transparent 70%)' }}
-        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.7, 0.3] }}
-        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
-      />
-
-      {/* Floating particles */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: i % 3 === 0 ? 3 : 2,
-            height: i % 3 === 0 ? 3 : 2,
-            left: `${5 + (i * 4.7) % 90}%`,
-            top: `${10 + (i * 7.3) % 80}%`,
-            background: i % 2 === 0 ? 'rgba(34,211,238,0.6)' : 'rgba(99,102,241,0.6)',
-          }}
-          animate={{
-            y: [-8, 8, -8],
-            opacity: [0.3, 0.9, 0.3],
-          }}
-          transition={{
-            duration: 4 + (i % 4),
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.3,
-          }}
-        />
-      ))}
-
-      {/* Scan line */}
-      <motion.div
-        className="absolute inset-x-0 h-px"
-        style={{ background: 'linear-gradient(90deg, transparent, rgba(34,211,238,0.4) 30%, rgba(99,102,241,0.7) 50%, rgba(34,211,238,0.4) 70%, transparent)' }}
-        animate={{ top: ['0%', '100%'] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "linear", repeatDelay: 4 }}
+      <div
+        className="absolute rounded-full blur-3xl"
+        style={{
+          width: 280,
+          height: 280,
+          bottom: -60,
+          left: '5%',
+          background: 'radial-gradient(circle, var(--color-tertiary-fixed) 0%, transparent 70%)',
+          opacity: 0.5,
+        }}
       />
     </div>
   );
 }
 
-/* ── Featured Card (mini version for discover) ─────────────────────── */
+/* ── Featured Card (mini version for discover) — Material You light ─── */
 function FeaturedResearchCard({ research, onClick }: { research: Research; onClick: () => void }) {
   const hasImage = !!(research as any).hasCoverImage || !!research.coverImageB64;
   const imageSrc = research.coverImageB64
@@ -121,66 +83,81 @@ function FeaturedResearchCard({ research, onClick }: { research: Research; onCli
 
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.02 }}
+      whileHover={{ y: -3 }}
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden cursor-pointer flex-shrink-0"
-      style={{
-        width: 220,
-        background: 'rgba(10,16,34,0.9)',
-        border: '1px solid rgba(99,102,241,0.25)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-      }}
+      className="group/card relative w-[220px] flex-shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
     >
-      {/* Image */}
-      <div className="h-28 relative overflow-hidden bg-gradient-to-br from-[#0d1535] to-[#130c30]">
+      {/* Cover */}
+      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-primary-container/30 to-tertiary-fixed/30">
         {imageSrc && (
-          <img src={imageSrc} alt={research.title} className="w-full h-full object-cover" loading="lazy"
+          <img
+            src={imageSrc}
+            alt={research.title}
+            className="h-full w-full object-cover"
+            loading="lazy"
             onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        {!imageSrc && (
+          <div className="flex h-full w-full items-center justify-center">
+            <FileText size={32} className="text-primary/40" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-on-surface/40 via-transparent to-transparent" />
         <div className="absolute top-2 left-2">
-          <span className="text-[9px] font-bold text-white uppercase tracking-wider bg-indigo-600/90 px-2 py-0.5 rounded-full">
+          <span className="rounded-full bg-primary px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-on-primary shadow-sm">
             {research.status}
           </span>
         </div>
-        <div className="absolute bottom-2 right-2 flex items-center gap-1 text-[10px] text-white/80">
+        <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-on-surface/70 px-1.5 py-0.5 text-[10px] font-bold text-surface backdrop-blur-sm">
           <ThumbsUp size={9} />
           <span>{Math.max(0, research.voteCount)}</span>
         </div>
       </div>
       <div className="p-3">
-        <p className="text-xs font-bold text-slate-200 line-clamp-2 leading-snug mb-1">{research.title}</p>
-        <p className="text-[10px] text-slate-500 truncate">{research.authorName}</p>
+        <p className="line-clamp-2 text-body-sm font-bold leading-snug text-on-surface mb-1">{research.title}</p>
+        <p className="truncate text-[10px] font-medium text-on-surface-variant">{research.authorName}</p>
       </div>
     </motion.div>
   );
 }
 
 function FeaturedIdeaCard({ idea, onClick }: { idea: Idea; onClick: () => void }) {
+  // SKOR — gerçek veri (mock yok): voteCount + bağlantılar
+  const score =
+    (idea.voteCount ?? 0) +
+    (idea.relatedTo?.length ?? 0) +
+    (idea.researchIds?.length ?? 0);
+
   return (
     <motion.div
-      whileHover={{ y: -4, scale: 1.02 }}
+      whileHover={{ y: -3 }}
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden cursor-pointer flex-shrink-0"
-      style={{
-        width: 220,
-        background: 'rgba(10,16,34,0.9)',
-        border: '1px solid rgba(251,191,36,0.2)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-      }}
+      className="group/card relative w-[220px] flex-shrink-0 cursor-pointer overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-sm transition-all hover:border-tertiary-fixed-dim/60 hover:shadow-md"
     >
-      <div className="h-28 relative overflow-hidden bg-gradient-to-br from-[#1a1205] to-[#120a00] flex items-center justify-center">
-        <Lightbulb size={40} className="text-amber-400/20" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute top-2 right-2 flex items-center gap-1 text-[10px] font-bold text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-500/20">
-          <Star size={8} className="fill-amber-400" />
-          <span>{Math.max(0, idea.voteCount)}</span>
+      <div className="relative flex h-28 items-center justify-center overflow-hidden bg-gradient-to-br from-tertiary-fixed/40 via-primary-container/20 to-surface-container">
+        {/* Decorative dots */}
+        <div className="hexagon-bg absolute inset-0 opacity-40" />
+
+        {/* Idea hex icon */}
+        <div
+          className="flex h-12 w-10 flex-col items-center justify-center bg-gradient-to-br from-tertiary-fixed-dim to-primary text-white shadow-sm"
+          style={{
+            clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)',
+          }}
+        >
+          <Lightbulb size={16} />
+        </div>
+
+        {/* Score chip */}
+        <div className="absolute top-2 right-2 flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary backdrop-blur-sm">
+          <Star size={8} />
+          <span>{score}</span>
         </div>
       </div>
       <div className="p-3">
-        <p className="text-xs font-bold text-slate-200 line-clamp-2 leading-snug mb-1">{idea.title}</p>
-        <p className="text-[10px] text-slate-500 truncate">{idea.authorName}</p>
+        <p className="line-clamp-2 text-body-sm font-bold leading-snug text-on-surface mb-1">{idea.title}</p>
+        <p className="truncate text-[10px] font-medium text-on-surface-variant">{idea.authorName}</p>
       </div>
     </motion.div>
   );
@@ -350,39 +327,33 @@ export function VitrinePanel() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* ── Tab Navigation Header ─────────────────────────────── */}
-        <div
-          className="shrink-0 relative"
-          style={{ borderBottom: '1px solid rgba(99,102,241,0.2)' }}
-        >
-          {/* Subtle bg */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#060b18] to-transparent pointer-events-none" />
-
+        {/* ── Tab Navigation Header — Material-You light ────────── */}
+        <div className="shrink-0 relative border-b border-outline-variant/40 bg-surface-container-lowest">
           <div className="relative flex items-center justify-end px-4 pt-2 pb-0">
-            {/* Right controls */}
             <div className="flex items-center gap-2 pb-2">
               <button
                 onClick={() => setIsSuperAdmin(v => !v)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all backdrop-blur-sm ${
+                className={[
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-label-md font-label-md font-semibold transition-all',
                   isSuperAdmin
-                    ? 'bg-red-500/20 text-red-200 border-red-400/40'
-                    : 'bg-white/5 text-white/50 border-white/10 hover:bg-white/10 hover:text-white/70'
-                }`}
+                    ? 'bg-error/10 text-error border border-error/30'
+                    : 'bg-surface-container-low text-on-surface-variant border border-outline-variant hover:bg-surface-container-high',
+                ].join(' ')}
               >
                 {isSuperAdmin ? <ShieldOff size={11} /> : <Shield size={11} />}
                 Admin
               </button>
               <button
                 onClick={openGlobalMap}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/5 backdrop-blur-sm text-white/60 border border-white/10 hover:bg-white/10 hover:text-white/80 transition-all"
+                className="flex items-center gap-1.5 rounded-full bg-primary-container/10 px-3 py-1.5 text-label-md font-label-md font-semibold text-primary border border-primary/20 transition-all hover:bg-primary-container/20"
               >
                 <Globe size={12} /> Harita
               </button>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="relative flex items-end px-4 gap-1">
+          {/* Tabs — chip stili (mockup'taki gibi) */}
+          <div className="relative flex items-end px-4 gap-2 pb-3">
             {TABS.map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -390,37 +361,36 @@ export function VitrinePanel() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex items-center gap-2 px-4 py-2.5 text-xs font-bold transition-all rounded-t-xl"
-                  style={{
-                    color: isActive ? tab.accent : 'rgba(148,163,184,0.6)',
-                    background: isActive ? 'rgba(10,16,34,0.9)' : 'transparent',
-                    borderTop: isActive ? `1px solid rgba(99,102,241,0.25)` : '1px solid transparent',
-                    borderLeft: isActive ? `1px solid rgba(99,102,241,0.25)` : '1px solid transparent',
-                    borderRight: isActive ? `1px solid rgba(99,102,241,0.25)` : '1px solid transparent',
-                  }}
+                  className={[
+                    'relative flex items-center gap-2 rounded-full px-4 py-2 text-label-md font-label-md font-bold transition-all',
+                    isActive
+                      ? 'bg-primary text-on-primary shadow-md'
+                      : 'bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high hover:text-primary',
+                  ].join(' ')}
                 >
-                  <Icon size={12} />
+                  <Icon size={14} />
                   <span className="tracking-wider uppercase">{tab.label}</span>
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeTabIndicator"
-                      className="absolute bottom-0 inset-x-0 h-0.5"
-                      style={{ background: `linear-gradient(90deg, transparent, ${tab.accent}, transparent)` }}
-                    />
-                  )}
-                  {/* Count badges */}
                   {tab.id === 'research' && (researchList?.length ?? 0) > 0 && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+                    <span className={[
+                      'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                      isActive ? 'bg-on-primary/20 text-on-primary' : 'bg-primary-container/15 text-primary',
+                    ].join(' ')}>
                       {researchList!.length}
                     </span>
                   )}
                   {tab.id === 'ideas' && (ideaList?.length ?? 0) > 0 && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(251,191,36,0.15)', color: '#fbbf24' }}>
+                    <span className={[
+                      'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                      isActive ? 'bg-on-primary/20 text-on-primary' : 'bg-tertiary-fixed text-on-tertiary-fixed-variant',
+                    ].join(' ')}>
                       {ideaList!.length}
                     </span>
                   )}
                   {tab.id === 'projects' && projectIdeas.length > 0 && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded" style={{ background: 'rgba(167,139,250,0.15)', color: '#a78bfa' }}>
+                    <span className={[
+                      'rounded-full px-1.5 py-0.5 text-[10px] font-bold',
+                      isActive ? 'bg-on-primary/20 text-on-primary' : 'bg-secondary-fixed text-on-secondary-fixed-variant',
+                    ].join(' ')}>
                       {projectIdeas.length}
                     </span>
                   )}
@@ -448,30 +418,29 @@ export function VitrinePanel() {
                 <AnimatedHero />
 
                 <div className="relative z-10 px-6 pt-10 pb-6">
-                  {/* Pre-title */}
+                  {/* Pre-title chip */}
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="flex items-center gap-2 mb-3"
+                    className="inline-flex items-center gap-2 rounded-full bg-primary-container/10 px-3 py-1 mb-3 border border-primary/15"
                   >
-                    <div className="w-px h-4 bg-cyan-400/50" />
-                    <span className="text-[10px] font-bold text-cyan-400/70 tracking-[0.25em] uppercase font-mono">
-                      İnovasyon Platformu
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: 14 }}>auto_awesome</span>
+                    <span className="font-label-md text-label-md font-bold text-primary tracking-widest uppercase">
+                      AI Innovation Studio
                     </span>
                   </motion.div>
 
-                  {/* Main title */}
+                  {/* Main title — responsive, hece kırılmaz */}
                   <motion.h1
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.15 }}
-                    className="text-3xl font-black text-white mb-2 leading-tight"
-                    style={{ textShadow: '0 0 40px rgba(99,102,241,0.4)' }}
+                    className="font-display-lg text-headline-md sm:text-headline-lg xl:text-display-lg text-on-surface mb-2 leading-tight whitespace-nowrap"
                   >
-                    Fikirleri Geleceğe<br />
-                    <span style={{ background: 'linear-gradient(90deg, #818cf8, #22d3ee)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-                      Dönüştürüyoruz
+                    Hoş Geldin,{" "}
+                    <span className="bg-gradient-to-r from-primary to-tertiary bg-clip-text text-transparent">
+                      İnovatör
                     </span>
                   </motion.h1>
 
@@ -479,35 +448,33 @@ export function VitrinePanel() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.25 }}
-                    className="text-sm text-slate-400 mb-5 leading-relaxed max-w-md"
+                    className="font-body-md text-body-sm sm:text-body-md text-on-surface-variant mb-5 leading-relaxed max-w-xl"
                   >
-                    Araştırma, fikir ve proje kartlarını keşfedin. AI asistanıyla inovasyon sürecinizi hızlandırın.
+                    Eko-sisteminde {ideaList?.length ?? 0} fikir, {researchList?.length ?? 0} araştırma
+                    ve {projectIdeas.length} proje var. AI asistanıyla yeni inovasyonlar başlatabilirsin.
                   </motion.p>
 
-                  {/* Stats row */}
+                  {/* Stats row — Material-You light chips */}
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="flex items-center gap-4 flex-wrap"
+                    className="flex items-center gap-3 flex-wrap"
                   >
                     {[
-                      { icon: FileText,   val: researchList?.length ?? 0, label: "Araştırma", color: "#818cf8" },
-                      { icon: Lightbulb,  val: ideaList?.length ?? 0,     label: "Fikir",      color: "#fbbf24" },
-                      { icon: TrendingUp, val: totalVotes,                label: "Toplam Oy", color: "#22d3ee" },
-                      { icon: Building2,  val: projectIdeas.length,       label: "Proje",      color: "#a78bfa" },
-                    ].map(({ icon: Icon, val, label, color }) => (
-                      <div key={label} className="flex items-center gap-2">
-                        <Icon size={13} style={{ color }} />
-                        <span className="text-lg font-black" style={{ color, textShadow: `0 0 12px ${color}` }}>{val}</span>
-                        <span className="text-[10px] text-slate-500 font-mono uppercase tracking-wider">{label}</span>
+                      { icon: FileText,   val: researchList?.length ?? 0, label: "Araştırma", tone: 'bg-primary/10 text-primary' },
+                      { icon: Lightbulb,  val: ideaList?.length ?? 0,     label: "Fikir",      tone: 'bg-tertiary-fixed text-on-tertiary-fixed-variant' },
+                      { icon: TrendingUp, val: totalVotes,                label: "Toplam Oy", tone: 'bg-tertiary-fixed-dim/20 text-tertiary' },
+                      { icon: Building2,  val: projectIdeas.length,       label: "Proje",      tone: 'bg-secondary-container text-on-secondary-container' },
+                    ].map(({ icon: Icon, val, label, tone }) => (
+                      <div key={label} className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${tone}`}>
+                        <Icon size={13} />
+                        <span className="text-body-md font-bold">{val}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider opacity-80">{label}</span>
                       </div>
                     ))}
                   </motion.div>
                 </div>
-
-                {/* Bottom gradient fade */}
-                <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-[#060b18] to-transparent z-10 pointer-events-none" />
               </div>
 
               {isLoading ? (
@@ -523,11 +490,11 @@ export function VitrinePanel() {
                       <SectionHeader
                         number="01"
                         icon={<Star size={11} className="text-white" />}
-                        iconBg="from-amber-500 to-orange-500"
+                        iconBg="from-tertiary-fixed-dim to-primary"
                         label="En Beğenilen Fikirler"
                         count={topIdeas.length}
-                        countColor={{ bg: 'rgba(251,191,36,0.1)', text: '#fbbf24', border: 'rgba(251,191,36,0.2)' }}
-                        lineColor="rgba(251,191,36,0.3)"
+                        countColor={{ bg: 'rgba(0,76,197,0.08)', text: '#004cc5', border: 'rgba(0,76,197,0.2)' }}
+                        lineColor="rgba(0,76,197,0.25)"
                         onSeeAll={() => setActiveTab('ideas')}
                       />
                       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -554,11 +521,11 @@ export function VitrinePanel() {
                       <SectionHeader
                         number="02"
                         icon={<Zap size={11} className="text-white" />}
-                        iconBg="from-violet-500 to-indigo-600"
+                        iconBg="from-primary to-primary-fixed-dim"
                         label="Son Araştırmalar"
                         count={latestResearch.length}
-                        countColor={{ bg: 'rgba(99,102,241,0.1)', text: '#818cf8', border: 'rgba(99,102,241,0.2)' }}
-                        lineColor="rgba(99,102,241,0.3)"
+                        countColor={{ bg: 'rgba(57,216,247,0.15)', text: '#1463f3', border: 'rgba(20,99,243,0.25)' }}
+                        lineColor="rgba(57,216,247,0.4)"
                         onSeeAll={() => setActiveTab('research')}
                       />
                       <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
@@ -585,30 +552,30 @@ export function VitrinePanel() {
                       <SectionHeader
                         number="03"
                         icon={<Building2 size={11} className="text-white" />}
-                        iconBg="from-violet-500 to-purple-600"
+                        iconBg="from-primary-container to-primary"
                         label="Projeler"
                         count={projectIdeas.length}
-                        countColor={{ bg: 'rgba(139,92,246,0.1)', text: '#a78bfa', border: 'rgba(139,92,246,0.2)' }}
-                        lineColor="rgba(139,92,246,0.3)"
+                        countColor={{ bg: 'rgba(0,76,197,0.08)', text: '#004cc5', border: 'rgba(0,76,197,0.2)' }}
+                        lineColor="rgba(0,76,197,0.25)"
                         onSeeAll={() => setActiveTab('projects')}
                       />
                       <motion.button
                         whileHover={{ scale: 1.01 }}
                         onClick={() => setActiveTab('projects')}
-                        className="w-full rounded-2xl p-5 flex items-center gap-4 transition-all"
-                        style={{
-                          background: 'rgba(10,16,34,0.7)',
-                          border: '1px solid rgba(139,92,246,0.2)',
-                        }}
+                        className="flex w-full items-center gap-4 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-5 transition-all hover:border-primary/40 hover:bg-surface-container-low hover:shadow-md"
                       >
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 flex items-center justify-center border border-violet-500/20">
-                          <Building2 size={22} className="text-violet-400" />
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-primary/15 bg-primary-container/20">
+                          <Building2 size={22} className="text-primary" />
                         </div>
                         <div className="flex-1 text-left">
-                          <p className="text-sm font-bold text-slate-200 mb-0.5">{projectIdeas.length} Aktif Proje</p>
-                          <p className="text-xs text-slate-500">Mimari analize dönüşmüş fikirler</p>
+                          <p className="text-body-md font-bold text-on-surface mb-0.5">
+                            {projectIdeas.length} Aktif Proje
+                          </p>
+                          <p className="text-body-sm text-on-surface-variant">
+                            Mimari analize dönüşmüş fikirler
+                          </p>
                         </div>
-                        <ChevronRight size={18} className="text-slate-600" />
+                        <ChevronRight size={18} className="text-on-surface-variant" />
                       </motion.button>
                     </motion.div>
                   )}
@@ -617,15 +584,14 @@ export function VitrinePanel() {
                   {!isLoading && topIdeas.length === 0 && latestResearch.length === 0 && (
                     <div className="py-20 flex flex-col items-center gap-4">
                       <motion.div
-                        animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
+                        animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
                         transition={{ duration: 3, repeat: Infinity }}
-                        className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                        style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)' }}
+                        className="flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/20 bg-primary-container/15"
                       >
-                        <Sparkles size={28} className="text-indigo-400" />
+                        <Sparkles size={28} className="text-primary" />
                       </motion.div>
-                      <p className="text-slate-400 font-semibold text-sm">Henüz içerik eklenmemiş</p>
-                      <p className="text-slate-600 text-xs">AI asistanına bir araştırma veya fikir anlatın.</p>
+                      <p className="text-body-md font-bold text-on-surface">Henüz içerik eklenmemiş</p>
+                      <p className="text-body-sm text-on-surface-variant">AI asistanına bir araştırma veya fikir anlatın.</p>
                     </div>
                   )}
                 </div>
@@ -643,52 +609,52 @@ export function VitrinePanel() {
               transition={{ duration: 0.2 }}
               className="flex-1 flex flex-col overflow-hidden"
             >
-              {/* Category filter chips */}
+              {/* Category filter chips — Material You */}
               {(activeTab === 'ideas' || activeTab === 'research') && (() => {
                 const cats = activeTab === 'ideas'
                   ? [...new Set((ideaList ?? []).map(i => (i as any).category).filter(Boolean))]
                   : [...new Set((researchList ?? []).map(r => (r as any).category).filter(Boolean))];
                 if (cats.length === 0) return null;
                 return (
-                  <div className="shrink-0 px-5 pt-2.5 pb-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-wrap">
+                  <div className="shrink-0 px-5 pt-3 pb-1 flex items-center gap-1.5 overflow-x-auto scrollbar-hide flex-wrap">
                     <button
                       onClick={() => setActiveCat(null)}
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all whitespace-nowrap flex-shrink-0"
-                      style={{
-                        background: activeCat === null ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.06)',
-                        border: activeCat === null ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(99,102,241,0.15)',
-                        color: activeCat === null ? '#a5b4fc' : 'rgba(148,163,184,0.6)',
-                      }}
+                      className={[
+                        'rounded-full px-3 py-1 text-label-md font-label-md font-bold uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0',
+                        activeCat === null
+                          ? 'bg-primary text-on-primary border border-primary shadow-sm'
+                          : 'bg-surface-container-low text-on-surface-variant border border-outline-variant/40 hover:bg-surface-container-high',
+                      ].join(' ')}
                     >Tümü</button>
                     {cats.map(cat => (
                       <button
                         key={cat}
                         onClick={() => setActiveCat(activeCat === cat ? null : cat)}
-                        className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold transition-all whitespace-nowrap flex-shrink-0"
-                        style={{
-                          background: activeCat === cat ? 'rgba(99,102,241,0.25)' : 'rgba(99,102,241,0.06)',
-                          border: activeCat === cat ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(99,102,241,0.15)',
-                          color: activeCat === cat ? '#a5b4fc' : 'rgba(148,163,184,0.6)',
-                        }}
+                        className={[
+                          'rounded-full px-3 py-1 text-label-md font-label-md font-bold uppercase tracking-wider transition-all whitespace-nowrap flex-shrink-0',
+                          activeCat === cat
+                            ? 'bg-primary text-on-primary border border-primary shadow-sm'
+                            : 'bg-surface-container-low text-on-surface-variant border border-outline-variant/40 hover:bg-surface-container-high',
+                        ].join(' ')}
                       >{cat}</button>
                     ))}
                   </div>
                 );
               })()}
 
-              {/* Search + layout controls */}
-              <div className="shrink-0 px-5 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid rgba(99,102,241,0.12)' }}>
+              {/* Search + layout controls — Material You */}
+              <div className="shrink-0 flex items-center gap-3 border-b border-outline-variant/30 px-5 py-3 bg-surface-container-lowest">
                 <div
-                  className={`flex-1 flex items-center gap-2 rounded-xl px-3 py-2 transition-all`}
-                  style={{
-                    background: 'rgba(10,16,34,0.8)',
-                    border: searchFocused ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(99,102,241,0.2)',
-                    boxShadow: searchFocused ? '0 0 0 3px rgba(99,102,241,0.08)' : 'none',
-                  }}
+                  className={[
+                    'flex-1 flex items-center gap-2 rounded-xl px-3 py-2 transition-all bg-surface-container-low',
+                    searchFocused
+                      ? 'border border-primary ring-2 ring-primary/15'
+                      : 'border border-outline-variant/40',
+                  ].join(' ')}
                 >
-                  <Search size={13} className={searchFocused ? 'text-cyan-400' : 'text-slate-500'} />
+                  <Search size={14} className={searchFocused ? 'text-primary' : 'text-on-surface-variant'} />
                   <input
-                    className="flex-1 bg-transparent text-xs text-slate-200 placeholder-slate-500 outline-none"
+                    className="flex-1 bg-transparent text-body-sm text-on-surface placeholder:text-on-surface-variant/70 outline-none"
                     placeholder={
                       activeTab === 'research' ? "Araştırma ara..." :
                       activeTab === 'ideas' ? "Fikir ara..." : "Proje ara..."
@@ -699,30 +665,38 @@ export function VitrinePanel() {
                     onBlur={() => setSearchFocused(false)}
                   />
                   {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="text-slate-500 hover:text-slate-300">
-                      <X size={12} />
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="text-on-surface-variant hover:text-on-surface transition-colors"
+                    >
+                      <X size={13} />
                     </button>
                   )}
                 </div>
 
                 {activeTab !== 'projects' && (
-                  <div
-                    className="flex items-center rounded-lg p-0.5 flex-shrink-0"
-                    style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(100,116,139,0.3)' }}
-                  >
+                  <div className="flex items-center rounded-lg p-0.5 flex-shrink-0 bg-surface-container-low border border-outline-variant/40">
                     <button
                       onClick={() => setLayoutMode("grid")}
-                      className="p-1.5 rounded transition-all"
-                      style={layoutMode === "grid" ? { background: 'rgba(99,102,241,0.25)', color: '#a5b4fc' } : { color: 'rgba(148,163,184,0.5)' }}
+                      className={[
+                        'p-1.5 rounded-md transition-all',
+                        layoutMode === "grid"
+                          ? 'bg-primary text-on-primary shadow-sm'
+                          : 'text-on-surface-variant hover:bg-surface-container-high',
+                      ].join(' ')}
                     >
-                      <LayoutGrid size={12} />
+                      <LayoutGrid size={13} />
                     </button>
                     <button
                       onClick={() => setLayoutMode("list")}
-                      className="p-1.5 rounded transition-all"
-                      style={layoutMode === "list" ? { background: 'rgba(99,102,241,0.25)', color: '#a5b4fc' } : { color: 'rgba(148,163,184,0.5)' }}
+                      className={[
+                        'p-1.5 rounded-md transition-all',
+                        layoutMode === "list"
+                          ? 'bg-primary text-on-primary shadow-sm'
+                          : 'text-on-surface-variant hover:bg-surface-container-high',
+                      ].join(' ')}
                     >
-                      <LayoutList size={12} />
+                      <LayoutList size={13} />
                     </button>
                   </div>
                 )}
@@ -765,7 +739,7 @@ export function VitrinePanel() {
                       )
                     ) : (
                       <EmptySection
-                        icon={<FileText size={28} className="text-indigo-400/40" />}
+                        icon={<FileText size={28} className="text-primary/60" />}
                         title="Araştırma bulunamadı"
                         desc={searchQuery ? "Farklı bir arama terimi deneyin." : "Henüz araştırma eklenmemiş."}
                       />
@@ -805,7 +779,7 @@ export function VitrinePanel() {
                       )
                     ) : (
                       <EmptySection
-                        icon={<Lightbulb size={28} className="text-amber-400/40" />}
+                        icon={<Lightbulb size={28} className="text-tertiary/70" />}
                         title="Fikir bulunamadı"
                         desc={searchQuery ? "Farklı bir arama terimi deneyin." : "Henüz fikir eklenmemiş."}
                       />
@@ -825,7 +799,7 @@ export function VitrinePanel() {
                       </div>
                     ) : (
                       <EmptySection
-                        icon={<Building2 size={28} className="text-violet-400/40" />}
+                        icon={<Building2 size={28} className="text-primary-container/80" />}
                         title="Henüz proje kartı yok"
                         desc="Bir fikir kartında 'Analiz Oluştur'a tıklayın."
                       />
@@ -866,36 +840,41 @@ export function VitrinePanel() {
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>
 
-      {/* Delete Confirm */}
+      {/* Delete Confirm — Material You */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/40 backdrop-blur-sm">
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4"
-            style={{ background: 'rgba(10,16,34,0.95)', border: '1px solid rgba(239,68,68,0.3)', backdropFilter: 'blur(20px)' }}
+            className="mx-4 w-full max-w-sm rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-6 shadow-2xl"
           >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                <Trash2 size={18} className="text-red-400" />
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-error/30 bg-error-container/30">
+                <Trash2 size={18} className="text-error" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-slate-200">Sil: {deleteConfirm.type === 'research' ? 'Araştırma' : 'Fikir'}</h3>
-                <p className="text-xs text-slate-500">Bu işlem geri alınamaz</p>
+                <h3 className="font-headline-sm text-body-md font-bold text-on-surface">
+                  Sil: {deleteConfirm.type === 'research' ? 'Araştırma' : 'Fikir'}
+                </h3>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">
+                  Bu işlem geri alınamaz
+                </p>
               </div>
             </div>
-            <p className="text-sm text-slate-400 mb-5">
-              <span className="font-semibold text-slate-200">"{deleteConfirm.title}"</span> başlıklı içeriği kalıcı olarak silmek istiyor musunuz?
+            <p className="mb-5 font-body-sm text-body-sm leading-relaxed text-on-surface-variant">
+              <span className="font-bold text-on-surface">"{deleteConfirm.title}"</span> başlıklı içeriği kalıcı olarak silmek istiyor musunuz?
             </p>
             <div className="flex gap-2">
               <button
                 onClick={() => setDeleteConfirm(null)}
-                className="flex-1 px-4 py-2 rounded-xl text-sm text-slate-400 font-medium transition-colors hover:bg-slate-800/50"
-                style={{ border: '1px solid rgba(99,102,241,0.2)' }}
+                className="flex-1 rounded-full border border-outline-variant/40 bg-surface-container-low px-4 py-2 text-label-md font-label-md font-bold text-on-surface-variant transition-colors hover:bg-surface-container-high"
               >
                 Vazgeç
               </button>
-              <button onClick={confirmDelete} className="flex-1 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 rounded-full bg-error px-4 py-2 text-label-md font-label-md font-bold text-on-error shadow-sm transition-all hover:opacity-90 active:scale-95"
+              >
                 Evet, Sil
               </button>
             </div>
@@ -906,7 +885,7 @@ export function VitrinePanel() {
   );
 }
 
-/* ── Section Header ─────────────────────────────────────────────────── */
+/* ── Section Header — Material You ──────────────────────────────────── */
 function SectionHeader({
   number, icon, iconBg, label, count, countColor, lineColor, onSeeAll
 }: {
@@ -921,46 +900,66 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center gap-3 mb-4">
-      <span className="text-[9px] font-bold text-indigo-500/50 font-mono tracking-widest">{number}</span>
-      <div className={`w-5 h-5 rounded-lg bg-gradient-to-br ${iconBg} flex items-center justify-center`}>{icon}</div>
-      <span className="text-[11px] font-bold text-slate-300 tracking-wider uppercase">{label}</span>
+      <span className="font-label-md text-label-md font-bold text-outline tracking-widest">
+        {number}
+      </span>
+      <div className={`flex h-6 w-6 items-center justify-center rounded-lg bg-gradient-to-br ${iconBg} shadow-sm`}>
+        {icon}
+      </div>
+      <span className="font-label-md text-label-md font-bold tracking-wider uppercase text-on-surface">
+        {label}
+      </span>
       <span
-        className="text-[10px] font-bold px-2 py-0.5 rounded font-mono"
+        className="rounded-full px-2 py-0.5 text-[10px] font-bold"
         style={{ background: countColor.bg, color: countColor.text, border: `1px solid ${countColor.border}` }}
       >
         {String(count).padStart(2, '0')}
       </span>
-      <div className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${lineColor}, transparent)` }} />
+      <div
+        className="flex-1 h-px"
+        style={{ background: `linear-gradient(90deg, ${lineColor}, transparent)` }}
+      />
       {onSeeAll && (
         <button
           onClick={onSeeAll}
-          className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-300 transition-colors font-mono"
+          className="flex items-center gap-1 rounded-full px-2.5 py-1 text-label-md font-label-md font-bold text-primary hover:bg-primary-container/15 transition-colors"
         >
-          Tümü <ArrowRight size={9} />
+          Tümü <ArrowRight size={11} />
         </button>
       )}
     </div>
   );
 }
 
-/* ── Skeleton Section ───────────────────────────────────────────────── */
+/* ── Skeleton Section — Material You light ──────────────────────────── */
 function SkeletonSection() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-6 h-6 rounded-lg animate-pulse" style={{ background: 'rgba(99,102,241,0.15)' }} />
-        <div className="h-3 w-24 rounded animate-pulse" style={{ background: 'rgba(99,102,241,0.15)' }} />
-        <div className="flex-1 h-px" style={{ background: 'rgba(99,102,241,0.1)' }} />
+        <div className="h-6 w-6 rounded-lg animate-pulse bg-surface-container-high" />
+        <div className="h-3 w-24 rounded animate-pulse bg-surface-container-high" />
+        <div className="flex-1 h-px bg-outline-variant/30" />
       </div>
       <div className="flex gap-3 overflow-hidden">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-2xl border overflow-hidden flex-shrink-0" style={{ width: 220, background: 'rgba(10,16,34,0.85)', borderColor: 'rgba(99,102,241,0.12)' }}>
-            <div className="h-28 relative overflow-hidden" style={{ background: 'rgba(13,21,53,0.8)' }}>
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, transparent 0%, rgba(99,102,241,0.07) 50%, transparent 100%)', animation: 'shimmer 2s infinite', backgroundSize: '200% 100%' }} />
+          <div
+            key={i}
+            className="w-[220px] flex-shrink-0 overflow-hidden rounded-2xl border border-outline-variant/40 bg-surface-container-lowest"
+          >
+            <div className="relative h-28 overflow-hidden bg-surface-container">
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(90deg, transparent 0%, rgba(0,76,197,0.08) 50%, transparent 100%)',
+                  animation: 'shimmer 2s infinite',
+                  backgroundSize: '200% 100%',
+                }}
+              />
             </div>
             <div className="p-3 space-y-2">
-              <div className="h-2.5 rounded animate-pulse w-3/4" style={{ background: 'rgba(99,102,241,0.12)' }} />
-              <div className="h-2 rounded animate-pulse w-1/2" style={{ background: 'rgba(99,102,241,0.08)' }} />
+              <div className="h-2.5 w-3/4 rounded animate-pulse bg-surface-container-high" />
+              <div className="h-2 w-1/2 rounded animate-pulse bg-surface-container" />
             </div>
           </div>
         ))}
@@ -981,8 +980,7 @@ function DeletableWrapper({ children, isSuperAdmin, onDelete }: {
       {isSuperAdmin && (
         <button
           onClick={e => { e.stopPropagation(); onDelete(); }}
-          className="absolute top-2 right-2 z-10 p-1.5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 shadow-sm transition-all opacity-0 group-hover/del:opacity-100"
-          style={{ background: 'rgba(10,16,34,0.9)' }}
+          className="absolute top-2 right-2 z-10 rounded-full border border-error/30 bg-surface-container-lowest/95 p-1.5 text-error shadow-sm backdrop-blur-sm opacity-0 transition-all hover:bg-error-container/40 group-hover/del:opacity-100"
           title="Sil"
         >
           <Trash2 size={13} />
@@ -1013,67 +1011,111 @@ function AccordionResearchRow({ research, onVote, onDetail, onShowCanvas, isSupe
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl transition-all"
-      style={{
-        background: 'rgba(10,16,34,0.85)',
-        border: open ? '1px solid rgba(99,102,241,0.35)' : '1px solid rgba(99,102,241,0.15)',
-        boxShadow: open ? '0 0 20px rgba(99,102,241,0.1)' : 'none',
-      }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={[
+        'rounded-2xl bg-surface-container-lowest transition-all',
+        open
+          ? 'border border-primary/40 shadow-md'
+          : 'border border-outline-variant/40 hover:border-primary/30 hover:shadow-sm',
+      ].join(' ')}
     >
-      <div className="w-full px-4 py-3 flex items-center gap-4 cursor-pointer select-none" onClick={() => setOpen(v => !v)}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(99,102,241,0.1)' }}>
-          <FileText size={14} className="text-indigo-400" />
+      <div
+        className="flex w-full cursor-pointer select-none items-center gap-4 px-4 py-3"
+        onClick={() => setOpen(v => !v)}
+      >
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-primary-container/20 border border-primary/15">
+          <FileText size={15} className="text-primary" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-200 truncate">{research.title}</p>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="text-xs text-slate-500 flex-shrink-0">{research.authorName}</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-body-md font-bold text-on-surface">{research.title}</p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+            <span className="flex-shrink-0 text-body-sm font-medium text-on-surface-variant">{research.authorName}</span>
             {research.createdAt && (
               <>
-                <span className="text-slate-700">·</span>
-                <span className="text-xs text-slate-600 flex items-center gap-1 flex-shrink-0">
-                  <Calendar size={9} />
+                <span className="text-outline">·</span>
+                <span className="flex flex-shrink-0 items-center gap-1 text-body-sm text-on-surface-variant">
+                  <Calendar size={10} />
                   {format(new Date(research.createdAt), 'dd MMM yyyy', { locale: tr })}
                 </span>
               </>
             )}
             {research.tags?.slice(0, 3).map(t => (
-              <span key={t} className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.5 rounded font-medium flex-shrink-0">{t}</span>
+              <span
+                key={t}
+                className="flex-shrink-0 rounded-full border border-outline-variant/40 bg-surface-container-low px-2 py-0.5 text-[10px] font-bold text-on-surface-variant"
+              >
+                {t}
+              </span>
             ))}
           </div>
         </div>
         <button
           onClick={handleVote}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all shadow-sm flex-shrink-0 ${
-            voted ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400 hover:border-indigo-400/40 hover:bg-indigo-500/20'
-          }`}
+          className={[
+            'flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-label-md font-label-md font-bold transition-all',
+            voted
+              ? 'bg-primary text-on-primary shadow-sm'
+              : 'bg-primary-container/15 text-primary border border-primary/20 hover:bg-primary-container/25',
+          ].join(' ')}
         >
           <ThumbsUp size={11} className={voted ? 'fill-white' : ''} />
           <span>{Math.max(0, research.voteCount)}</span>
         </button>
         {isSuperAdmin && (
-          <button onClick={e => { e.stopPropagation(); onDelete?.(); }} className="flex-shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
+          <button
+            onClick={e => { e.stopPropagation(); onDelete?.(); }}
+            className="flex-shrink-0 rounded-lg p-1.5 text-error transition-colors hover:bg-error-container/30"
+          >
             <Trash2 size={13} />
           </button>
         )}
-        <ChevronDown size={14} className={`text-slate-600 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          size={15}
+          className={`flex-shrink-0 text-on-surface-variant transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </div>
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div key="content" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="px-4 pb-4 pt-0" style={{ borderTop: '1px solid rgba(99,102,241,0.1)' }}>
-              {research.summary && <p className="text-sm text-slate-400 mt-3 mb-3 leading-relaxed">{research.summary}</p>}
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-outline-variant/30 px-4 pb-4 pt-3">
+              {research.summary && (
+                <p className="mb-3 text-body-sm leading-relaxed text-on-surface-variant">
+                  {research.summary}
+                </p>
+              )}
               {research.tags && research.tags.length > 3 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {research.tags.map(t => <span key={t} className="text-[10px] bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded font-medium">{t}</span>)}
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {research.tags.map(t => (
+                    <span
+                      key={t}
+                      className="rounded-full border border-outline-variant/40 bg-surface-container-low px-2 py-0.5 text-[10px] font-bold text-on-surface-variant"
+                    >
+                      {t}
+                    </span>
+                  ))}
                 </div>
               )}
-              <div className="flex items-center gap-2 mt-2">
-                <button onClick={onDetail} className="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">Tam Detay</button>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  onClick={onDetail}
+                  className="rounded-full bg-primary px-4 py-1.5 text-label-md font-label-md font-bold text-on-primary shadow-sm transition-all hover:opacity-90 active:scale-95"
+                >
+                  Tam Detay
+                </button>
                 {onShowCanvas && (
-                  <button onClick={onShowCanvas} className="flex items-center gap-1 text-xs px-3 py-1.5 text-indigo-400 rounded-lg font-medium hover:bg-indigo-500/10 transition-colors" style={{ border: '1px solid rgba(99,102,241,0.3)' }}>
+                  <button
+                    onClick={onShowCanvas}
+                    className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary-container/15 px-4 py-1.5 text-label-md font-label-md font-bold text-primary transition-all hover:bg-primary-container/25"
+                  >
                     <Network size={11} /> Harita
                   </button>
                 )}
@@ -1107,74 +1149,120 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl transition-all"
-      style={{
-        background: 'rgba(10,16,34,0.85)',
-        border: open ? '1px solid rgba(251,191,36,0.3)' : '1px solid rgba(99,102,241,0.15)',
-        boxShadow: open ? '0 0 20px rgba(251,191,36,0.05)' : 'none',
-      }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={[
+        'rounded-2xl bg-surface-container-lowest transition-all',
+        open
+          ? 'border border-tertiary-fixed-dim/60 shadow-md'
+          : 'border border-outline-variant/40 hover:border-tertiary-fixed-dim/40 hover:shadow-sm',
+      ].join(' ')}
     >
-      <div className="w-full px-4 py-3 flex items-center gap-4 cursor-pointer select-none" onClick={() => setOpen(v => !v)}>
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(251,191,36,0.1)' }}>
-          <Lightbulb size={14} className="text-amber-400" />
+      <div
+        className="flex w-full cursor-pointer select-none items-center gap-4 px-4 py-3"
+        onClick={() => setOpen(v => !v)}
+      >
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-tertiary-fixed-dim/30 bg-tertiary-fixed/40">
+          <Lightbulb size={15} className="text-tertiary" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-200 truncate">{idea.title}</p>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <span className="text-xs text-slate-500 flex-shrink-0">{idea.authorName}</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-body-md font-bold text-on-surface">{idea.title}</p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-2">
+            <span className="flex-shrink-0 text-body-sm font-medium text-on-surface-variant">{idea.authorName}</span>
             {hasResearch ? (
-              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/15 px-1.5 py-0.5 rounded font-medium flex items-center gap-1 flex-shrink-0">
-                <CheckCircle2 size={9} />{idea.researchIds.length} Araştırma
+              <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-primary/20 bg-primary-container/15 px-2 py-0.5 text-[10px] font-bold text-primary">
+                <CheckCircle2 size={9} />
+                {idea.researchIds.length} Araştırma
               </span>
             ) : (
-              <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/15 px-1.5 py-0.5 rounded font-medium flex items-center gap-1 flex-shrink-0">
-                <AlertTriangle size={9} />Araştırmasız
+              <span className="flex flex-shrink-0 items-center gap-1 rounded-full border border-error/30 bg-error-container/30 px-2 py-0.5 text-[10px] font-bold text-error">
+                <AlertTriangle size={9} />
+                Araştırmasız
               </span>
             )}
             {idea.tags?.slice(0, 2).map(t => (
-              <span key={t} className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-medium flex-shrink-0">{t}</span>
+              <span
+                key={t}
+                className="flex-shrink-0 rounded-full border border-outline-variant/40 bg-surface-container-low px-2 py-0.5 text-[10px] font-bold text-on-surface-variant"
+              >
+                {t}
+              </span>
             ))}
           </div>
         </div>
         <button
           onClick={handleVote}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all shadow-sm flex-shrink-0 ${
-            voted ? 'bg-amber-500 border-amber-500 text-white' : 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:border-amber-400/40 hover:bg-amber-500/20'
-          }`}
+          className={[
+            'flex flex-shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-label-md font-label-md font-bold transition-all',
+            voted
+              ? 'bg-primary text-on-primary shadow-sm'
+              : 'bg-primary-container/15 text-primary border border-primary/20 hover:bg-primary-container/25',
+          ].join(' ')}
         >
           <ThumbsUp size={11} className={voted ? 'fill-white' : ''} />
           <span>{Math.max(0, idea.voteCount)}</span>
         </button>
         {isSuperAdmin && (
-          <button onClick={e => { e.stopPropagation(); onDelete?.(); }} className="flex-shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors">
+          <button
+            onClick={e => { e.stopPropagation(); onDelete?.(); }}
+            className="flex-shrink-0 rounded-lg p-1.5 text-error transition-colors hover:bg-error-container/30"
+          >
             <Trash2 size={13} />
           </button>
         )}
-        <ChevronDown size={14} className={`text-slate-600 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown
+          size={15}
+          className={`flex-shrink-0 text-on-surface-variant transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
       </div>
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div key="content" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-            <div className="px-4 pb-4 pt-0" style={{ borderTop: '1px solid rgba(99,102,241,0.1)' }}>
-              {idea.description && <p className="text-sm text-slate-400 mt-3 mb-3 leading-relaxed line-clamp-4">{idea.description}</p>}
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-outline-variant/30 px-4 pb-4 pt-3">
+              {idea.description && (
+                <p className="mb-3 line-clamp-4 text-body-sm leading-relaxed text-on-surface-variant">
+                  {idea.description}
+                </p>
+              )}
               {idea.collaborators && idea.collaborators.length > 0 && (
-                <div className="flex items-center gap-1.5 mb-3 text-xs text-slate-500">
-                  <Users size={11} className="text-indigo-400" />
-                  <span className="font-medium">Ekip:</span>
+                <div className="mb-3 flex items-center gap-1.5 text-body-sm text-on-surface-variant">
+                  <Users size={12} className="text-primary" />
+                  <span className="font-bold">Ekip:</span>
                   {idea.collaborators.join(', ')}
                 </div>
               )}
               {idea.tags && idea.tags.length > 2 && (
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {idea.tags.map(t => <span key={t} className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-medium">{t}</span>)}
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {idea.tags.map(t => (
+                    <span
+                      key={t}
+                      className="rounded-full border border-outline-variant/40 bg-surface-container-low px-2 py-0.5 text-[10px] font-bold text-on-surface-variant"
+                    >
+                      {t}
+                    </span>
+                  ))}
                 </div>
               )}
-              <div className="flex items-center gap-2 mt-2">
-                <button onClick={onDetail} className="text-xs px-3 py-1.5 bg-amber-500 text-white rounded-lg font-medium hover:bg-amber-600 transition-colors">Tam Detay</button>
+              <div className="mt-2 flex items-center gap-2">
+                <button
+                  onClick={onDetail}
+                  className="rounded-full bg-primary px-4 py-1.5 text-label-md font-label-md font-bold text-on-primary shadow-sm transition-all hover:opacity-90 active:scale-95"
+                >
+                  Tam Detay
+                </button>
                 {onShowCanvas && (
-                  <button onClick={onShowCanvas} className="flex items-center gap-1 text-xs px-3 py-1.5 text-amber-400 rounded-lg font-medium hover:bg-amber-500/10 transition-colors" style={{ border: '1px solid rgba(251,191,36,0.3)' }}>
+                  <button
+                    onClick={onShowCanvas}
+                    className="flex items-center gap-1 rounded-full border border-tertiary-fixed-dim/40 bg-tertiary-fixed/30 px-4 py-1.5 text-label-md font-label-md font-bold text-tertiary transition-all hover:bg-tertiary-fixed/50"
+                  >
                     <Network size={11} /> Harita
                   </button>
                 )}
@@ -1187,20 +1275,17 @@ function AccordionIdeaRow({ idea, onVote, onDetail, onShowCanvas, isSuperAdmin, 
   );
 }
 
-/* ── Empty Section ──────────────────────────────────────────────────── */
+/* ── Empty Section — Material You ───────────────────────────────────── */
 function EmptySection({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div
-      className="py-14 px-8 text-center border border-dashed rounded-2xl w-full"
-      style={{ borderColor: 'rgba(99,102,241,0.2)', background: 'rgba(10,16,34,0.4)' }}
-    >
-      <div className="flex justify-center mb-4">
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-sm" style={{ background: 'rgba(10,16,34,0.7)', border: '1px solid rgba(99,102,241,0.15)' }}>
+    <div className="w-full rounded-2xl border border-dashed border-outline-variant/50 bg-surface-container-low/40 px-8 py-14 text-center">
+      <div className="mb-4 flex justify-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-outline-variant/40 bg-surface-container-lowest shadow-sm">
           {icon}
         </div>
       </div>
-      <h3 className="text-sm font-bold text-slate-400 mb-1.5">{title}</h3>
-      <p className="text-slate-600 text-xs leading-relaxed">{desc}</p>
+      <h3 className="font-headline-sm text-body-md font-bold text-on-surface mb-1.5">{title}</h3>
+      <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">{desc}</p>
     </div>
   );
 }

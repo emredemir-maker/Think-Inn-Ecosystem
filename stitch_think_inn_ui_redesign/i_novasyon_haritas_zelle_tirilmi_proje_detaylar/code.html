@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn | Innovation Map - Node Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "on-background": "#0c1b34",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "surface-variant": "#d7e2ff",
+                        "surface-container-high": "#e0e8ff",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "on-tertiary-fixed": "#001f26",
+                        "tertiary-fixed": "#aaedff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-surface": "#0c1b34",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#dbf7ff",
+                        "inverse-surface": "#22304a",
+                        "tertiary": "#005f6e",
+                        "secondary-fixed": "#d7e2ff",
+                        "primary-container": "#1463f3",
+                        "outline-variant": "#c2c6d8",
+                        "surface-dim": "#ccdafc",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-surface-variant": "#424655",
+                        "surface-container": "#e8eeff",
+                        "on-primary-container": "#f0f1ff",
+                        "primary": "#004cc5",
+                        "on-secondary-fixed-variant": "#364768",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-primary-fixed": "#00184a",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "secondary": "#4e5e81",
+                        "surface-tint": "#0054d7",
+                        "on-secondary-container": "#4c5d80",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9ff",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "inverse-primary": "#b3c5ff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#c6d7ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "outline": "#737687",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#00798d",
+                        "primary-fixed": "#dbe1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "40px",
+                        "lg": "48px",
+                        "sm": "12px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "headline-sm": ["Montserrat"],
+                        "headline-lg": ["Montserrat"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; background-color: #F8FAFF; color: #0c1b34; }
+        h1, h2, h3, h4 { font-family: 'Montserrat', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        
+        /* Connectivity Node Effect */
+        .node-line {
+            stroke: #c2c6d8;
+            stroke-width: 1;
+            stroke-dasharray: 4;
+            opacity: 0.4;
+        }
+        .node-glow {
+            filter: drop-shadow(0 0 8px rgba(20, 99, 243, 0.3));
+        }
+        .hexagon {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border-left: 1px solid rgba(226, 232, 240, 1);
+        }
+    </style>
+</head>
+<body class="overflow-hidden">
+<!-- Top Navigation Shell -->
+<header class="flex justify-between items-center w-full px-margin-desktop py-4 z-50 sticky top-0 bg-surface dark:bg-inverse-surface shadow-sm">
+<div class="flex items-center gap-8">
+<span class="text-headline-sm font-headline-sm font-bold text-primary dark:text-primary-fixed-dim">think-Inn</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors p-2 rounded-lg" href="#">Dashboard</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors p-2 rounded-lg" href="#">Research</a>
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Map</a>
+<a class="text-on-surface-variant dark:text-surface-variant font-label-md text-label-md hover:bg-surface-container transition-colors p-2 rounded-lg" href="#">Projects</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container rounded-full">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-container rounded-full">account_circle</button>
+</div>
+</header>
+<div class="flex h-[calc(100vh-72px)] overflow-hidden">
+<!-- Side Navigation Shell -->
+<aside class="flex flex-col h-full w-64 p-4 border-r border-outline-variant dark:border-outline bg-surface-container-low dark:bg-inverse-surface z-40">
+<div class="mb-8 px-2">
+<div class="flex items-center gap-3 mb-2">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined">hub</span>
+</div>
+<div>
+<p class="font-headline-sm text-label-md font-bold text-primary">Innovation Hub</p>
+<p class="text-[10px] uppercase tracking-wider text-outline">Enterprise Tier</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span>Ideas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">magnification_small</span>
+<span>Research</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span>Projects</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary dark:text-tertiary-fixed-dim font-bold bg-secondary-container dark:bg-secondary-fixed-dim/10 rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span>Map</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg font-label-md text-label-md" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span>Community</span>
+</a>
+</nav>
+<button class="mt-auto w-full py-3 bg-gradient-to-r from-primary to-tertiary text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span class="text-label-md font-label-md">New Initiative</span>
+</button>
+</aside>
+<!-- Main Content (Innovation Map Canvas) -->
+<main class="flex-1 relative overflow-hidden bg-[#F1F4F9]">
+<!-- Map Background Layer (Blurred State) -->
+<div class="absolute inset-0 z-0 transition-all duration-500 blur-sm scale-105 opacity-60" id="map-background">
+<svg class="w-full h-full" viewbox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg">
+<!-- Network Lines -->
+<line class="node-line" x1="200" x2="400" y1="200" y2="350"></line>
+<line class="node-line" x1="400" x2="600" y1="350" y2="250"></line>
+<line class="node-line" x1="400" x2="500" y1="350" y2="550"></line>
+<line class="node-line" x1="600" x2="800" y1="250" y2="400"></line>
+<line class="node-line" x1="500" x2="700" y1="550" y2="650"></line>
+<line class="node-line" x1="200" x2="150" y1="200" y2="450"></line>
+<!-- Hexagonal Nodes -->
+<g class="node-glow" transform="translate(400, 350)">
+<path class="cursor-pointer" d="M-40 0 L-20 -34.6 L20 -34.6 L40 0 L20 34.6 L-20 34.6 Z" fill="#004cc5"></path>
+<text fill="white" font-family="Montserrat" font-size="14" font-weight="700" text-anchor="middle" y="5">Core AI</text>
+</g>
+<g transform="translate(200, 200)">
+<path d="M-30 0 L-15 -26 L15 -26 L30 0 L15 26 L-15 26 Z" fill="#4e5e81" fill-opacity="0.6"></path>
+<text fill="#0c1b34" font-family="Montserrat" font-size="10" font-weight="600" text-anchor="middle" y="4">Big Data</text>
+</g>
+<g transform="translate(600, 250)">
+<path d="M-35 0 L-17.5 -30.3 L17.5 -30.3 L35 0 L17.5 30.3 L-17.5 30.3 Z" fill="#00798d" fill-opacity="0.8"></path>
+<text fill="white" font-family="Montserrat" font-size="11" font-weight="600" text-anchor="middle" y="4">NLP</text>
+</g>
+<g transform="translate(500, 550)">
+<path d="M-30 0 L-15 -26 L15 -26 L30 0 L15 26 L-15 26 Z" fill="#4e5e81" fill-opacity="0.6"></path>
+<text fill="#0c1b34" font-family="Montserrat" font-size="10" font-weight="600" text-anchor="middle" y="4">MLOps</text>
+</g>
+</svg>
+</div>
+<!-- Dimming Overlay -->
+<div class="absolute inset-0 bg-on-background/10 pointer-events-none z-10 transition-opacity duration-500 opacity-100"></div>
+<!-- Detail Slide-over Panel -->
+<div class="absolute top-0 right-0 h-full w-[450px] glass-panel z-50 shadow-2xl transition-transform duration-500 translate-x-0 flex flex-col" id="detail-panel">
+<!-- Panel Header -->
+<div class="p-8 border-b border-outline-variant flex justify-between items-start">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-2">
+<span class="px-2 py-1 bg-tertiary-container/10 text-tertiary text-[10px] font-bold uppercase tracking-widest rounded">Technology</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[14px]">bolt</span>
+<span class="text-[10px] font-bold">AI Score: 98</span>
+</div>
+</div>
+<h2 class="text-headline-lg font-headline-lg text-on-background leading-tight">Core AI</h2>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-on-background transition-colors p-1" onclick="this.closest('#detail-panel').classList.add('translate-x-full'); document.getElementById('map-background').classList.remove('blur-sm', 'opacity-60');">close</button>
+</div>
+<!-- Panel Content -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Description -->
+<section>
+<h4 class="text-label-md font-label-md text-outline mb-3 uppercase tracking-widest">Description</h4>
+<p class="text-body-md font-body-md text-on-surface-variant leading-relaxed">
+                            The central intelligence nexus for the think-Inn ecosystem. Core AI manages the fundamental neural weights and generative parameters used across all sub-sectors, ensuring enterprise-wide consistency and ethical alignment.
+                        </p>
+</section>
+<!-- Associated Projects -->
+<section>
+<div class="flex justify-between items-center mb-4">
+<h4 class="text-label-md font-label-md text-outline uppercase tracking-widest">Associated Projects</h4>
+<span class="text-[10px] font-bold text-primary">2 Projects</span>
+</div>
+<div class="space-y-4">
+<!-- Card 1: Neural Nexus V2 -->
+<div class="p-5 bg-white border border-outline-variant/30 rounded-xl shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<div class="w-12 h-12 hexagon bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[24px]">psychology</span>
+</div>
+<span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wide rounded">Active</span>
+</div>
+<div>
+<h5 class="font-headline-sm text-headline-sm font-bold text-on-background mb-1">Neural Nexus V2</h5>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-4">Optimizing inference latency for enterprise LLM clusters.</p>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-7 h-7 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg7g3pEO6gkqnGuYZ9gIFsKJzB1h1Ki9jJSCz6kOw5siOMkHprtBsKdugSAIpOv0dDKR0BwYBhAxu6VzO0Hg-un7prgrfkqaLav_00rm0dvrL9d_b4GVXppxJSqLzKPs-Y1dwcJRAkPye0ELZnfE_EiFONFINW_Wa3KAm6SQNLWep_paveaIQWAieWVKU6I7Zq2Rbrpxz1smaxao2tHsGC2uSJbtn6ryZyE1ci1iCbkq2jZkMeLpxBXnfn-XWDrmu9ZfR61NZLTBpy"/>
+<img alt="Team member" class="w-7 h-7 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3oCpvlAau-mqfzWlJszPqKtE9WG261Icz4JxYCGhuFNvCzPlEtv299-QAcYlplLj0Qs82udGjo0XsK6IwWi5Rgs2cehTIIUIGmBVIjSoeggx--a113dF3L39J8eQw-c6a3Cwp_IhfHKgFAM2kCvt0qkH6emIY9fwPew9hSVC8K96eCeX1WptA9DgAhuekczqiZAerCfRIievs3W3bwhiEX2NPRuY9gKpO1kUD18CyqAFKVxhfZ3GBHpORNr0nVG4EQ7V42PCckzph"/>
+<img alt="Team member" class="w-7 h-7 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSUmXH8yvNH0yI14AnoAaJtyi7ex3DpegbjZuRmfqF3YbmBfw1rH8GMEvs5nqL_VKlV0drrd21O7wAkeCGx8E2iaDXfKGAI-L_dJEf5CXntOVYdXOTS0eW-OiJaBUxL7Sv682HfZEQ2nP2KhxrPpqPIrIKT4O-M9nJnt1_Ij0fbVa-9Dy2-RxfwcnsQ7jOmRTA7nGagRBQWKmzutlaef8yeQRnMSHwPzQ7FhFnSEpFf4RQCYmozOf0pDbOAt9O3-aEf2BSd12pN4oP"/>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px] group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+<!-- Card 2: Ethics Filter API -->
+<div class="p-5 bg-white border border-outline-variant/30 rounded-xl shadow-sm hover:shadow-md hover:border-primary/30 transition-all cursor-pointer group">
+<div class="flex justify-between items-start mb-3">
+<div class="w-12 h-12 hexagon bg-surface-variant flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[24px]">shield</span>
+</div>
+<span class="px-2 py-1 bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wide rounded">Completed</span>
+</div>
+<div>
+<h5 class="font-headline-sm text-headline-sm font-bold text-on-background mb-1">Ethics Filter API</h5>
+<p class="text-body-sm font-body-sm text-on-surface-variant mb-4">Scalable safety layers for generative models.</p>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-7 h-7 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg7g3pEO6gkqnGuYZ9gIFsKJzB1h1Ki9jJSCz6kOw5siOMkHprtBsKdugSAIpOv0dDKR0BwYBhAxu6VzO0Hg-un7prgrfkqaLav_00rm0dvrL9d_b4GVXppxJSqLzKPs-Y1dwcJRAkPye0ELZnfE_EiFONFINW_Wa3KAm6SQNLWep_paveaIQWAieWVKU6I7Zq2Rbrpxz1smaxao2tHsGC2uSJbtn6ryZyE1ci1iCbkq2jZkMeLpxBXnfn-XWDrmu9ZfR61NZLTBpy"/>
+<img alt="Team member" class="w-7 h-7 rounded-full border-2 border-white" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3oCpvlAau-mqfzWlJszPqKtE9WG261Icz4JxYCGhuFNvCzPlEtv299-QAcYlplLj0Qs82udGjo0XsK6IwWi5Rgs2cehTIIUIGmBVIjSoeggx--a113dF3L39J8eQw-c6a3Cwp_IhfHKgFAM2kCvt0qkH6emIY9fwPew9hSVC8K96eCeX1WptA9DgAhuekczqiZAerCfRIievs3W3bwhiEX2NPRuY9gKpO1kUD18CyqAFKVxhfZ3GBHpORNr0nVG4EQ7V42PCckzph"/>
+</div>
+<span class="material-symbols-outlined text-outline text-[20px] group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Related Researchers -->
+<section>
+<h4 class="text-label-md font-label-md text-outline mb-4 uppercase tracking-widest">Related Researchers</h4>
+<div class="flex -space-x-3">
+<div class="w-12 h-12 rounded-full border-4 border-white bg-surface-container overflow-hidden">
+<img alt="Researcher" data-alt="A professional headshot of a young male researcher with modern eyeglasses and a focused expression. He is set against a clean, minimalist corporate office background with soft bokeh lighting in shades of cool blue and white. The aesthetic is high-tech and professional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBg7g3pEO6gkqnGuYZ9gIFsKJzB1h1Ki9jJSCz6kOw5siOMkHprtBsKdugSAIpOv0dDKR0BwYBhAxu6VzO0Hg-un7prgrfkqaLav_00rm0dvrL9d_b4GVXppxJSqLzKPs-Y1dwcJRAkPye0ELZnfE_EiFONFINW_Wa3KAm6SQNLWep_paveaIQWAieWVKU6I7Zq2Rbrpxz1smaxao2tHsGC2uSJbtn6ryZyE1ci1iCbkq2jZkMeLpxBXnfn-XWDrmu9ZfR61NZLTBpy"/>
+</div>
+<div class="w-12 h-12 rounded-full border-4 border-white bg-surface-container overflow-hidden">
+<img alt="Researcher" data-alt="A professional portrait of a female research scientist wearing a lab coat and headphones, looking thoughtfully into the distance. The lighting is soft and bright, echoing a light-mode corporate design system. Subtle tech icons are visible on a screen in the blurred background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3oCpvlAau-mqfzWlJszPqKtE9WG261Icz4JxYCGhuFNvCzPlEtv299-QAcYlplLj0Qs82udGjo0XsK6IwWi5Rgs2cehTIIUIGmBVIjSoeggx--a113dF3L39J8eQw-c6a3Cwp_IhfHKgFAM2kCvt0qkH6emIY9fwPew9hSVC8K96eCeX1WptA9DgAhuekczqiZAerCfRIievs3W3bwhiEX2NPRuY9gKpO1kUD18CyqAFKVxhfZ3GBHpORNr0nVG4EQ7V42PCckzph"/>
+</div>
+<div class="w-12 h-12 rounded-full border-4 border-white bg-surface-container overflow-hidden">
+<img alt="Researcher" data-alt="A smiling middle-aged male executive in a smart casual navy blazer. He is standing in a brightly lit, glass-walled innovation hub. The image follows a modern corporate aesthetic with high-key lighting and a palette of whites and deep blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSUmXH8yvNH0yI14AnoAaJtyi7ex3DpegbjZuRmfqF3YbmBfw1rH8GMEvs5nqL_VKlV0drrd21O7wAkeCGx8E2iaDXfKGAI-L_dJEf5CXntOVYdXOTS0eW-OiJaBUxL7Sv682HfZEQ2nP2KhxrPpqPIrIKT4O-M9nJnt1_Ij0fbVa-9Dy2-RxfwcnsQ7jOmRTA7nGagRBQWKmzutlaef8yeQRnMSHwPzQ7FhFnSEpFf4RQCYmozOf0pDbOAt9O3-aEf2BSd12pN4oP"/>
+</div>
+<div class="w-12 h-12 rounded-full border-4 border-white bg-surface-container flex items-center justify-center bg-primary text-white text-[12px] font-bold">
+                                +12
+                            </div>
+</div>
+</section>
+<!-- Connectivity Visual -->
+<div class="pt-4 opacity-40">
+<svg class="w-full h-12" fill="none" viewbox="0 0 300 40" xmlns="http://www.w3.org/2000/svg">
+<circle cx="20" cy="20" fill="#004cc5" r="4"></circle>
+<circle cx="60" cy="20" fill="#c2c6d8" r="2"></circle>
+<circle cx="100" cy="20" fill="#00798d" r="4"></circle>
+<circle cx="140" cy="20" fill="#c2c6d8" r="2"></circle>
+<line stroke="#c2c6d8" stroke-dasharray="2 2" x1="24" x2="56" y1="20" y2="20"></line>
+<line stroke="#c2c6d8" stroke-dasharray="2 2" x1="64" x2="96" y1="20" y2="20"></line>
+<line stroke="#c2c6d8" stroke-dasharray="2 2" x1="104" x2="136" y1="20" y2="20"></line>
+</svg>
+</div>
+</div>
+<!-- Panel Footer -->
+<div class="p-8 border-t border-outline-variant bg-surface-container-lowest/50">
+<button class="w-full py-4 bg-primary text-white font-bold rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:scale-[0.98] transition-all">
+<span class="text-body-md font-headline-sm">View Full Entity</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Contextual Breadcrumb & Control -->
+<div class="absolute top-6 left-6 flex items-center gap-4 z-20">
+<div class="flex items-center gap-2 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-slate-200">
+<span class="text-outline text-label-md font-label-md">İnovasyon Haritası</span>
+<span class="material-symbols-outlined text-[14px] text-outline">chevron_right</span>
+<span class="text-on-background font-bold text-label-md font-label-md">Core AI</span>
+</div>
+<div class="flex items-center gap-1 bg-white/80 backdrop-blur-md px-2 py-2 rounded-full shadow-sm border border-slate-200">
+<button class="material-symbols-outlined text-on-surface-variant p-1 hover:bg-surface-container rounded-full text-[18px]">zoom_in</button>
+<button class="material-symbols-outlined text-on-surface-variant p-1 hover:bg-surface-container rounded-full text-[18px]">zoom_out</button>
+<div class="w-px h-4 bg-outline-variant mx-1"></div>
+<button class="material-symbols-outlined text-on-surface-variant p-1 hover:bg-surface-container rounded-full text-[18px]">filter_list</button>
+</div>
+</div>
+</main>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        // Simple visual ping effect on the central node
+        function animateNodes() {
+            const lines = document.querySelectorAll('.node-line');
+            lines.forEach((line, i) => {
+                line.style.transition = 'stroke-dashoffset 20s linear';
+                line.style.strokeDashoffset = '1000';
+            });
+        }
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            animateNodes();
+            
+            // Re-open detail panel if closed (for demo purposes)
+            // In real app, this would be triggered by clicking the map nodes
+            const panel = document.getElementById('detail-panel');
+            const bg = document.getElementById('map-background');
+            
+            // Add interaction to central node in background
+            document.querySelector('path[fill="#004cc5"]').addEventListener('click', () => {
+                panel.classList.remove('translate-x-full');
+                bg.classList.add('blur-sm', 'opacity-60');
+            });
+        });
+    </script>
+</body></html>

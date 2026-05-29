@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn AI - Project Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&amp;family=Manrope:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary": "#ffffff",
+                        "surface-dim": "#ccdafc",
+                        "primary-container": "#1463f3",
+                        "surface-container-low": "#f1f3ff",
+                        "on-surface-variant": "#424655",
+                        "background": "#f9f9ff",
+                        "outline": "#737687",
+                        "on-secondary-fixed": "#071b3a",
+                        "outline-variant": "#c2c6d8",
+                        "on-secondary-container": "#4c5d80",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "surface-container": "#e8eeff",
+                        "on-surface": "#0c1b34",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "surface-container-highest": "#d7e2ff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#22304a",
+                        "inverse-primary": "#b3c5ff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "tertiary-container": "#00798d",
+                        "on-tertiary-fixed": "#001f26",
+                        "on-secondary-fixed-variant": "#364768",
+                        "primary": "#004cc5",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "on-background": "#0c1b34",
+                        "surface-container-high": "#e0e8ff",
+                        "secondary-container": "#c6d7ff",
+                        "on-primary": "#ffffff",
+                        "primary-fixed": "#dbe1ff",
+                        "surface": "#f9f9ff",
+                        "tertiary": "#005f6e",
+                        "on-tertiary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-bright": "#f9f9ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "on-primary-fixed": "#00184a",
+                        "on-primary-container": "#f0f1ff",
+                        "surface-variant": "#d7e2ff",
+                        "on-tertiary-container": "#dbf7ff",
+                        "tertiary-fixed": "#aaedff",
+                        "secondary": "#4e5e81",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#0054d7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "base": "8px",
+                        "margin-mobile": "16px",
+                        "sm": "12px",
+                        "md": "24px",
+                        "margin-desktop": "40px",
+                        "lg": "48px",
+                        "xs": "4px",
+                        "xl": "80px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Montserrat"],
+                        "body-md": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "headline-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "body-lg": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { background-color: #f8faff; font-family: 'Manrope', sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); border: 1px solid #e2e8f0; }
+        .gradient-btn { background: linear-gradient(135deg, #1463f3 0%, #005f6e 100%); }
+        .ai-accent-border { border-left: 4px solid #1463f3; }
+        .hexagon-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill-opacity='0.02' fill='%231463f3'/%3E%3C/svg%3E");
+        }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="text-on-surface">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">think-Inn AI</span>
+<div class="hidden md:flex gap-sm items-center ml-lg">
+<span class="font-label-md text-label-md text-secondary cursor-pointer hover:text-primary transition-colors">Dashboard</span>
+<span class="font-label-md text-label-md text-primary font-bold border-b-2 border-primary pb-1 cursor-pointer">Projects</span>
+<span class="font-label-md text-label-md text-secondary cursor-pointer hover:text-primary transition-colors">Network</span>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<div class="relative flex items-center bg-surface-container rounded-full px-sm py-xs">
+<span class="material-symbols-outlined text-outline text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm w-48" placeholder="Search resources..." type="text"/>
+</div>
+<span class="material-symbols-outlined text-secondary cursor-pointer">notifications</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer">explore</span>
+<div class="w-8 h-8 rounded-full bg-primary-fixed-dim overflow-hidden border border-outline-variant">
+<img alt="User Profile" data-alt="A professional studio portrait of a tech innovator in a bright, modern office setting. High-key lighting highlights the subject's confident expression, wearing minimalist smart-casual attire. The background is a soft-focus architectural space with glass partitions and indoor greenery, embodying a high-performance corporate culture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTH_cM6mmhKFQlanpL1ex_k3ynuyzbNR81eBp5Za7XrOb1w-W9ryRDlXF488gslGTPh_Z5N5SQazqxLxpkz7cM74n-RDNpMMAqeWhYxpwx4YlYkfnX58iGXh33PwOd3TByFAnisl_qWgq131628NX1AGXA7BcQdXTyoHUbaBD2UvHDnQu9ZrDaqhhyWSn7Q6FklwQnN6yfZ1TbYlCPRVX_jbvaEigQIOL0L1-k3nidmMYeruu45y46Yzafn6WWIQ_Iw9RKXNOg3zgt"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 flex flex-col py-md px-sm bg-surface-container-low shadow-md pt-20 hidden md:flex">
+<div class="mb-lg px-sm">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-10 h-10 rounded-xl gradient-btn flex items-center justify-center text-white">
+<span class="material-symbols-outlined">psychology</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold leading-none">AI Workspace</h3>
+<p class="text-[10px] text-secondary font-bold uppercase tracking-wider">Chat-First Innovation</p>
+</div>
+</div>
+<button class="w-full mt-md py-sm rounded-xl gradient-btn text-white font-bold font-label-md shadow-lg flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-sm">add</span> New Idea Query
+            </button>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-label-md text-label-md">Ideas</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-md text-label-md">Research</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-lg text-primary font-bold border-r-4 border-primary bg-surface-container-high transition-all cursor-pointer translate-x-1">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-md text-label-md">Projects</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-label-md text-label-md">Map</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-label-md">Community</span>
+</div>
+</nav>
+<div class="mt-auto space-y-1 border-t border-outline-variant pt-md">
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</div>
+<div class="flex items-center gap-sm p-sm rounded-lg text-on-surface-variant hover:bg-surface-variant/50 cursor-pointer">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="md:ml-64 pt-24 pb-24 md:pb-12 px-margin-mobile md:px-margin-desktop hexagon-bg min-h-screen">
+<div class="max-w-6xl mx-auto space-y-gutter">
+<!-- 1. Project Header -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div class="space-y-xs">
+<nav class="flex items-center gap-xs text-outline font-label-md text-label-md">
+<span>Projects</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-bold">Green Neighborhood Verticals</span>
+</nav>
+<h1 class="font-headline-lg text-headline-lg text-on-surface font-extrabold tracking-tight">Green Neighborhood Verticals</h1>
+</div>
+<div class="flex items-center gap-sm">
+<span class="px-md py-1 bg-tertiary-fixed text-tertiary font-bold font-label-md rounded-full border border-tertiary/20 flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+                        Developing - Phase 2
+                    </span>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-secondary hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="w-10 h-10 rounded-full border border-outline-variant flex items-center justify-center text-secondary hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</section>
+<!-- Grid Layout -->
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Main Canvas (Left/Center) -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- 2. Roadmap -->
+<div class="glass-card p-md rounded-xl space-y-md">
+<div class="flex justify-between items-center">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Project Roadmap</h2>
+<span class="text-primary font-label-md cursor-pointer flex items-center gap-xs">Edit Timeline <span class="material-symbols-outlined text-sm">edit</span></span>
+</div>
+<div class="relative pt-lg pb-md">
+<!-- Connector Line -->
+<div class="absolute top-[52px] left-0 w-full h-[2px] bg-outline-variant"></div>
+<div class="absolute top-[52px] left-0 w-[40%] h-[2px] bg-primary"></div>
+<div class="relative grid grid-cols-4 gap-xs">
+<!-- Phase 1 -->
+<div class="flex flex-col items-center text-center space-y-sm">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white z-10">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold">Phase 1</p>
+<p class="font-body-sm text-body-sm text-on-surface">Research</p>
+<p class="text-[10px] text-secondary font-bold uppercase">Completed</p>
+</div>
+</div>
+<!-- Phase 2 -->
+<div class="flex flex-col items-center text-center space-y-sm">
+<div class="w-8 h-8 rounded-full bg-white border-4 border-primary flex items-center justify-center text-primary z-10 shadow-sm">
+<div class="w-2 h-2 rounded-full bg-primary animate-ping"></div>
+</div>
+<div>
+<p class="font-label-md text-label-md text-primary font-bold">Phase 2</p>
+<p class="font-body-sm text-body-sm text-on-surface font-bold">Tech Architecture</p>
+<p class="text-[10px] text-primary font-bold uppercase">Active</p>
+</div>
+</div>
+<!-- Phase 3 -->
+<div class="flex flex-col items-center text-center space-y-sm opacity-60">
+<div class="w-8 h-8 rounded-full bg-white border-2 border-outline-variant z-10"></div>
+<div>
+<p class="font-label-md text-label-md text-secondary">Phase 3</p>
+<p class="font-body-sm text-body-sm text-on-surface">Pilot Launch</p>
+<p class="text-[10px] text-secondary font-bold uppercase">Pending</p>
+</div>
+</div>
+<!-- Phase 4 -->
+<div class="flex flex-col items-center text-center space-y-sm opacity-60">
+<div class="w-8 h-8 rounded-full bg-white border-2 border-outline-variant z-10"></div>
+<div>
+<p class="font-label-md text-label-md text-secondary">Phase 4</p>
+<p class="font-body-sm text-body-sm text-on-surface">Scaling</p>
+<p class="text-[10px] text-secondary font-bold uppercase">Future</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. Technical Stack & 3. Team (Bento Style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Tech Stack -->
+<div class="glass-card p-md rounded-xl space-y-md ai-accent-border">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">layers</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Infrastructure</h3>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="px-sm py-1 bg-surface-container rounded-lg font-label-md text-secondary">Cloud-Native</span>
+<span class="px-sm py-1 bg-surface-container rounded-lg font-label-md text-secondary">Modular Microservices</span>
+<span class="px-sm py-1 bg-surface-container rounded-lg font-label-md text-secondary">Kubernetes</span>
+<span class="px-sm py-1 bg-surface-container rounded-lg font-label-md text-secondary">Vector DB</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">The architecture is designed for high-concurrency vertical farming sensors and AI-driven load balancing across edge nodes.</p>
+</div>
+<!-- Team -->
+<div class="glass-card p-md rounded-xl space-y-md">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Project Team</h3>
+<span class="material-symbols-outlined text-outline cursor-pointer">person_add</span>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm">
+<img class="w-10 h-10 rounded-full border-2 border-primary-fixed" data-alt="Close-up portrait of a female project lead with a warm smile, wearing a professional charcoal blazer. The lighting is soft and natural, suggesting an ethical and sustainable innovation environment. The visual style is clean, corporate, and trustworthy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuByxuVFVtu1JQo7X_RFtF8gAZ2f_lx9v690pCZFfoilixtKMFbLCHY2eFAiZMBGf0FamMCJxKPp64x2r8-hB-4driE5kiUkwWMyx-VkJ9wa2UF8g6uqrSFuYq6bv3ffWu_JDw_0fSLQqvx3mqWZDLqGgPEiaOqXM-kzrxhwhaRh3UNzlb8Syw61sk8OeEeJf8gzrhtIO8QY12sNySq-_rO0TmOf0IU4jF84-jcAr2f_ZY-L_bYVqCL2iniXJZ77YqgN4IQO6t9YfDdf"/>
+<div>
+<p class="font-body-md text-body-md font-bold leading-tight">Alex Miller</p>
+<p class="text-[11px] text-secondary font-bold uppercase">Project Lead</p>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<img class="w-10 h-10 rounded-full border-2 border-tertiary-fixed" data-alt="A portrait of a male AI architect, focused and intelligent expression, with digital data overlays subtly reflected in the glass background. High-tech, clean minimalist aesthetic with cyan accents, conveying expertise in advanced machine learning and cloud systems." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbUie0L8RcKNip9v2ieoSPZoXOatNYh4bnTHzVtbIyOj9IP9W8GiMt2tyDq_MtB6C6ENy4iXONFG9eDE2S5G-K4HMi8oMcrzgh_efrkzirZDEd1TcMaqCu_1z0t4RXCb0Ewf_7886NK5Er3QOJctj1yVy93ixYV-Tl3eUU0N-YOefKfIRP3t2VEnSoXhAkLIXxJ3whYmOWshDELBclTTOAdTYy-7t8VFZOziLVhz1nIIvQ2fBEQ0J-k8mTvA25VOob1eu_cw6x7cpj"/>
+<div>
+<p class="font-body-md text-body-md font-bold leading-tight">Sanjay Kumar</p>
+<p class="text-[11px] text-secondary font-bold uppercase">AI Architect</p>
+</div>
+</div>
+<div class="flex items-center gap-sm">
+<img class="w-10 h-10 rounded-full border-2 border-outline-variant" data-alt="Portrait of a female sustainability expert in an airy, bright office filled with indoor vertical plant walls. She looks visionary and optimistic, lit by sunlight streaming through large windows. The overall mood is fresh, ecological, and scientifically rigorous." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvLkEYd96xHpQ-zKJejhnIX4vwkopVAMN0W-2hg07EzckIjrTlvPO2DtLlUPyXhZeziikgS6Ib7glpeIR5CMe0T1qiLTedeMW6RBD2TMVfT7wCbkU1WyJDBjT3Xn7sv8hJqhObDt5YSpGb_oauOWR9CD_i9gpUkJjd5J7MXRjEY-aWJllywHGEo0HR4-u3mbTXg0D2nQE9TEzUyxzh0ilII8uZ3VK7_Ydk6cfi4N_XEiSlBvLUb4HTfItM5MaVq8RYneLxOFk4o9Mp"/>
+<div>
+<p class="font-body-md text-body-md font-bold leading-tight">Elena Lora</p>
+<p class="text-[11px] text-secondary font-bold uppercase">Sustainability Expert</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 5. AI Project Insights -->
+<div class="bg-inverse-surface rounded-2xl p-lg relative overflow-hidden">
+<!-- Decorative Hexagon -->
+<div class="absolute -right-8 -top-8 w-32 h-32 opacity-10">
+<svg class="fill-primary-container" viewbox="0 0 100 100">
+<path d="M50 0 L93.3 25 L93.3 75 L50 100 L6.7 75 L6.7 25 Z"></path>
+</svg>
+</div>
+<div class="flex items-start justify-between">
+<div class="space-y-md">
+<div class="flex items-center gap-sm">
+<div class="p-xs bg-primary-container rounded-lg">
+<span class="material-symbols-outlined text-white">bolt</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-primary">AI Project Insights</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-lg">
+<div class="space-y-xs">
+<p class="font-label-md text-label-md text-primary-fixed-dim uppercase font-bold tracking-widest">Next Milestone</p>
+<p class="font-body-lg text-body-lg text-white font-bold">Core AI Optimization</p>
+</div>
+<div class="space-y-xs">
+<p class="font-label-md text-label-md text-primary-fixed-dim uppercase font-bold tracking-widest">Risk Level</p>
+<div class="flex items-center gap-sm">
+<p class="font-body-lg text-body-lg text-white font-bold">Low</p>
+<div class="flex-1 h-2 bg-white/10 rounded-full max-w-[80px]">
+<div class="h-full bg-tertiary-fixed w-[20%] rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="space-y-xs">
+<p class="font-label-md text-label-md text-primary-fixed-dim uppercase font-bold tracking-widest">Resources</p>
+<p class="font-body-lg text-body-lg text-white font-bold">85% Allocated</p>
+</div>
+</div>
+</div>
+<div class="hidden md:block">
+<div class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center justify-center">
+<span class="text-headline-sm font-bold text-tertiary-fixed">94</span>
+<span class="text-[10px] text-white/60 font-bold uppercase">AI Health</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 6. Sidebar/Secondary Panel -->
+<div class="col-span-12 lg:col-span-4 space-y-gutter">
+<!-- Documents -->
+<div class="glass-card p-md rounded-xl space-y-md">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Documents</h3>
+<span class="material-symbols-outlined text-primary cursor-pointer">upload_file</span>
+</div>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm p-sm bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-error">description</span>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-sm text-body-sm font-bold truncate">Architecture_Spec_v2.pdf</p>
+<p class="text-[10px] text-secondary">2.4 MB • 2h ago</p>
+</div>
+</div>
+<div class="flex items-center gap-sm p-sm bg-surface-container rounded-lg hover:bg-surface-container-high transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<div class="flex-1 overflow-hidden">
+<p class="font-body-sm text-body-sm font-bold truncate">Ecosystem_Impact_Study.xlsx</p>
+<p class="text-[10px] text-secondary">1.1 MB • Yesterday</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Research Nodes -->
+<div class="glass-card p-md rounded-xl space-y-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Related Nodes</h3>
+<div class="space-y-sm">
+<div class="flex items-center gap-sm group cursor-pointer">
+<div class="w-2 h-2 rounded-full bg-primary group-hover:scale-150 transition-transform"></div>
+<p class="font-body-sm text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">Vertical Hydroponics Efficiency</p>
+</div>
+<div class="flex items-center gap-sm group cursor-pointer">
+<div class="w-2 h-2 rounded-full bg-secondary group-hover:scale-150 transition-transform"></div>
+<p class="font-body-sm text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">Urban Mesh Networking</p>
+</div>
+<div class="flex items-center gap-sm group cursor-pointer">
+<div class="w-2 h-2 rounded-full bg-tertiary group-hover:scale-150 transition-transform"></div>
+<p class="font-body-sm text-body-sm text-on-surface-variant group-hover:text-primary transition-colors">Carbon Credit Tokenization</p>
+</div>
+</div>
+</div>
+<!-- Activity Log -->
+<div class="glass-card p-md rounded-xl space-y-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Activity Log</h3>
+<div class="relative space-y-md pl-sm">
+<div class="absolute left-1 top-2 bottom-4 w-0.5 bg-outline-variant/30"></div>
+<div class="relative flex gap-sm">
+<div class="w-2 h-2 rounded-full bg-primary mt-1.5 z-10 ring-4 ring-white"></div>
+<div>
+<p class="font-body-sm text-body-sm"><span class="font-bold">Sanjay</span> pushed technical schema</p>
+<p class="text-[10px] text-secondary">45 minutes ago</p>
+</div>
+</div>
+<div class="relative flex gap-sm">
+<div class="w-2 h-2 rounded-full bg-outline-variant mt-1.5 z-10 ring-4 ring-white"></div>
+<div>
+<p class="font-body-sm text-body-sm">Resource allocation adjusted</p>
+<p class="text-[10px] text-secondary">Yesterday, 4:12 PM</p>
+</div>
+</div>
+<div class="relative flex gap-sm">
+<div class="w-2 h-2 rounded-full bg-outline-variant mt-1.5 z-10 ring-4 ring-white"></div>
+<div>
+<p class="font-body-sm text-body-sm"><span class="font-bold">Alex</span> marked Phase 1 complete</p>
+<p class="text-[10px] text-secondary">Oct 24, 2023</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-20 md:hidden bg-surface shadow-[0_-4px_20px_rgba(7,27,58,0.05)] rounded-t-xl">
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-label-md text-[10px]">Ideas</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">biotech</span>
+<span class="font-label-md text-[10px]">Research</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1 scale-95">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-md text-[10px]">Projects</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-label-md text-[10px]">Map</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">group</span>
+<span class="font-label-md text-[10px]">Community</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for activity dots and hover states
+        document.querySelectorAll('.glass-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-2px)';
+                card.style.transition = 'all 0.3s ease';
+                card.style.boxShadow = '0px 12px 32px rgba(7, 27, 58, 0.08)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0px)';
+                card.style.boxShadow = '0px 4px 20px rgba(7, 27, 58, 0.05)';
+            });
+        });
+    </script>
+</body></html>

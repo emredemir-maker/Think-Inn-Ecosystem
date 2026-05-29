@@ -4,6 +4,7 @@ import { ThumbsUp, User, Calendar, Network, FileText, ArrowUpRight } from "lucid
 import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { API_ORIGIN } from "@/lib/api-config";
 
 export function ResearchCard({
   research,
@@ -22,7 +23,7 @@ export function ResearchCard({
   const imageSrc = research.coverImageB64
     ? `data:${research.coverImageMimeType};base64,${research.coverImageB64}`
     : hasImage
-      ? `/api/research/${research.id}/cover`
+      ? `${API_ORIGIN}/api/research/${research.id}/cover`
       : null;
 
   const handleVoteClick = (e: React.MouseEvent) => {

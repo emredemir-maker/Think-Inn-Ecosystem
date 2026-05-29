@@ -9,6 +9,7 @@ import {
   Quote, BookOpen, FileText, ExternalLink
 } from "lucide-react";
 import { useAuth, authFetch } from "@/lib/auth-context";
+import { CommunityOverview } from "@/components/community/CommunityOverview";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,10 +42,10 @@ type UserRole = "super_admin" | "moderator" | "master" | "user";
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const ROLE_ICON: Record<string, React.ReactNode> = {
-  super_admin: <ShieldAlert size={10} className="text-red-400" />,
-  moderator:   <Shield size={10} className="text-amber-400" />,
-  master:      <Crown size={10} className="text-violet-400" />,
-  user:        <User size={10} className="text-slate-500" />,
+  super_admin: <ShieldAlert size={10} className="text-error" />,
+  moderator:   <Shield size={10} className="text-primary" />,
+  master:      <Crown size={10} className="text-secondary" />,
+  user:        <User size={10} className="text-on-surface-variant" />,
 };
 
 function timeAgo(iso: string) {
@@ -64,7 +65,9 @@ const EMOJIS = [
   { key: "fire", icon: <Flame size={13} />, label: "🔥" },
 ] as const;
 
-const ACCENT = "#6366f1";
+const ACCENT = "#1463F3";       // Brand primary blue
+const ACCENT_SOFT = "rgba(20,99,243,0.10)";
+const ACCENT_BORDER = "rgba(20,99,243,0.25)";
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -162,38 +165,44 @@ export default function CommunityPage() {
   }
 
   return (
-    <div className="flex-1 flex overflow-hidden">
-      {/* ── Spaces Sidebar ───────────────────────────────────────── */}
-      <div
-        className="w-56 shrink-0 flex flex-col overflow-hidden"
-        style={{
-          background: "rgba(6,9,20,0.8)",
-          borderRight: "1px solid rgba(99,102,241,0.15)",
+    <div className="flex h-full flex-col overflow-y-auto bg-background custom-scrollbar">
+      {/* ── Referans landing: üye leaderboard + tartışma feed + pulse ── */}
+      <CommunityOverview
+        onOpenThread={(t) => {
+          setActiveSpaceId(t.spaceId);
+          setActiveThread(t as unknown as Thread);
         }}
-      >
+      />
+
+      {/* ── Forum (spaces/threads/posts) — spec'e uygun, aynen korundu ── */}
+      <div className="mx-10 mb-7 mt-2">
+        <p className="overline mb-3">Tartışma Forumu</p>
+        <div className="flex h-[640px] overflow-hidden rounded-[18px] border border-outline-variant bg-background">
+      {/* ── Spaces Sidebar ───────────────────────────────────────── */}
+      <div className="w-60 shrink-0 flex flex-col overflow-hidden bg-white border-r border-outline-variant">
         <div className="px-4 pt-5 pb-3">
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Topluluk Alanları</p>
+          <p className="overline mb-3">Topluluk Alanları</p>
           {loadingSpaces ? (
-            <div className="flex items-center justify-center py-6"><Loader2 size={16} className="text-indigo-400 animate-spin" /></div>
+            <div className="flex items-center justify-center py-6"><Loader2 size={16} className="text-primary animate-spin" /></div>
           ) : spaces.length === 0 ? (
-            <p className="text-xs text-slate-600 italic text-center py-4">Henüz alan yok</p>
+            <p className="text-xs text-on-surface-variant italic text-center py-4">Henüz alan yok</p>
           ) : (
             <div className="space-y-0.5">
               {spaces.map((s) => (
                 <button
                   key={s.id}
                   onClick={() => { setActiveSpaceId(s.id); setActiveThread(null); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all text-left"
-                  style={
+                  className={[
+                    "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[14px] transition-all text-left",
                     activeSpaceId === s.id
-                      ? { background: "rgba(99,102,241,0.15)", color: "#a5b4fc", borderLeft: `2px solid ${s.color ?? ACCENT}` }
-                      : { color: "#64748b", borderLeft: "2px solid transparent" }
-                  }
+                      ? "bg-primary/[0.10] text-primary font-semibold border border-primary/20"
+                      : "text-on-surface-variant border border-transparent hover:bg-background hover:text-on-surface",
+                  ].join(" ")}
                 >
-                  <Hash size={13} style={{ color: s.color ?? ACCENT, opacity: activeSpaceId === s.id ? 1 : 0.5 }} />
+                  <Hash size={13} style={{ color: s.color ?? ACCENT, opacity: activeSpaceId === s.id ? 1 : 0.65 }} />
                   <span className="truncate font-medium">{s.name}</span>
                   {s.threadCount > 0 && (
-                    <span className="ml-auto text-[10px] text-slate-600">{s.threadCount}</span>
+                    <span className="ml-auto text-[10px] font-bold text-on-surface-variant">{s.threadCount}</span>
                   )}
                 </button>
               ))}
@@ -205,8 +214,7 @@ export default function CommunityPage() {
           <div className="px-4 pb-4 mt-auto">
             <button
               onClick={() => setShowCreateSpace(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-indigo-400 transition-all"
-              style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}
+              className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-primary bg-primary/[0.08] border border-primary/20 transition-all hover:bg-primary/[0.15]"
             >
               <Plus size={13} /> Yeni Alan
             </button>
@@ -215,58 +223,55 @@ export default function CommunityPage() {
       </div>
 
       {/* ── Thread List ──────────────────────────────────────────── */}
-      <div
-        className="w-72 shrink-0 flex flex-col overflow-hidden"
-        style={{ borderRight: "1px solid rgba(99,102,241,0.1)" }}
-      >
+      <div className="w-72 shrink-0 flex flex-col overflow-hidden bg-white border-r border-outline-variant">
         {!activeSpace ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
-            <LayoutGrid size={32} className="text-indigo-400/30 mb-3" />
-            <p className="text-slate-500 text-sm">Bir topluluk alanı seçin</p>
+            <LayoutGrid size={32} className="text-primary/40 mb-3" />
+            <p className="text-on-surface-variant text-sm">Bir topluluk alanı seçin</p>
           </div>
         ) : (
           <>
             {/* Space header */}
-            <div className="px-5 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(99,102,241,0.1)" }}>
+            <div className="px-5 pt-5 pb-4 border-b border-outline-variant">
               <div className="flex items-center gap-2 mb-1">
                 <Hash size={16} style={{ color: activeSpace.color ?? ACCENT }} />
-                <h2 className="font-bold text-slate-200">{activeSpace.name}</h2>
+                <h2 className="font-bold text-on-surface">{activeSpace.name}</h2>
               </div>
               {activeSpace.description && (
-                <p className="text-xs text-slate-500 line-clamp-2">{activeSpace.description}</p>
+                <p className="text-xs text-on-surface-variant line-clamp-2">{activeSpace.description}</p>
               )}
             </div>
 
             {/* Thread list */}
             <div className="flex-1 overflow-y-auto">
               {loadingThreads ? (
-                <div className="flex items-center justify-center py-8"><Loader2 size={16} className="text-indigo-400 animate-spin" /></div>
+                <div className="flex items-center justify-center py-8"><Loader2 size={16} className="text-primary animate-spin" /></div>
               ) : threads.length === 0 ? (
                 <div className="text-center py-8">
-                  <MessageSquare size={24} className="text-slate-600 mx-auto mb-2" />
-                  <p className="text-xs text-slate-600">İlk tartışmayı başlatın</p>
+                  <MessageSquare size={24} className="text-on-surface-variant/40 mx-auto mb-2" />
+                  <p className="text-xs text-on-surface-variant">İlk tartışmayı başlatın</p>
                 </div>
               ) : (
                 threads.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setActiveThread(t)}
-                    className="w-full text-left px-4 py-3.5 transition-all"
-                    style={{
-                      borderBottom: "1px solid rgba(99,102,241,0.07)",
-                      background: activeThread?.id === t.id ? "rgba(99,102,241,0.1)" : "transparent",
-                      borderLeft: activeThread?.id === t.id ? `2px solid ${ACCENT}` : "2px solid transparent",
-                    }}
+                    className={[
+                      "w-full text-left px-4 py-3.5 border-b border-outline-variant transition-all",
+                      activeThread?.id === t.id
+                        ? "bg-primary/[0.06] border-l-2 border-l-primary"
+                        : "border-l-2 border-l-transparent hover:bg-background",
+                    ].join(" ")}
                   >
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-1">
-                          {t.isPinned && <Pin size={10} className="text-amber-400 shrink-0" />}
-                          {t.isLocked && <Lock size={10} className="text-red-400 shrink-0" />}
-                          {t.isFeatured && <Star size={10} className="text-violet-400 shrink-0" />}
-                          <p className="text-[13px] font-medium text-slate-200 line-clamp-2 leading-snug">{t.title}</p>
+                          {t.isPinned && <Pin size={10} className="text-risk shrink-0" />}
+                          {t.isLocked && <Lock size={10} className="text-error shrink-0" />}
+                          {t.isFeatured && <Star size={10} className="text-secondary shrink-0" />}
+                          <p className="text-[13px] font-semibold text-on-surface line-clamp-2 leading-snug">{t.title}</p>
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500">
+                        <div className="flex items-center gap-2 text-[11px] text-on-surface-variant">
                           <span>{t.authorDisplayName}</span>
                           <span>·</span>
                           <span className="flex items-center gap-0.5"><MessageSquare size={9} /> {t.replyCount}</span>
@@ -282,14 +287,10 @@ export default function CommunityPage() {
 
             {/* Create thread button */}
             {user && (
-              <div className="px-4 py-3" style={{ borderTop: "1px solid rgba(99,102,241,0.1)" }}>
+              <div className="px-4 py-3 border-t border-outline-variant">
                 <button
                   onClick={() => setShowCreateThread(true)}
-                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
-                  style={{
-                    background: "linear-gradient(135deg,rgba(99,102,241,0.7),rgba(139,92,246,0.6))",
-                    border: "1px solid rgba(99,102,241,0.4)",
-                  }}
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary shadow-[0_6px_18px_rgba(20,99,243,0.30)] transition-all hover:-translate-y-0.5 hover:bg-[#0e54d8]"
                 >
                   <Plus size={14} /> Tartışma Başlat
                 </button>
@@ -300,28 +301,25 @@ export default function CommunityPage() {
       </div>
 
       {/* ── Thread Detail + Posts ─────────────────────────────────── */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden bg-background">
         {!activeThread ? (
           <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-            <MessageSquare size={40} className="text-indigo-400/20 mb-4" />
-            <p className="text-slate-500">Bir tartışma seçin veya yeni bir tane başlatın</p>
+            <MessageSquare size={40} className="text-primary/30 mb-4" />
+            <p className="text-on-surface-variant">Bir tartışma seçin veya yeni bir tane başlatın</p>
           </div>
         ) : (
           <>
             {/* Thread header */}
-            <div
-              className="px-6 py-4 shrink-0"
-              style={{ borderBottom: "1px solid rgba(99,102,241,0.12)", background: "rgba(6,9,20,0.5)" }}
-            >
+            <div className="px-6 py-4 shrink-0 bg-white border-b border-outline-variant">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    {activeThread.isPinned && <span className="flex items-center gap-0.5 text-[10px] text-amber-400 font-semibold"><Pin size={9} /> Sabitlenmiş</span>}
-                    {activeThread.isLocked && <span className="flex items-center gap-0.5 text-[10px] text-red-400 font-semibold"><Lock size={9} /> Kilitli</span>}
-                    {activeThread.isFeatured && <span className="flex items-center gap-0.5 text-[10px] text-violet-400 font-semibold"><Star size={9} /> Öne Çıkan</span>}
+                    {activeThread.isPinned && <span className="flex items-center gap-0.5 text-[10px] text-risk font-semibold"><Pin size={9} /> Sabitlenmiş</span>}
+                    {activeThread.isLocked && <span className="flex items-center gap-0.5 text-[10px] text-error font-semibold"><Lock size={9} /> Kilitli</span>}
+                    {activeThread.isFeatured && <span className="flex items-center gap-0.5 text-[10px] text-secondary font-semibold"><Star size={9} /> Öne Çıkan</span>}
                   </div>
-                  <h2 className="font-bold text-lg text-slate-200 leading-snug">{activeThread.title}</h2>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-slate-500 flex-wrap">
+                  <h2 className="font-heading font-bold text-lg text-on-surface leading-snug">{activeThread.title}</h2>
+                  <div className="flex items-center gap-3 mt-1.5 text-xs text-on-surface-variant flex-wrap">
                     <span className="flex items-center gap-1">{ROLE_ICON[activeThread.authorRole]} {activeThread.authorDisplayName}</span>
                     <span>·</span>
                     <span className="flex items-center gap-1"><Clock size={10} /> {timeAgo(activeThread.createdAt)}</span>
@@ -361,10 +359,7 @@ export default function CommunityPage() {
                   onQuote={insertQuote}
                 />
               ) : activeThread.body ? (
-                <div
-                  className="mt-3 px-4 py-3 rounded-xl text-sm text-slate-300 leading-relaxed"
-                  style={{ background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.12)" }}
-                >
+                <div className="mt-3 px-4 py-3 rounded-xl text-sm text-on-surface-variant leading-relaxed bg-primary/[0.06] border border-primary/15">
                   {activeThread.body}
                 </div>
               ) : null}
@@ -373,11 +368,11 @@ export default function CommunityPage() {
             {/* Posts */}
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-3">
               {loadingPosts ? (
-                <div className="flex items-center justify-center py-10"><Loader2 size={18} className="text-indigo-400 animate-spin" /></div>
+                <div className="flex items-center justify-center py-10"><Loader2 size={18} className="text-primary animate-spin" /></div>
               ) : posts.length === 0 ? (
                 <div className="text-center py-10">
-                  <MessageSquare size={28} className="text-slate-700 mx-auto mb-2" />
-                  <p className="text-sm text-slate-600">Henüz yanıt yok. İlk yanıtı sen yaz!</p>
+                  <MessageSquare size={28} className="text-on-surface-variant/40 mx-auto mb-2" />
+                  <p className="text-sm text-on-surface-variant">Henüz yanıt yok. İlk yanıtı sen yaz!</p>
                 </div>
               ) : (
                 posts.map((p) => (
@@ -396,13 +391,13 @@ export default function CommunityPage() {
             {user ? (
               <div
                 className="px-6 py-4 shrink-0"
-                style={{ borderTop: "1px solid rgba(99,102,241,0.12)", background: "rgba(6,9,20,0.5)" }}
+                style={{ borderTop: "1px solid #E8EEF9", background: "rgba(255,255,255,0.95)" }}
               >
                 {replyParent && (
-                  <div className="flex items-center gap-2 mb-2 text-xs text-indigo-400">
+                  <div className="flex items-center gap-2 mb-2 text-xs text-primary">
                     <ChevronLeft size={12} />
                     <span>Yanıtlıyorsunuz</span>
-                    <button onClick={() => setReplyParent(undefined)} className="ml-auto text-slate-500 hover:text-slate-300">
+                    <button onClick={() => setReplyParent(undefined)} className="ml-auto text-on-surface-variant hover:text-on-surface">
                       <X size={12} />
                     </button>
                   </div>
@@ -410,7 +405,7 @@ export default function CommunityPage() {
                 {/* Quote preview */}
                 {replyContent.startsWith(">") && (
                   <div
-                    className="mb-2 px-3 py-2 rounded-lg text-xs text-slate-400 leading-relaxed"
+                    className="mb-2 px-3 py-2 rounded-lg text-xs text-on-surface-variant leading-relaxed"
                     style={{ background: "rgba(99,102,241,0.06)", borderLeft: "3px solid rgba(99,102,241,0.4)" }}
                   >
                     {replyContent.split("\n").filter(l => l.startsWith(">")).slice(0, 3).map((l, i) => (
@@ -421,7 +416,7 @@ export default function CommunityPage() {
                 <div className="flex gap-3">
                   <div
                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5"
-                    style={{ background: "rgba(99,102,241,0.3)", border: "1px solid rgba(99,102,241,0.4)" }}
+                    style={{ background: "rgba(99,102,241,0.3)", border: "none" }}
                   >
                     {user.displayName[0]?.toUpperCase()}
                   </div>
@@ -434,10 +429,10 @@ export default function CommunityPage() {
                       placeholder={activeThread.isLocked ? "Bu tartışma kilitlenmiş" : "Yanıtınızı yazın… (Ctrl+Enter gönderir)"}
                       disabled={activeThread.isLocked}
                       rows={replyContent.includes("\n") ? Math.min(replyContent.split("\n").length + 1, 8) : 2}
-                      className="flex-1 px-4 py-2.5 rounded-xl text-sm text-slate-200 placeholder:text-slate-600 outline-none resize-none font-mono"
+                      className="flex-1 px-4 py-2.5 rounded-xl text-sm text-on-surface placeholder:text-outline outline-none resize-none font-mono"
                       style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(99,102,241,0.2)",
+                        background: "#FFFFFF",
+                        border: "1px solid rgba(20,99,243,0.20)",
                         lineHeight: "1.6",
                       }}
                     />
@@ -445,7 +440,7 @@ export default function CommunityPage() {
                       onClick={sendReply}
                       disabled={!replyContent.trim() || mutPost.isPending || activeThread.isLocked}
                       className="p-2.5 rounded-xl text-white transition-all disabled:opacity-30 shrink-0"
-                      style={{ background: "rgba(99,102,241,0.7)", border: "1px solid rgba(99,102,241,0.4)" }}
+                      style={{ background: "rgba(99,102,241,0.7)", border: "none" }}
                     >
                       {mutPost.isPending ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
                     </button>
@@ -454,8 +449,8 @@ export default function CommunityPage() {
               </div>
             ) : (
               <div
-                className="px-6 py-3 text-center text-xs text-slate-500 shrink-0"
-                style={{ borderTop: "1px solid rgba(99,102,241,0.12)" }}
+                className="px-6 py-3 text-center text-xs text-on-surface-variant shrink-0"
+                style={{ borderTop: "1px solid #E8EEF9" }}
               >
                 Yanıt yazmak için giriş yapmanız gerekiyor
               </div>
@@ -482,6 +477,8 @@ export default function CommunityPage() {
           setActiveThread(thread);
         }}
       />
+        </div>
+      </div>
     </div>
   );
 }
@@ -551,7 +548,7 @@ function LinkedCard({ linkedIdeaId, linkedResearchId, onQuote }: {
           {icon}
         </div>
         <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{typeLabel}</span>
-        <span className="text-sm font-medium text-slate-300 flex-1 truncate">{title}</span>
+        <span className="text-sm font-medium text-on-surface flex-1 truncate">{title}</span>
         <div className="flex items-center gap-2 flex-shrink-0">
           {!isLoading && (
             <button
@@ -618,7 +615,7 @@ function QuoteableSection({ label, content, accent, onQuote }: {
           <Quote size={9} /> Alıntıla
         </button>
       </div>
-      <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">{content}</p>
+      <p className="text-sm text-on-surface leading-relaxed whitespace-pre-wrap">{content}</p>
     </div>
   );
 }
@@ -648,7 +645,7 @@ function IdeaCardContent({ idea, accent, onQuote }: { idea: IdeaDetail; accent: 
           ] as [string, number][]).map(([label, score]) => (
             <div key={label} className="text-center">
               <div className="text-base font-bold" style={{ color: score >= 7 ? "#34d399" : score >= 5 ? "#f59e0b" : "#f87171" }}>{score}</div>
-              <div className="text-[9px] text-slate-500">{label}</div>
+              <div className="text-[9px] text-on-surface-variant">{label}</div>
             </div>
           ))}
         </div>
@@ -711,7 +708,7 @@ function PostCard({ post, isLocked, onReply, onReact }: {
           }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-semibold text-slate-300 flex items-center gap-1">
+            <span className="text-xs font-semibold text-on-surface flex items-center gap-1">
               {ROLE_ICON[post.authorRole]} {post.authorDisplayName}
             </span>
             {post.isSolution && (
@@ -719,7 +716,7 @@ function PostCard({ post, isLocked, onReply, onReact }: {
                 <CheckCircle2 size={9} /> Çözüm
               </span>
             )}
-            <span className="ml-auto text-[11px] text-slate-600">{timeAgo(post.createdAt)}</span>
+            <span className="ml-auto text-[11px] text-outline">{timeAgo(post.createdAt)}</span>
           </div>
           <PostContent content={post.content} />
         </div>
@@ -728,7 +725,7 @@ function PostCard({ post, isLocked, onReply, onReact }: {
             <button
               key={e.key}
               onClick={() => onReact(e.key)}
-              className="text-[11px] text-slate-500 hover:text-slate-300 transition-colors flex items-center gap-0.5"
+              className="text-[11px] text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-0.5"
             >
               {e.icon}
             </button>
@@ -736,13 +733,13 @@ function PostCard({ post, isLocked, onReply, onReact }: {
           {!isLocked && (
             <button
               onClick={() => onReply(post.id)}
-              className="ml-1 text-[11px] text-indigo-400/60 hover:text-indigo-400 transition-colors"
+              className="ml-1 text-[11px] text-primary/60 hover:text-primary transition-colors"
             >
               Yanıtla
             </button>
           )}
           {post.reactionCount > 0 && (
-            <span className="ml-auto text-[11px] text-slate-600">{post.reactionCount} tepki</span>
+            <span className="ml-auto text-[11px] text-outline">{post.reactionCount} tepki</span>
           )}
         </div>
       </div>
@@ -773,13 +770,13 @@ function PostContent({ content }: { content: string }) {
         block.type === "quote" ? (
           <div
             key={i}
-            className="px-3 py-2 rounded-lg text-slate-400 italic"
+            className="px-3 py-2 rounded-lg text-on-surface-variant italic"
             style={{ background: "rgba(99,102,241,0.07)", borderLeft: "3px solid rgba(99,102,241,0.35)" }}
           >
             {block.lines.map((l, j) => <p key={j}>{l || "\u00A0"}</p>)}
           </div>
         ) : (
-          <p key={i} className="text-slate-300 whitespace-pre-wrap">
+          <p key={i} className="text-on-surface whitespace-pre-wrap">
             {block.lines.join("\n")}
           </p>
         )
@@ -837,25 +834,25 @@ function CreateSpaceModal({ open, onClose, onSuccess }: {
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-50 flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0" style={{ background: "rgba(0,0,8,0.75)" }} onClick={onClose} />
+          <div className="absolute inset-0" style={{ background: "rgba(7,27,58,0.40)" }} onClick={onClose} />
           <motion.div
             className="relative z-10 w-full max-w-sm p-6 rounded-2xl"
             initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            style={{ background: "rgba(7,11,26,0.98)", border: "1px solid rgba(99,102,241,0.3)" }}
+            style={{ background: "#FFFFFF", border: "1px solid #E8EEF9", boxShadow: "0 18px 40px rgba(7,27,58,0.10)" }}
           >
-            <p className="font-bold text-slate-200 mb-4 flex items-center gap-2"><Hash size={16} className="text-indigo-400" /> Yeni Alan Oluştur</p>
+            <p className="font-bold text-on-surface mb-4 flex items-center gap-2"><Hash size={16} className="text-primary" /> Yeni Alan Oluştur</p>
             <form onSubmit={submit} className="space-y-3">
               <FormInput label="Alan Adı" value={form.name} onChange={(v) => setForm((p) => ({ ...p, name: v, slug: v.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") }))} placeholder="örn. Yapay Zeka" />
               <FormInput label="Slug" value={form.slug} onChange={(v) => setForm((p) => ({ ...p, slug: v }))} placeholder="yapay-zeka" />
               <FormInput label="Açıklama" value={form.description} onChange={(v) => setForm((p) => ({ ...p, description: v }))} placeholder="Bu alanın konusu…" />
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Renk</label>
-                <input type="color" value={form.color} onChange={(e) => setForm((p) => ({ ...p, color: e.target.value }))} className="w-full h-9 rounded-xl cursor-pointer" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.2)" }} />
+                <label className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Renk</label>
+                <input type="color" value={form.color} onChange={(e) => setForm((p) => ({ ...p, color: e.target.value }))} className="w-full h-9 rounded-xl cursor-pointer" style={{ background: "#FFFFFF", border: "1px solid rgba(20,99,243,0.20)" }} />
               </div>
-              {error && <p className="text-xs text-red-400 flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
+              {error && <p className="text-xs text-error flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
               <div className="flex gap-2 mt-2">
-                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl text-sm text-slate-400" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>İptal</button>
-                <button type="submit" disabled={loading} className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.8),rgba(139,92,246,0.7))", border: "1px solid rgba(99,102,241,0.4)" }}>
+                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl text-sm text-on-surface-variant" style={{ background: "#FFFFFF", border: "1px solid #E2E8F4" }}>İptal</button>
+                <button type="submit" disabled={loading} className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #1463F3, #7A5CFF)", border: "none" }}>
                   {loading ? "Oluşturuluyor…" : "Oluştur"}
                 </button>
               </div>
@@ -895,23 +892,23 @@ function CreateThreadModal({ open, spaceId, onClose, onSuccess }: {
     <AnimatePresence>
       {open && (
         <motion.div className="fixed inset-0 z-50 flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <div className="absolute inset-0" style={{ background: "rgba(0,0,8,0.75)" }} onClick={onClose} />
+          <div className="absolute inset-0" style={{ background: "rgba(7,27,58,0.40)" }} onClick={onClose} />
           <motion.div
             className="relative z-10 w-full max-w-lg p-6 rounded-2xl"
             initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-            style={{ background: "rgba(7,11,26,0.98)", border: "1px solid rgba(99,102,241,0.3)" }}
+            style={{ background: "#FFFFFF", border: "1px solid #E8EEF9", boxShadow: "0 18px 40px rgba(7,27,58,0.10)" }}
           >
-            <p className="font-bold text-slate-200 mb-4 flex items-center gap-2"><MessageSquare size={16} className="text-indigo-400" /> Yeni Tartışma</p>
+            <p className="font-bold text-on-surface mb-4 flex items-center gap-2"><MessageSquare size={16} className="text-primary" /> Yeni Tartışma</p>
             <form onSubmit={submit} className="space-y-3">
               <FormInput label="Başlık" value={form.title} onChange={(v) => setForm((p) => ({ ...p, title: v }))} placeholder="Tartışma başlığı…" />
               <div className="space-y-1">
-                <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Açıklama (isteğe bağlı)</label>
-                <textarea value={form.body} onChange={(e) => setForm((p) => ({ ...p, body: e.target.value }))} placeholder="Daha fazla detay…" rows={4} className="w-full px-3 py-2.5 rounded-xl text-sm text-slate-200 placeholder:text-slate-600 outline-none resize-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.2)" }} />
+                <label className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">Açıklama (isteğe bağlı)</label>
+                <textarea value={form.body} onChange={(e) => setForm((p) => ({ ...p, body: e.target.value }))} placeholder="Daha fazla detay…" rows={4} className="w-full px-3 py-2.5 rounded-xl text-sm text-on-surface placeholder:text-outline outline-none resize-none" style={{ background: "#FFFFFF", border: "1px solid rgba(20,99,243,0.20)" }} />
               </div>
-              {error && <p className="text-xs text-red-400 flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
+              {error && <p className="text-xs text-error flex items-center gap-1"><AlertCircle size={11} />{error}</p>}
               <div className="flex gap-2 mt-2">
-                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl text-sm text-slate-400" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>İptal</button>
-                <button type="submit" disabled={loading} className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg,rgba(99,102,241,0.8),rgba(139,92,246,0.7))", border: "1px solid rgba(99,102,241,0.4)" }}>
+                <button type="button" onClick={onClose} className="flex-1 py-2 rounded-xl text-sm text-on-surface-variant" style={{ background: "#FFFFFF", border: "1px solid #E2E8F4" }}>İptal</button>
+                <button type="submit" disabled={loading} className="flex-1 py-2 rounded-xl text-sm font-semibold text-white" style={{ background: "linear-gradient(135deg, #1463F3, #7A5CFF)", border: "none" }}>
                   {loading ? "Gönderiliyor…" : "Tartışmayı Başlat"}
                 </button>
               </div>
@@ -926,8 +923,8 @@ function CreateThreadModal({ open, spaceId, onClose, onSuccess }: {
 function FormInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
     <div className="space-y-1">
-      <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{label}</label>
-      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required className="w-full px-3 py-2.5 rounded-xl text-sm text-slate-200 placeholder:text-slate-600 outline-none" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(99,102,241,0.2)" }} />
+      <label className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">{label}</label>
+      <input value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} required className="w-full px-3 py-2.5 rounded-xl text-sm text-on-surface placeholder:text-outline outline-none" style={{ background: "#FFFFFF", border: "1px solid rgba(20,99,243,0.20)" }} />
     </div>
   );
 }

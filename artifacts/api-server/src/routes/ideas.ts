@@ -4,7 +4,7 @@ import { ideasTable, researchTable, communityThreadsTable } from "@workspace/db"
 import { eq, desc } from "drizzle-orm";
 import { setImmediate } from "timers";
 import { backgroundEvaluateIdea } from "../utils/evaluate-idea";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, GEMINI_MODELS } from "@workspace/integrations-gemini-ai";
 import { autoCreateIdeaThread, autoCreateProjectThread } from "../utils/community-auto";
 
 const router = Router();
@@ -235,7 +235,7 @@ router.post("/:id/regenerate-analysis", async (req, res) => {
         const geminiCall = async (prompt: string, tokens = 6000): Promise<string> => {
           try {
             const r = await ai.models.generateContent({
-              model: "gemini-2.5-flash",
+              model: GEMINI_MODELS.analysis,
               contents: [{ role: "user", parts: [{ text: prompt }] }],
               config: { maxOutputTokens: tokens },
             });
@@ -274,7 +274,7 @@ Kurallar:
 - SADECE JSON döndür, başka hiçbir şey yazma`;
 
           const flowRes = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: GEMINI_MODELS.analysis,
             contents: [{ role: "user", parts: [{ text: flowPrompt }] }],
             config: { maxOutputTokens: 4096, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } } as any,
           });
@@ -315,6 +315,86 @@ Kurallar:
     });
   } catch (err) {
     req.log.error({ err }, "Failed to start analysis regeneration");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/ideas/:id/generate-financial — otonom finansal senaryo analizi üretir.
+// Sonuç architecturalAnalysis.financial içinde saklanır (yeni kolon yok). Yalnızca PROJE (analizli) için.
+router.post("/:id/generate-financial", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, id));
+    if (!idea) return res.status(404).json({ error: "Idea not found" });
+    if (!idea.architecturalAnalysis) {
+      return res.status(400).json({ error: "Önce proje (mimari) analizini üretin." });
+    }
+
+    res.json({ success: true, message: "Financial generation started." });
+
+    setImmediate(async () => {
+      try {
+        const ev = idea.evaluationScores as any;
+        const aa = idea.architecturalAnalysis as any;
+        const ctx =
+          `Proje: ${idea.title}\nAçıklama: ${idea.description}\nKategori: ${idea.category ?? "-"}\n` +
+          (ev ? `AI skorları → Ticari Fizibilite: ${ev.commercialFeasibility}/10, Pazar İhtiyacı: ${ev.marketNeed}/10, Risk: ${ev.riskGovernance}/10\n` : "") +
+          (aa?.technicalAnalysis ? `Teknik özet: ${String(aa.technicalAnalysis).slice(0, 700)}\n` : "");
+
+        const prompt = `Sen kurumsal bir FİNANSAL ANALİZ ajanısın. Aşağıdaki proje için DETAYLI, gerçekçi ve projeye ÖZGÜ finansal senaryo analizi üret. SADECE JSON döndür.
+
+${ctx}
+
+Kurallar:
+- 3 senaryo: "İyimser", "Baz", "Kötümser". Her biri projeye özgü, tutarlı tahminler içersin.
+- Para birimi ₺ (TRY). Gelirleri kısa biçimde yaz (ör. "₺4.2M", "₺850K").
+- roiPct: 24 ay sonu tahmini ROI yüzdesi (yalnızca sayı).
+- breakEvenMonths: başabaş ayı (yalnızca sayı).
+- assumptions: 3-5 temel varsayım (kısa). keyRisks: 2-4 finansal risk (kısa).
+- revenueModel: gelir modeli (1 cümle). capex: kuruluş/yatırım maliyeti (1 cümle). opex: aylık/yıllık işletme maliyeti (1 cümle).
+- summary: 2-3 cümlelik yönetici özeti.
+
+JSON formatı (SADECE JSON):
+{
+  "summary": "...",
+  "revenueModel": "...",
+  "capex": "...",
+  "opex": "...",
+  "assumptions": ["...", "..."],
+  "keyRisks": ["...", "..."],
+  "scenarios": [
+    { "name": "İyimser", "year1Revenue": "₺X", "year3Revenue": "₺Y", "roiPct": 180, "breakEvenMonths": 12, "note": "..." },
+    { "name": "Baz", "year1Revenue": "₺X", "year3Revenue": "₺Y", "roiPct": 90, "breakEvenMonths": 18, "note": "..." },
+    { "name": "Kötümser", "year1Revenue": "₺X", "year3Revenue": "₺Y", "roiPct": 20, "breakEvenMonths": 30, "note": "..." }
+  ]
+}`;
+
+        const r = await ai.models.generateContent({
+          model: GEMINI_MODELS.analysis,
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          config: { maxOutputTokens: 4096, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } } as any,
+        });
+        const raw = r.text?.trim() || "";
+        let parsed: any = null;
+        try { parsed = JSON.parse(raw); } catch {
+          const m = raw.match(/\{[\s\S]*\}/);
+          if (m) { try { parsed = JSON.parse(m[0]); } catch {} }
+        }
+        if (!parsed || !Array.isArray(parsed.scenarios) || parsed.scenarios.length === 0) {
+          console.warn(`[Financial] invalid result for #${id}`);
+          return;
+        }
+        const financial = { ...parsed, generatedAt: new Date().toISOString() };
+        await db.update(ideasTable)
+          .set({ architecturalAnalysis: { ...aa, financial } as any, updatedAt: new Date() })
+          .where(eq(ideasTable.id, id));
+        console.log(`[Financial] generated for #${id}: ${idea.title}`);
+      } catch (e) {
+        console.error(`[Financial] generation failed for #${id}:`, (e as Error).message);
+      }
+    });
+  } catch (err) {
+    req.log.error({ err }, "Failed to start financial generation");
     res.status(500).json({ error: "Internal server error" });
   }
 });

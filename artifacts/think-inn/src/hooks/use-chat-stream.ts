@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { API_ORIGIN } from "@/lib/api-config";
 
 export interface ChatMessage {
   id: string;
@@ -41,14 +42,19 @@ export function useChatStream(conversationId: number | null) {
     setError(null);
 
     try {
-      const res = await fetch(`/api/gemini/conversations/${conversationId}/messages`, {
+      const res = await fetch(`${API_ORIGIN}/api/gemini/conversations/${conversationId}/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content }),
+        credentials: "include",
         signal: abortControllerRef.current.signal,
       });
 
-      if (!res.ok) throw new Error("Failed to send message");
+      if (!res.ok) {
+        // Sunucudan dönen gerçek hata mesajını oku → "Failed to send message" yerine net mesaj
+        const errText = await res.text().catch(() => "");
+        throw new Error(`Sunucu ${res.status} döndü${errText ? ": " + errText.slice(0, 200) : ""}`);
+      }
       if (!res.body) throw new Error("No response body");
 
       const reader = res.body.getReader();

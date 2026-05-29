@@ -1,4 +1,4 @@
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, GEMINI_MODELS } from "@workspace/integrations-gemini-ai";
 
 /**
  * Builds a tailored image-generation prompt by first asking Gemini to identify
@@ -27,7 +27,7 @@ Rules:
 Reply with ONLY the one-sentence visual subject.`;
 
   const result = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: GEMINI_MODELS.fast,
     contents: [{ role: "user", parts: [{ text: metaprompt }] }],
     config: { maxOutputTokens: 80, thinkingConfig: { thinkingBudget: 0 } },
   });

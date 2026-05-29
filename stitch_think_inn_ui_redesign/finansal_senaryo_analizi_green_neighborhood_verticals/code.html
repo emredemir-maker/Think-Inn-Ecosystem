@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Financial Scenarios - think-Inn</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Manrope:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@100..900&amp;family=Montserrat:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-tertiary-fixed": "#001f26",
+                        "on-background": "#0c1b34",
+                        "tertiary-container": "#00798d",
+                        "error-container": "#ffdad6",
+                        "tertiary": "#005f6e",
+                        "on-surface-variant": "#424655",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e0e8ff",
+                        "background": "#f9f9ff",
+                        "surface-bright": "#f9f9ff",
+                        "secondary-container": "#c6d7ff",
+                        "outline-variant": "#c2c6d8",
+                        "surface-variant": "#d7e2ff",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9ff",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-tertiary-container": "#dbf7ff",
+                        "on-secondary": "#ffffff",
+                        "surface-container": "#e8eeff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-primary-container": "#f0f1ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "primary-container": "#1463f3",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "inverse-surface": "#22304a",
+                        "on-surface": "#0c1b34",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-primary-fixed": "#00184a",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#0054d7",
+                        "secondary": "#4e5e81",
+                        "on-secondary-container": "#4c5d80",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "inverse-primary": "#b3c5ff",
+                        "surface-dim": "#ccdafc",
+                        "primary-fixed": "#dbe1ff",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed": "#aaedff",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "primary": "#004cc5",
+                        "outline": "#737687"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "sm": "12px",
+                        "margin-desktop": "40px",
+                        "lg": "48px",
+                        "margin-mobile": "16px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "gutter": "24px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "headline-md": ["Montserrat"],
+                        "body-lg": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "headline-sm": ["Montserrat"],
+                        "body-md": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(226, 232, 240, 1);
+        }
+        .hex-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill-opacity='0.03' fill='%231463f3' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen hex-bg">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-surface-container-low border-r border-outline-variant flex flex-col py-base px-sm z-50">
+<div class="px-sm mb-lg">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">think-Inn</h1>
+<p class="font-body-sm text-on-surface-variant">Innovation Ecosystem</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+                Ideas
+            </a>
+<a class="flex items-center gap-sm px-sm py-md bg-primary-container text-on-primary-container rounded-lg font-bold" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                Research
+            </a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+                Projects
+            </a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">map</span>
+                Map
+            </a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">hub</span>
+                Community
+            </a>
+</nav>
+<button class="mt-md mb-lg w-full bg-gradient-to-r from-tertiary to-primary text-white font-bold py-md rounded-xl shadow-md active:scale-95 transition-transform">
+            New Discovery
+        </button>
+<div class="border-t border-outline-variant pt-md">
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+                Help
+            </a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+                Logout
+            </a>
+</div>
+</aside>
+<!-- Top App Bar -->
+<header class="w-[calc(100%-16rem)] ml-64 h-16 sticky top-0 z-40 bg-surface-bright/80 backdrop-blur-md shadow-sm flex justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-md">
+<h2 class="font-headline-sm text-headline-sm text-primary font-bold">Financial Analysis</h2>
+<div class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full text-label-md">Project: Green Neighborhood Verticals</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex gap-sm">
+<button class="p-base rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<button class="p-base rounded-full hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">settings</span>
+</button>
+</div>
+<img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed-dim object-cover" data-alt="A professional studio headshot of a middle-aged tech executive with a friendly, confident expression. The lighting is bright and clean, characteristic of a high-end corporate environment. The background is a soft-focus office with minimalist white furniture and large windows, reflecting a modern, light-mode UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCUQgGUxnQMemolyNThB9IRgQfe4ZMTky8fI-bffoy4jhyrGXpGep-FdmGuVxgtyUeQeMNBVUM-eFlYVGkomlcZj-Dr1M5rNayldiGf0AGwLoEFByOy1lTvcS684NWkaRLNdsxvLXJTipbTPbC2mQ1KJ4GKYrlyIAd_gIs9rM7XvVdxUH3s5UHW_Yhvx-TPhxRRhYhixRrdmTA_S8TqvFGX4U9L_opyttP5lngAAMSy84-2Mh9CqxllEhGeeh1UC-2izyDhAoc79M6M"/>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 p-margin-desktop space-y-gutter">
+<!-- Header Actions -->
+<div class="flex flex-col md:flex-row justify-between items-end gap-md">
+<div>
+<h3 class="font-headline-md text-headline-md text-on-background">Scenario Comparison &amp; Sensitivity Analysis</h3>
+<p class="font-body-md text-on-surface-variant">Evaluate long-term sustainability and profitability across varied market conditions.</p>
+</div>
+<div class="flex gap-sm">
+<button class="flex items-center gap-xs px-md py-sm rounded-xl border border-outline text-secondary font-bold hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">file_download</span> Export Model
+                </button>
+<button class="flex items-center gap-xs px-md py-sm rounded-xl border border-outline text-secondary font-bold hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined">share</span> Share with Investors
+                </button>
+<button class="flex items-center gap-xs px-md py-sm rounded-xl bg-primary text-white font-bold hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">tune</span> Adjust Variables
+                </button>
+</div>
+</div>
+<!-- Financial Score & Quick Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Conservative Scenario -->
+<div class="glass-card p-md rounded-xl flex flex-col relative overflow-hidden">
+<div class="absolute top-0 right-0 p-sm">
+<div class="w-12 h-14 bg-gradient-to-br from-slate-400 to-slate-600 flex flex-col items-center justify-center text-white rounded-bl-xl shadow-lg">
+<span class="text-xs font-bold">AI SCORE</span>
+<span class="text-lg font-bold">72</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-on-background flex items-center gap-sm">
+                    Conservative <span class="material-symbols-outlined text-slate-500 text-sm">trending_flat</span>
+</h4>
+<div class="mt-md space-y-sm">
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">CAPEX</span>
+<span class="font-bold">$12.4M</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">OPEX / Year</span>
+<span class="font-bold">$840k</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">Break-even</span>
+<span class="font-bold">6.8 Years</span>
+</div>
+<div class="flex justify-between text-primary font-bold">
+<span>5-Year ROI</span>
+<span>-4.2%</span>
+</div>
+</div>
+<div class="mt-md p-sm bg-surface-container-low rounded-lg text-body-sm text-on-surface-variant italic">
+                    "Low growth assumptions with 15% vacancy and standard energy pricing."
+                </div>
+</div>
+<!-- Expected Scenario -->
+<div class="glass-card p-md rounded-xl flex flex-col relative overflow-hidden ring-2 ring-primary">
+<div class="absolute top-0 right-0 p-sm">
+<div class="w-12 h-14 bg-gradient-to-br from-cyan-500 to-primary flex flex-col items-center justify-center text-white rounded-bl-xl shadow-lg">
+<span class="text-xs font-bold">AI SCORE</span>
+<span class="text-lg font-bold">88</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-on-background flex items-center gap-sm">
+                    Expected <span class="material-symbols-outlined text-primary text-sm">trending_up</span>
+</h4>
+<div class="mt-md space-y-sm">
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">CAPEX</span>
+<span class="font-bold">$14.2M</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">OPEX / Year</span>
+<span class="font-bold">$720k</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">Break-even</span>
+<span class="font-bold">4.2 Years</span>
+</div>
+<div class="flex justify-between text-primary font-bold">
+<span>5-Year ROI</span>
+<span>+18.5%</span>
+</div>
+</div>
+<div class="mt-md p-sm bg-surface-container-high rounded-lg text-body-sm text-on-surface-variant italic">
+                    "Moderate scaling with government subsidies and 90% occupancy."
+                </div>
+</div>
+<!-- Aggressive Scenario -->
+<div class="glass-card p-md rounded-xl flex flex-col relative overflow-hidden">
+<div class="absolute top-0 right-0 p-sm">
+<div class="w-12 h-14 bg-gradient-to-br from-violet-500 to-tertiary flex flex-col items-center justify-center text-white rounded-bl-xl shadow-lg">
+<span class="text-xs font-bold">AI SCORE</span>
+<span class="text-lg font-bold">94</span>
+</div>
+</div>
+<h4 class="font-headline-sm text-on-background flex items-center gap-sm">
+                    Aggressive <span class="material-symbols-outlined text-tertiary text-sm">rocket_launch</span>
+</h4>
+<div class="mt-md space-y-sm">
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">CAPEX</span>
+<span class="font-bold">$18.5M</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">OPEX / Year</span>
+<span class="font-bold">$610k</span>
+</div>
+<div class="flex justify-between border-b border-outline-variant pb-xs">
+<span class="text-on-surface-variant font-body-sm">Break-even</span>
+<span class="font-bold">3.1 Years</span>
+</div>
+<div class="flex justify-between text-primary font-bold">
+<span>5-Year ROI</span>
+<span>+42.1%</span>
+</div>
+</div>
+<div class="mt-md p-sm bg-surface-container-low rounded-lg text-body-sm text-on-surface-variant italic">
+                    "Maximum tech adoption, carbon credits trading, and 98% occupancy."
+                </div>
+</div>
+</div>
+<!-- Main Chart Section -->
+<div class="glass-card p-lg rounded-xl">
+<div class="flex justify-between items-start mb-lg">
+<div>
+<h4 class="font-headline-sm text-on-background">Cumulative Cash Flow Analysis</h4>
+<p class="text-body-sm text-on-surface-variant">Projected liquidity over 5 fiscal years (USD Millions)</p>
+</div>
+<div class="flex gap-md text-label-md">
+<div class="flex items-center gap-xs"><span class="w-3 h-3 rounded-full bg-slate-400"></span> Conservative</div>
+<div class="flex items-center gap-xs"><span class="w-3 h-3 rounded-full bg-primary"></span> Expected</div>
+<div class="flex items-center gap-xs"><span class="w-3 h-3 rounded-full bg-tertiary"></span> Aggressive</div>
+</div>
+</div>
+<div class="relative h-64 w-full flex items-end gap-1">
+<!-- Simple SVG/CSS bar-chart hybrid represention for demo -->
+<div class="flex-1 flex flex-col justify-end gap-2 h-full">
+<div class="grid grid-cols-5 gap-md h-48 items-end">
+<div class="h-[10%] bg-slate-200 rounded-t-sm"></div>
+<div class="h-[25%] bg-slate-300 rounded-t-sm"></div>
+<div class="h-[35%] bg-slate-400 rounded-t-sm"></div>
+<div class="h-[45%] bg-slate-500 rounded-t-sm"></div>
+<div class="h-[55%] bg-slate-600 rounded-t-sm"></div>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-2 h-full">
+<div class="grid grid-cols-5 gap-md h-48 items-end">
+<div class="h-[20%] bg-primary-fixed-dim rounded-t-sm"></div>
+<div class="h-[45%] bg-primary-fixed-dim rounded-t-sm"></div>
+<div class="h-[65%] bg-primary rounded-t-sm"></div>
+<div class="h-[85%] bg-primary rounded-t-sm"></div>
+<div class="h-[100%] bg-primary-container rounded-t-sm"></div>
+</div>
+</div>
+<div class="flex-1 flex flex-col justify-end gap-2 h-full">
+<div class="grid grid-cols-5 gap-md h-48 items-end">
+<div class="h-[30%] bg-tertiary-fixed-dim rounded-t-sm"></div>
+<div class="h-[55%] bg-tertiary-fixed-dim rounded-t-sm"></div>
+<div class="h-[75%] bg-tertiary rounded-t-sm"></div>
+<div class="h-[95%] bg-tertiary rounded-t-sm"></div>
+<div class="h-[110%] bg-tertiary-container rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<div class="flex justify-between mt-md border-t border-outline-variant pt-sm text-label-md text-on-surface-variant">
+<span>Year 1</span><span>Year 2</span><span>Year 3</span><span>Year 4</span><span>Year 5</span>
+</div>
+</div>
+<!-- Sensitivity Analysis Bento Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-gutter">
+<!-- Key Variable Impacts -->
+<div class="glass-card p-lg rounded-xl">
+<h4 class="font-headline-sm text-on-background mb-md">Sensitivity: Impact on Project IRR</h4>
+<div class="space-y-md">
+<!-- Energy Price -->
+<div class="space-y-xs">
+<div class="flex justify-between text-body-sm font-bold">
+<span>Energy Price Fluctuation (±10%)</span>
+<span class="text-error">± 3.2% Impact</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full overflow-hidden flex">
+<div class="w-[32%] bg-error/20"></div>
+<div class="w-[68%] bg-primary"></div>
+</div>
+</div>
+<!-- Government Subsidies -->
+<div class="space-y-xs">
+<div class="flex justify-between text-body-sm font-bold">
+<span>Government Subsidies Retention</span>
+<span class="text-tertiary">± 5.8% Impact</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full overflow-hidden flex">
+<div class="w-[58%] bg-tertiary"></div>
+<div class="w-[42%] bg-surface-variant"></div>
+</div>
+</div>
+<!-- Occupancy Rates -->
+<div class="space-y-xs">
+<div class="flex justify-between text-body-sm font-bold">
+<span>Occupancy Rate Stability</span>
+<span class="text-primary">± 4.5% Impact</span>
+</div>
+<div class="h-2 bg-surface-container rounded-full overflow-hidden flex">
+<div class="w-[45%] bg-primary"></div>
+<div class="w-[55%] bg-surface-variant"></div>
+</div>
+</div>
+</div>
+<div class="mt-lg p-md bg-primary/5 border-l-4 border-primary rounded-r-lg">
+<p class="text-body-sm font-bold text-primary">AI Recommendation:</p>
+<p class="text-body-sm text-on-secondary-fixed-variant">Hedge energy costs immediately. A 10% increase in grid rates reduces the break-even point by 8 months in the 'Expected' scenario.</p>
+</div>
+</div>
+<!-- ROI Matrix Table -->
+<div class="glass-card p-lg rounded-xl overflow-hidden">
+<h4 class="font-headline-sm text-on-background mb-md">Yield Comparison Matrix</h4>
+<table class="w-full text-left">
+<thead>
+<tr class="text-label-md text-on-surface-variant border-b border-outline-variant">
+<th class="pb-sm font-semibold">Metric</th>
+<th class="pb-sm font-semibold">Cons.</th>
+<th class="pb-sm font-semibold">Exp.</th>
+<th class="pb-sm font-semibold">Aggr.</th>
+</tr>
+</thead>
+<tbody class="text-body-sm">
+<tr class="border-b border-outline-variant">
+<td class="py-md font-bold">IRR (10yr)</td>
+<td class="py-md">4.2%</td>
+<td class="py-md text-primary font-bold">12.8%</td>
+<td class="py-md">18.4%</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-md font-bold">NPV (@7%)</td>
+<td class="py-md">($1.2M)</td>
+<td class="py-md text-primary font-bold">$3.4M</td>
+<td class="py-md">$8.9M</td>
+</tr>
+<tr class="border-b border-outline-variant">
+<td class="py-md font-bold">Carbon Credit Revenue</td>
+<td class="py-md">$40k/yr</td>
+<td class="py-md text-primary font-bold">$120k/yr</td>
+<td class="py-md">$280k/yr</td>
+</tr>
+<tr>
+<td class="py-md font-bold">Maintenance Reserves</td>
+<td class="py-md">2.5%</td>
+<td class="py-md text-primary font-bold">2.0%</td>
+<td class="py-md">1.5%</td>
+</tr>
+</tbody>
+</table>
+<div class="mt-md flex justify-center">
+<button class="text-primary font-bold text-label-md hover:underline flex items-center gap-xs">
+                        View Full Cash Flow Ledger <span class="material-symbols-outlined text-sm">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Connectivity Node Visual -->
+<div class="glass-card p-lg rounded-xl flex flex-col md:flex-row items-center gap-lg">
+<div class="w-full md:w-1/3 h-48 bg-surface-container rounded-xl flex items-center justify-center relative overflow-hidden">
+<!-- Artistic Ecosystem Placeholder -->
+<div class="absolute inset-0 opacity-20">
+<svg class="w-full h-full text-primary fill-current" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-width="0.5"></circle>
+<path d="M50 10 L50 90 M10 50 L90 50 M20 20 L80 80 M80 20 L20 80" stroke="currentColor" stroke-width="0.2"></path>
+<circle cx="50" cy="50" fill="currentColor" r="2"></circle>
+<circle cx="10" cy="50" fill="currentColor" r="1"></circle>
+<circle cx="90" cy="50" fill="currentColor" r="1"></circle>
+</svg>
+</div>
+<div class="z-10 text-center px-md">
+<span class="material-symbols-outlined text-primary text-4xl mb-sm">hub</span>
+<p class="font-bold text-headline-sm">Ecosystem Viability</p>
+</div>
+</div>
+<div class="flex-1 space-y-md">
+<h4 class="font-headline-sm text-on-background">Systematic Cohesion Check</h4>
+<p class="text-body-md text-on-surface-variant">The AI has analyzed the "Green Neighborhood Verticals" financial structure. The project demonstrates strong resilience against interest rate hikes due to the heavy upfront CAPEX and high operational efficiency models in the Expected scenario.</p>
+<div class="flex flex-wrap gap-sm">
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-label-md">Resilient to Inflation</span>
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-label-md">High Sustainability Premium</span>
+<span class="px-sm py-xs bg-tertiary-fixed text-on-tertiary-fixed rounded-full text-label-md">Optimized OPEX</span>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interaction for scenario card selection
+        const scenarioCards = document.querySelectorAll('.glass-card.relative.overflow-hidden');
+        scenarioCards.forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-4px)';
+                card.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Toggle Active Sidebar Class (Simplified Simulation)
+        const navLinks = document.querySelectorAll('aside nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                navLinks.forEach(l => {
+                    l.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                    l.classList.add('text-on-secondary-container');
+                });
+                link.classList.add('bg-primary-container', 'text-on-primary-container', 'font-bold');
+                link.classList.remove('text-on-secondary-container');
+            });
+        });
+    </script>
+</body></html>

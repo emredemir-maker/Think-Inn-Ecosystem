@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn | Research Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .hexagon-bg {
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill-opacity='0.03' fill='%23004cc5' fill-rule='evenodd'/%3E%3C/svg%3E");
+        }
+        .glass-accent {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.7);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#c6d7ff",
+                        "primary": "#004cc5",
+                        "outline-variant": "#c2c6d8",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-tint": "#0054d7",
+                        "surface-dim": "#ccdafc",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "on-tertiary-fixed": "#001f26",
+                        "on-error": "#ffffff",
+                        "on-background": "#0c1b34",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#22304a",
+                        "on-primary-fixed": "#00184a",
+                        "background": "#f9f9ff",
+                        "secondary": "#4e5e81",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#ba1a1a",
+                        "primary-container": "#1463f3",
+                        "tertiary-container": "#00798d",
+                        "on-surface": "#0c1b34",
+                        "inverse-primary": "#b3c5ff",
+                        "surface-bright": "#f9f9ff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#737687",
+                        "surface": "#f9f9ff",
+                        "on-surface-variant": "#424655",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "on-primary-container": "#f0f1ff",
+                        "tertiary-fixed": "#aaedff",
+                        "on-secondary-container": "#4c5d80",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "tertiary": "#005f6e",
+                        "surface-container-high": "#e0e8ff",
+                        "on-tertiary-container": "#dbf7ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#d7e2ff",
+                        "surface-container": "#e8eeff",
+                        "primary-fixed-dim": "#b3c5ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "80px",
+                        "margin-desktop": "40px",
+                        "lg": "48px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "sm": "12px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "headline-md": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "body-md": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen hexagon-bg">
+<!-- TopAppBar Shell -->
+<header class="bg-surface-container-lowest flex justify-between items-center px-margin-desktop w-full h-16 sticky top-0 z-50 shadow-sm">
+<div class="flex items-center gap-base">
+<span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">hub</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">think-Inn</h1>
+</div>
+<div class="hidden md:flex items-center space-x-lg">
+<nav class="flex gap-md">
+<a class="text-secondary hover:bg-surface-container px-4 py-2 rounded-lg transition-colors font-label-md text-label-md" href="#">Dashboard</a>
+<a class="text-primary font-bold border-b-2 border-primary px-4 py-2 font-label-md text-label-md" href="#">Research</a>
+<a class="text-secondary hover:bg-surface-container px-4 py-2 rounded-lg transition-colors font-label-md text-label-md" href="#">Projects</a>
+</nav>
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-all active:scale-95" data-icon="notifications">notifications</span>
+<span class="material-symbols-outlined text-secondary cursor-pointer hover:text-primary transition-all active:scale-95" data-icon="settings">settings</span>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile avatar" data-alt="A professional headshot of a senior technology researcher in a clean corporate setting. The lighting is bright and even, reflecting a high-end SaaS corporate aesthetic. The background is a soft, blurred office interior with neutral tones and blue accents that match the project's primary color scheme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBOxDsXN0HH5HXdko-MANw2LRUX1g7huvhitPRJtDxp18nPP6ZmRtlI759Vlz2AnnVsIHQ8iScGl068xSa7Dqd7HIMnt-EBShUO8SBy5aZR6ragLoktGCfpEM-_A3dsZW05XuAzwTdAemuK8OGI2x93EJuyB2esmQMbo91kcazt210xoFwOXMPFz6VsIrhUFhnghtAXHRPitCmoTHYU2CwjErWTbsDTFmBKF2tb4uKLW4j8XKsA1puZwSvfwBoIKi9Jp0Ha_dNIHWwV"/>
+</div>
+</div>
+</div>
+</header>
+<div class="flex min-h-[calc(100vh-64px)]">
+<!-- SideNavBar -->
+<aside class="hidden lg:flex flex-col h-full w-64 fixed left-0 top-16 bg-surface-container-low shadow-sm border-r border-outline-variant">
+<div class="p-md space-y-xs flex-1">
+<div class="group flex items-center px-4 py-3 cursor-pointer transition-transform active:scale-[0.98] text-secondary hover:bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined mr-sm" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</div>
+<div class="group flex items-center px-4 py-3 cursor-pointer transition-transform active:scale-[0.98] bg-primary-container text-on-primary-container rounded-lg font-bold">
+<span class="material-symbols-outlined mr-sm" data-icon="biotech">biotech</span>
+<span class="font-label-md text-label-md">Research</span>
+</div>
+<div class="group flex items-center px-4 py-3 cursor-pointer transition-transform active:scale-[0.98] text-secondary hover:bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined mr-sm" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md text-label-md">Ideas</span>
+</div>
+<div class="group flex items-center px-4 py-3 cursor-pointer transition-transform active:scale-[0.98] text-secondary hover:bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined mr-sm" data-icon="account_tree">account_tree</span>
+<span class="font-label-md text-label-md">Projects</span>
+</div>
+<div class="group flex items-center px-4 py-3 cursor-pointer transition-transform active:scale-[0.98] text-secondary hover:bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined mr-sm" data-icon="map">map</span>
+<span class="font-label-md text-label-md">Map</span>
+</div>
+<div class="group flex items-center px-4 py-3 cursor-pointer transition-transform active:scale-[0.98] text-secondary hover:bg-surface-variant rounded-lg">
+<span class="material-symbols-outlined mr-sm" data-icon="groups">groups</span>
+<span class="font-label-md text-label-md">Community</span>
+</div>
+</div>
+<div class="p-md border-t border-outline-variant space-y-xs">
+<div class="flex items-center px-4 py-3 cursor-pointer text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined mr-sm" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</div>
+<div class="flex items-center px-4 py-3 cursor-pointer text-secondary hover:text-primary transition-all">
+<span class="material-symbols-outlined mr-sm" data-icon="logout">logout</span>
+<span class="font-label-md text-label-md">Logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 lg:ml-64 p-margin-mobile md:p-margin-desktop overflow-x-hidden">
+<!-- Header Section -->
+<div class="mb-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-md">
+<div>
+<nav class="flex items-center text-secondary font-label-md text-label-md mb-xs">
+<span>Projects</span>
+<span class="material-symbols-outlined text-[16px] mx-xs">chevron_right</span>
+<span class="text-primary font-bold">Green Neighborhood Verticals</span>
+</nav>
+<h2 class="font-headline-lg text-headline-lg text-on-background">Research Workspace</h2>
+</div>
+<div class="bg-surface-container p-sm rounded-xl flex items-center gap-md">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-surface" data-alt="A portrait of a young female urban planner looking forward with a confident expression. The style is clean and professional with a bright, high-key lighting setup suitable for an enterprise software user profile. The color palette is composed of soft blues and whites." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZx_zmUFDW7AoxLumbHSOvuJ4XfVlLkE_UTO5QU4uMCJcGC4OjGCkG2v0SJBQvxY1J17LQeNl3I7U7t9vC-Nhfo5kVL0Lo62JYoCB2l6I45ApsuTPrwtKTLn7ZhJZw8-TUU4BNTeu4KCCDXye8V67_xS9Nx1OJ3UO9fcL1cTc97VyPbQF9qePJ7TSMKrB4gFnpnK1K_0n1vziSmJHDN5tZt77Yk6fupjuRa0c9P6Orf5HHEp-LRMH6nwWgSApNMDMwN5VyMyesnqIo"/>
+<img class="w-8 h-8 rounded-full border-2 border-surface" data-alt="A professional male engineer in business casual attire smiling at the camera. He is positioned in a modern office with natural light pouring in from the side. The image quality is high with sharp details and a focus on a clean corporate aesthetic with blue and slate tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUlERIX9Ui34camxLUEZtoIbqZnCoA1Qinfk8fRy5oSBb6kx7x0oLAIWkt6ocgpCg3fy6a2hxdW_Kcdu7oTidv_2PQyJqWQDz9mM9j3P1gPNRRByISefJMaT2vDelGg04k8uZ-d5ZugbxYm4Ho31z3mNGIM6bI7-DZvTiBD8nxrQ7YGRAMqYvFfGvscGV55TNaaDVR61rzDqnV2XzxHThGV360O69mejwtM_OeABEvnbIkytA9zuYxDdvN5djwsqS1DO9yYKd8iybA"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-primary text-on-primary flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<div class="flex items-center gap-xs text-primary font-bold">
+<span class="material-symbols-outlined text-[20px]">sync</span>
+<span class="font-label-md text-label-md">3/3 Syncing</span>
+</div>
+</div>
+</div>
+<!-- Progress Tracker -->
+<div class="mt-md bg-surface-container-low rounded-xl p-md border border-outline-variant">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-md text-label-md text-secondary">PROJECT PROGRESS: <span class="text-on-surface font-bold">3/3 Primary Research Topics Analyzed</span></span>
+<span class="font-label-md text-label-md text-primary font-bold">100% COMPLETE</span>
+</div>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary to-tertiary-container h-full w-full"></div>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
+<!-- Research Cards Column -->
+<div class="xl:col-span-8 space-y-md">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Market Analysis</h3>
+<p class="font-body-sm text-body-sm text-secondary">European Energy Storage Market 2024</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="bg-green-100 text-green-800 px-sm py-xs rounded-full font-label-md text-label-md flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-green-500"></span> Completed
+                                </span>
+<div class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-[#00bcd4] to-[#7c4dff] text-white font-bold rounded-lg transform rotate-6 group-hover:rotate-12 transition-transform">
+                                    94
+                                </div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-sm mb-md border-l-4 border-primary">
+<p class="font-body-sm text-body-sm italic text-on-surface-variant">"AI Insight: High demand for decentralized storage in Nordic and Central European residential clusters, favoring modular architectures."</p>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-md">
+<div class="bg-surface border border-outline-variant p-sm rounded-lg">
+<p class="font-label-md text-label-md text-secondary uppercase mb-xs">Key Finding</p>
+<p class="font-body-md text-body-md font-semibold">15% Annual Growth Rate</p>
+</div>
+<div class="bg-surface border border-outline-variant p-sm rounded-lg">
+<p class="font-label-md text-label-md text-secondary uppercase mb-xs">Dominant Tech</p>
+<p class="font-body-md text-body-md font-semibold">LFP &amp; Solid-State</p>
+</div>
+</div>
+<button class="w-full bg-secondary-container text-on-secondary-container py-3 rounded-lg font-bold font-label-md text-label-md flex items-center justify-center gap-sm hover:bg-primary hover:text-white transition-all">
+                            View Analysis <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</button>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-tertiary"></div>
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined">architecture</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Technical Architecture</h3>
+<p class="font-body-sm text-body-sm text-secondary">Solid-State Battery Chemistry</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="bg-blue-100 text-blue-800 px-sm py-xs rounded-full font-label-md text-label-md flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-blue-500"></span> Analyzed
+                                </span>
+<div class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-[#00bcd4] to-[#7c4dff] text-white font-bold rounded-lg transform rotate-6 group-hover:rotate-12 transition-transform">
+                                    88
+                                </div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-sm mb-md border-l-4 border-tertiary">
+<p class="font-body-sm text-body-sm italic text-on-surface-variant">"AI Insight: Current solid-state prototypes offer 30% more energy density but require specialized thermal management systems for -5°C operations."</p>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-md">
+<div class="bg-surface border border-outline-variant p-sm rounded-lg">
+<p class="font-label-md text-label-md text-secondary uppercase mb-xs">Safety Rating</p>
+<p class="font-body-md text-body-md font-semibold">Class A+ (Non-flam)</p>
+</div>
+<div class="bg-surface border border-outline-variant p-sm rounded-lg">
+<p class="font-label-md text-label-md text-secondary uppercase mb-xs">Life Cycle</p>
+<p class="font-body-md text-body-md font-semibold">10,000+ Cycles</p>
+</div>
+</div>
+<button class="w-full bg-secondary-container text-on-secondary-container py-3 rounded-lg font-bold font-label-md text-label-md flex items-center justify-center gap-sm hover:bg-primary hover:text-white transition-all">
+                            View Analysis <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</button>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-secondary"></div>
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Regulatory Compliance</h3>
+<p class="font-body-sm text-body-sm text-secondary">EU New Battery Regulation</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-xs">
+<span class="bg-purple-100 text-purple-800 px-sm py-xs rounded-full font-label-md text-label-md flex items-center gap-xs">
+<span class="w-2 h-2 rounded-full bg-purple-500"></span> Synthesized
+                                </span>
+<div class="w-12 h-12 flex items-center justify-center bg-gradient-to-br from-[#00bcd4] to-[#7c4dff] text-white font-bold rounded-lg transform rotate-6 group-hover:rotate-12 transition-transform">
+                                    91
+                                </div>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-lg p-sm mb-md border-l-4 border-secondary">
+<p class="font-body-sm text-body-sm italic text-on-surface-variant">"AI Insight: Mandatory 'Battery Passports' by 2027 will require supply chain transparency that our blockchain module is positioned to solve."</p>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-md">
+<div class="bg-surface border border-outline-variant p-sm rounded-lg">
+<p class="font-label-md text-label-md text-secondary uppercase mb-xs">Recycling Rate</p>
+<p class="font-body-md text-body-md font-semibold">Min 65% by 2025</p>
+</div>
+<div class="bg-surface border border-outline-variant p-sm rounded-lg">
+<p class="font-label-md text-label-md text-secondary uppercase mb-xs">Carbon Footprint</p>
+<p class="font-body-md text-body-md font-semibold">Mandatory Labeling</p>
+</div>
+</div>
+<button class="w-full bg-secondary-container text-on-secondary-container py-3 rounded-lg font-bold font-label-md text-label-md flex items-center justify-center gap-sm hover:bg-primary hover:text-white transition-all">
+                            View Analysis <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+</button>
+</div>
+</div>
+<!-- Right Sidebar: Research Synthesis -->
+<aside class="xl:col-span-4 space-y-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm glass-accent sticky top-margin-desktop">
+<div class="flex items-center gap-sm mb-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">psychology</span>
+<h3 class="font-headline-sm text-headline-sm">Research Synthesis</h3>
+</div>
+<div class="space-y-md">
+<div class="p-sm bg-primary-container/10 rounded-lg border border-primary/20">
+<h4 class="font-label-md text-label-md text-primary uppercase font-bold mb-xs">Overall Feasibility</h4>
+<div class="flex items-end gap-xs">
+<span class="text-3xl font-bold text-on-background">High</span>
+<span class="text-secondary font-label-md mb-1">(Score: 8.9/10)</span>
+</div>
+</div>
+<div class="space-y-sm">
+<h4 class="font-body-md text-body-md font-bold text-on-surface">AI Strategic Summary</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                                    The synthesis of European market trends and technical solid-state advancements indicates a **prime window for entry** in Q3 2024. The convergence of EU regulatory pressure for transparency (Battery Passport) and the technical feasibility of solid-state units creates a unique competitive moat for the 'Green Neighborhood Verticals' project.
+                                </p>
+<ul class="space-y-xs">
+<li class="flex gap-sm items-start">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check_circle</span>
+<span class="font-body-sm text-body-sm">Market alignment confirmed for residential clusters.</span>
+</li>
+<li class="flex gap-sm items-start">
+<span class="material-symbols-outlined text-green-500 text-[18px]">check_circle</span>
+<span class="font-body-sm text-body-sm">Technical risks mitigated via thermal management.</span>
+</li>
+<li class="flex gap-sm items-start">
+<span class="material-symbols-outlined text-primary text-[18px]">info</span>
+<span class="font-body-sm text-body-sm">Action Required: Draft compliance roadmap for 2027.</span>
+</li>
+</ul>
+</div>
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-xl font-bold font-label-md text-label-md flex items-center justify-center gap-sm shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95">
+                                Generate Feasibility Report
+                                <span class="material-symbols-outlined">auto_awesome</span>
+</button>
+<div class="pt-md border-t border-outline-variant">
+<div class="flex justify-between items-center mb-sm">
+<span class="font-label-md text-label-md text-secondary">NETWORK CONNECTIVITY</span>
+<span class="text-[10px] bg-surface-container px-2 py-0.5 rounded text-secondary font-bold">LIVE</span>
+</div>
+<div class="relative h-24 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
+<!-- Simple CSS Network Nodes visualization -->
+<div class="absolute inset-0 flex items-center justify-center opacity-30">
+<div class="w-16 h-16 border border-primary rounded-full animate-ping"></div>
+<div class="w-8 h-8 bg-primary rounded-full"></div>
+</div>
+<div class="z-10 text-[11px] font-bold text-primary">SCANNING ECOSYSTEM NODES...</div>
+</div>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</div>
+<!-- Mobile Nav Anchor -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full bg-surface-container-lowest flex justify-around items-center h-16 z-50 shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+<div class="flex flex-col items-center text-secondary">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold">Home</span>
+</div>
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">biotech</span>
+<span class="text-[10px] font-bold">Research</span>
+</div>
+<div class="flex flex-col items-center text-secondary">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="text-[10px] font-bold">Projects</span>
+</div>
+<div class="flex flex-col items-center text-secondary">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profile</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction: Smooth hover for card interactions
+        document.querySelectorAll('.group').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Potential for adding dynamic spark effects or node highlights
+            });
+        });
+    </script>
+</body></html>

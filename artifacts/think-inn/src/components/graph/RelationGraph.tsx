@@ -4,6 +4,7 @@ import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { Research, Idea } from '@workspace/api-client-react';
 import { ArrowLeft, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
+import { API_ORIGIN } from '@/lib/api-config';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface NodeData {
@@ -548,7 +549,7 @@ export function RelationGraph({
     const [ideaId,researchId] = fromType==='idea'?[fromId,toId]:[toId,fromId];
     const idea = allIdeas.find(i=>i.id===ideaId) as IdeaWithTopics|undefined; if (!idea) return;
     const newResearchIds = Array.from(new Set([...(idea.researchIds??[]),researchId]));
-    const resp = await fetch(`/api/ideas/${ideaId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({researchIds:newResearchIds})});
+    const resp = await fetch(`${API_ORIGIN}/api/ideas/${ideaId}`,{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({researchIds:newResearchIds})});
     if (resp.ok) {
       setEdges(prev=>[...prev,{sourceId:fromId,sourceType:fromType,targetId:toId,targetType:toType,manual:true}]);
       flash('Bağlantı kaydedildi ✓','ok'); onRelationChange?.();
@@ -561,7 +562,7 @@ export function RelationGraph({
     if (!topicPicker) return;
     const {ideaId,researchId}=topicPicker; setTopicPicker(null);
     try {
-      await fetch(`/api/ideas/${ideaId}/research-topic-mapping`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({researchId,topic,topicType})});
+      await fetch(`${API_ORIGIN}/api/ideas/${ideaId}/research-topic-mapping`,{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({researchId,topic,topicType})});
       flash(`"${topic}" konusuna eşlendi ✓`,'ok'); onRelationChange?.();
     } catch {flash('Konu eşleştirilemedi','err');}
   };
@@ -571,7 +572,7 @@ export function RelationGraph({
     const [ideaId,researchId] = edge.sourceType==='idea'?[edge.sourceId,edge.targetId]:[edge.targetId,edge.sourceId];
     const idea = allIdeas.find(i=>i.id===ideaId); if (!idea) return;
     const newResearchIds = (idea.researchIds??[]).filter(id=>id!==researchId);
-    const resp = await fetch(`/api/ideas/${ideaId}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({researchIds:newResearchIds})});
+    const resp = await fetch(`${API_ORIGIN}/api/ideas/${ideaId}`,{method:'PUT',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({researchIds:newResearchIds})});
     if (resp.ok) {setEdges(prev=>prev.filter(ex=>ex!==edge));setHoveredEdgeIdx(null);flash('Bağlantı silindi','ok');onRelationChange?.();}
     else flash('Silinemedi','err');
   };

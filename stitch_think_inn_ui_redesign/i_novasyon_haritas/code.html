@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn AI | 3D Mind Map</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Manrope:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@100..900&amp;family=Montserrat:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#0c1b34",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "on-primary-container": "#f0f1ff",
+                        "surface-tint": "#0054d7",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-primary-fixed": "#00184a",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#aaedff",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "on-background": "#0c1b34",
+                        "tertiary": "#005f6e",
+                        "primary-container": "#1463f3",
+                        "surface-dim": "#ccdafc",
+                        "outline": "#737687",
+                        "on-tertiary-container": "#dbf7ff",
+                        "on-secondary-container": "#4c5d80",
+                        "background": "#f9f9ff",
+                        "on-surface-variant": "#424655",
+                        "primary": "#004cc5",
+                        "inverse-surface": "#22304a",
+                        "inverse-on-surface": "#ecf0ff",
+                        "surface-bright": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#b3c5ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "secondary-container": "#c6d7ff",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#4e5e81",
+                        "outline-variant": "#c2c6d8",
+                        "surface-container-high": "#e0e8ff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-secondary-fixed": "#071b3a",
+                        "surface": "#f9f9ff",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "surface-container": "#e8eeff",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-tertiary-fixed": "#001f26",
+                        "tertiary-container": "#00798d",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f1f3ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "lg": "48px",
+                        "sm": "12px",
+                        "margin-desktop": "40px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-lg": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "body-sm": ["Manrope"],
+                        "label-md": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .network-canvas {
+            background-image: radial-gradient(circle at 2px 2px, #e2e8f0 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .node-pulse {
+            animation: pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.05); }
+        }
+        .glass-panel {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.7);
+        }
+        .connection-line {
+            stroke-dasharray: 5;
+            animation: dash 20s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -1000; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">think-Inn AI</span>
+<div class="hidden lg:flex items-center gap-sm ml-lg">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 w-64 focus:ring-2 focus:ring-primary font-body-sm text-on-surface-variant" placeholder="Search workspace..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex gap-sm">
+<button class="p-2 rounded-full hover:bg-surface-variant/50 transition-colors text-on-surface-variant cursor-pointer active:opacity-70">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-variant/50 transition-colors text-on-surface-variant cursor-pointer active:opacity-70 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-outline-variant cursor-pointer active:opacity-70">
+<img alt="User Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvJ5HJXORodI77wO3ZG4lQzNMha7iynIYlM6L_8jdk07bXS-sL13f9zas2en-AHVnTUUm1MqzAIxndfOMet0d0fw5NnzBSdOP5_9XQ9f252aNLTtmK5NeLNHdlOG30HASmH_rttMbUev_4JkzoVHVzvoaTcbjQsdDL-cZW8tSwfRWFGFaxst6UOX6SzqPbfLEec94wYPXbp1CIweq4ZEbrBwGyImZy_bbmGq2szmdnEID-5ZGZTiBLM_dlvc2YoXu8x2nKf-rnkNo3"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 flex flex-col py-md px-sm bg-surface-container-low shadow-md pt-20 hidden md:flex">
+<div class="px-sm mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-primary flex items-center justify-center text-white shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface leading-tight">AI Workspace</h2>
+<p class="text-[10px] font-label-md uppercase tracking-wider text-outline">Chat-First Innovation</p>
+</div>
+</div>
+<button class="w-full mt-md bg-gradient-to-r from-[#06b6d4] to-[#8b5cf6] text-on-primary py-3 rounded-xl font-bold font-label-md flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">add</span>
+                New Idea Query
+            </button>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md">Ideas</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-label-md">Research</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-label-md">Projects</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-primary font-bold border-r-4 border-primary bg-surface-container-high translate-x-1 transition-transform duration-200 rounded-l-lg" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-label-md">Map</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md">Community</span>
+</a>
+</nav>
+<div class="mt-auto pt-md border-t border-outline-variant/20">
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pt-16 min-h-screen relative overflow-hidden network-canvas">
+<!-- Header Overlay -->
+<header class="absolute top-8 left-8 right-8 z-20 flex justify-between items-start pointer-events-none">
+<div class="glass-panel p-md rounded-2xl shadow-sm border border-outline-variant/30 max-w-xl pointer-events-auto">
+<div class="flex items-center gap-md mb-sm">
+<div class="w-16 h-16 rounded-xl overflow-hidden shadow-md">
+<img class="w-full h-full object-cover" data-alt="A professional top-down view of a modern designer's workspace featuring high-tech gadgets, minimalist notebooks, and clean white surfaces. The lighting is crisp and natural, highlighting a sophisticated color palette of corporate blues and deep slate. The scene suggests a highly productive and innovative environment for strategic thinking and AI-driven collaboration." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlbOf30CfwtYN853H8A6_8emwMlfoP0o-_IbMpxuCZFw0bLwyMA3aUztdvEm8Z1yndSNO6m-xdyVLq2EDUiIt3S6vjJFEnEsth7EU7CSLcuQR8bc66tIOFLb8r6Pl_iurREtZSWJ-2AdDLW-_rTDJTgy0cotu_uvvg5zibBw-Fv04rOm8L7VUEJTdV8nm0fAyAU-RH-PFEuMq3YegcYhff0cJ9dmDfotEbypowk6TH3wvqspwVAym9ZSIM7Lj5oyxyZdI6If8737KH"/>
+</div>
+<div>
+<h1 class="font-headline-md text-headline-md text-on-surface">Knowledge Graph</h1>
+<p class="font-body-sm text-on-surface-variant">Visualizing 42 connections across your innovation ecosystem.</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-xs">
+<span class="px-3 py-1 bg-primary/10 text-primary rounded-full font-label-md flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Ideas (12)
+                    </span>
+<span class="px-3 py-1 bg-tertiary-fixed-dim/20 text-tertiary rounded-full font-label-md flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary-fixed-dim"></span> Research (8)
+                    </span>
+<span class="px-3 py-1 bg-secondary-container text-secondary rounded-full font-label-md flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-secondary"></span> Projects (15)
+                    </span>
+<span class="px-3 py-1 bg-[#dcfce7] text-[#166534] rounded-full font-label-md flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-[#22c55e]"></span> Community (7)
+                    </span>
+</div>
+</div>
+<div class="flex flex-col gap-sm pointer-events-auto">
+<button class="p-3 bg-white rounded-xl shadow-md text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="zoom_in">zoom_in</span>
+</button>
+<button class="p-3 bg-white rounded-xl shadow-md text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="zoom_out">zoom_out</span>
+</button>
+<button class="p-3 bg-white rounded-xl shadow-md text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+</div>
+</header>
+<!-- Node Graph Visualization (SVG Simulation) -->
+<div class="w-full h-[calc(100vh-64px)] cursor-grab active:cursor-grabbing" id="mind-map">
+<svg class="select-none" height="100%" width="100%">
+<defs>
+<lineargradient id="line-grad" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#1463f3" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#39d8f7" stop-opacity="0.2"></stop>
+</lineargradient>
+</defs>
+<!-- Connections -->
+<g id="connections">
+<!-- Central Hub Connections -->
+<path class="connection-line" d="M 500,400 L 300,250" fill="none" stroke="url(#line-grad)" stroke-width="2"></path>
+<path class="connection-line" d="M 500,400 L 700,300" fill="none" stroke="url(#line-grad)" stroke-width="2"></path>
+<path class="connection-line" d="M 500,400 L 450,600" fill="none" stroke="url(#line-grad)" stroke-width="2"></path>
+<path class="connection-line" d="M 500,400 L 650,550" fill="none" stroke="url(#line-grad)" stroke-width="2"></path>
+<!-- Secondary Connections -->
+<path class="connection-line" d="M 300,250 L 150,200" fill="none" stroke="#e2e8f0" stroke-width="1.5"></path>
+<path class="connection-line" d="M 300,250 L 220,380" fill="none" stroke="#e2e8f0" stroke-width="1.5"></path>
+<path class="connection-line" d="M 700,300 L 850,250" fill="none" stroke="#e2e8f0" stroke-width="1.5"></path>
+</g>
+<!-- Nodes -->
+<g id="nodes">
+<!-- Center: Core AI Node -->
+<g class="cursor-pointer group" transform="translate(500,400)">
+<circle class="node-pulse shadow-xl" fill="white" r="40" stroke="#004cc5" stroke-width="3"></circle>
+<text fill="#004cc5" font-family="Montserrat" font-size="12" font-weight="700" text-anchor="middle" y="5">CORE AI</text>
+</g>
+<!-- Ideas (Blue) -->
+<g class="cursor-pointer group node-item" data-logic="High synergy with active Research cluster #04" data-title="Neural Interface" data-type="Idea" transform="translate(300,250)">
+<circle class="shadow-lg group-hover:scale-125 transition-transform" fill="#1463f3" r="18"></circle>
+<text class="font-label-md text-on-surface-variant fill-current" text-anchor="middle" y="35">Neural Interface</text>
+</g>
+<!-- Research (Cyan) -->
+<g class="cursor-pointer group node-item" data-logic="Validated via recent community feedback loops" data-title="Haptic Feedback" data-type="Research" transform="translate(700,300)">
+<circle class="shadow-lg group-hover:scale-125 transition-transform" fill="#39d8f7" r="16"></circle>
+<text class="font-label-md text-on-surface-variant fill-current" text-anchor="middle" y="35">Haptic Feedback</text>
+</g>
+<!-- Projects (Violet) -->
+<g class="cursor-pointer group node-item" data-logic="Critical path for Q3 delivery cycle" data-title="EcoSystem Pro" data-type="Project" transform="translate(450,600)">
+<circle class="shadow-lg group-hover:scale-125 transition-transform" fill="#8b5cf6" r="22"></circle>
+<text class="font-label-md text-on-surface-variant fill-current" text-anchor="middle" y="40">EcoSystem Pro</text>
+</g>
+<!-- Community (Green) -->
+<g class="cursor-pointer group node-item" data-logic="3 new nodes joined via the Innovation Lab" data-title="Expert Network" data-type="Community" transform="translate(650,550)">
+<circle class="shadow-lg group-hover:scale-125 transition-transform" fill="#22c55e" r="14"></circle>
+<text class="font-label-md text-on-surface-variant fill-current" text-anchor="middle" y="30">Expert Network</text>
+</g>
+<!-- Small scattered nodes -->
+<circle cx="150" cy="200" fill="#1463f3" opacity="0.6" r="6"></circle>
+<circle cx="220" cy="380" fill="#39d8f7" opacity="0.6" r="8"></circle>
+<circle cx="850" cy="250" fill="#8b5cf6" opacity="0.6" r="6"></circle>
+<circle cx="200" cy="550" fill="#22c55e" opacity="0.6" r="5"></circle>
+</g>
+</svg>
+</div>
+<!-- AI Logic Detail Popover (Contextual) -->
+<div class="fixed opacity-0 pointer-events-none transition-all duration-300 z-50 glass-panel p-md rounded-xl shadow-2xl border border-primary/20 w-64 translate-y-4" id="hover-popover">
+<div class="flex justify-between items-start mb-sm">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider" id="popover-tag">IDEA</span>
+<div class="flex gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-xs leading-tight" id="popover-title">Node Title</h3>
+<p class="font-body-sm text-on-surface-variant italic border-l-2 border-cyan-400 pl-2" id="popover-logic">AI Connection Logic...</p>
+<div class="mt-md flex justify-end">
+<button class="text-primary font-bold font-label-md flex items-center gap-1 hover:underline">
+                    View Details
+                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-20 md:hidden bg-surface shadow-[0_-4px_20px_rgba(7,27,58,0.05)] rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md">Ideas</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-label-md">Research</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-4 py-2 scale-95 shadow-md">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-label-md">Map</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-label-md">Projects</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md">Community</span>
+</button>
+</nav>
+<script>
+        // Micro-interactions for Node Graph
+        const nodes = document.querySelectorAll('.node-item');
+        const popover = document.getElementById('hover-popover');
+        const popoverTag = document.getElementById('popover-tag');
+        const popoverTitle = document.getElementById('popover-title');
+        const popoverLogic = document.getElementById('popover-logic');
+
+        nodes.forEach(node => {
+            node.addEventListener('mouseenter', (e) => {
+                const type = node.getAttribute('data-type');
+                const title = node.getAttribute('data-title');
+                const logic = node.getAttribute('data-logic');
+                
+                popoverTag.innerText = type;
+                popoverTitle.innerText = title;
+                popoverLogic.innerText = logic;
+
+                // Color tagging for popover
+                const colors = {
+                    'Idea': 'bg-primary/10 text-primary',
+                    'Research': 'bg-tertiary-fixed-dim/20 text-tertiary',
+                    'Project': 'bg-secondary-container text-secondary',
+                    'Community': 'bg-green-100 text-green-700'
+                };
+                popoverTag.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${colors[type] || 'bg-slate-100 text-slate-700'}`;
+
+                // Position popover
+                const rect = e.target.getBoundingClientRect();
+                popover.style.left = `${rect.left + 50}px`;
+                popover.style.top = `${rect.top - 20}px`;
+                popover.style.opacity = '1';
+                popover.style.transform = 'translateY(0)';
+            });
+
+            node.addEventListener('mouseleave', () => {
+                popover.style.opacity = '0';
+                popover.style.transform = 'translateY(1rem)';
+            });
+        });
+
+        // Simple draggable SVG simulation (Basic visual effect)
+        const svg = document.querySelector('svg');
+        let isDragging = false;
+        let startPos = { x: 0, y: 0 };
+        let currentTranslate = { x: 0, y: 0 };
+
+        svg.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startPos = { x: e.clientX - currentTranslate.x, y: e.clientY - currentTranslate.y };
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            currentTranslate.x = e.clientX - startPos.x;
+            currentTranslate.y = e.clientY - startPos.y;
+            document.getElementById('nodes').setAttribute('transform', `translate(${currentTranslate.x}, ${currentTranslate.y})`);
+            document.getElementById('connections').setAttribute('transform', `translate(${currentTranslate.x}, ${currentTranslate.y})`);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    </script>
+</body></html>

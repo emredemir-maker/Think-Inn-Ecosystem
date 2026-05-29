@@ -1,7 +1,7 @@
 import { db } from "@workspace/db";
 import { ideasTable, researchTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, GEMINI_MODELS } from "@workspace/integrations-gemini-ai";
 
 export async function backgroundEvaluateIdea(
   ideaId: number,
@@ -43,6 +43,7 @@ ARAŞTIRMA KAPSAM DEĞERLENDİRMESİ — KRİTİK:
 - optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3)
 - pivotSuggestion: Herhangi bir eksen <6 ise fikri kurtaracak SOMUT bir pivot önerisi (yoksa null)
 - summary: 2-3 cümlelik özet değerlendirme
+- usageFlow: Ürünün UÇTAN UCA kullanım/işleyiş akışını anlatan 5-7 ANLAMLI aşama. Her aşama bu fikre ÖZGÜ, kısa bir AŞAMA BAŞLIĞI olsun (isim öbeği, 2-6 kelime), mantıksal sırayla, kullanıcı/ürün gözünden (düşük seviye teknik mimari DEĞİL). Jenerik "Kullanıcı kaydolur" gibi değil; alana özgü yaz. Son aşama çıktı/onay/sonuç olsun. Örnek tarz (işe alım için): ["İlan Oluşturma", "Aday Başvurusu & CV Yükleme", "Otonom CV Analizi", "Eşleştirme & Ön Eleme", "AI Mülakat", "Raporlama & Yanlılık Denetimi", "Nihai Onay"].
 
 JSON formatı (SADECE JSON döndür, başka metin yok):
 {
@@ -54,11 +55,12 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
   "neededResearchTopics": [],
   "optionalResearchTopics": ["opsiyonel konu1"],
   "pivotSuggestion": null,
-  "summary": "Değerlendirme özeti..."
+  "summary": "Değerlendirme özeti...",
+  "usageFlow": ["İlan Oluşturma", "Aday Başvurusu & CV Yükleme", "Otonom CV Analizi", "Eşleştirme & Ön Eleme", "AI Mülakat", "Nihai Onay"]
 }`;
 
     const res = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODELS.analysis,
       contents: [{ role: "user", parts: [{ text: evalPrompt }] }],
       config: {
         maxOutputTokens: 8192,
@@ -82,6 +84,7 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
       optionalResearchTopics: string[];
       pivotSuggestion: string | null;
       summary: string;
+      usageFlow?: string[];
     };
 
     await db
@@ -89,6 +92,8 @@ JSON formatı (SADECE JSON döndür, başka metin yok):
       .set({
         neededResearchTopics: eval_.neededResearchTopics || [],
         optionalResearchTopics: eval_.optionalResearchTopics || [],
+        // Kullanım akışı adımları — fikrin "Kullanım Akışı" görselini besler (roadmap alanında saklanır)
+        roadmap: Array.isArray(eval_.usageFlow) ? eval_.usageFlow : [],
         evaluationScores: {
           commercialFeasibility: eval_.commercialFeasibility,
           marketNeed: eval_.marketNeed,

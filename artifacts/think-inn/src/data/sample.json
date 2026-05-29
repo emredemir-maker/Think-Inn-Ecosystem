@@ -1,0 +1,45 @@
+{
+  "researches": [
+    { "id": 1, "title": "LLM × Bilgi Grafiği Sinerjisi", "source": "NeurIPS 2025", "category": "AI/ML", "summary": "RAG hatlarında bilgi grafiği ile LLM birleşimi." },
+    { "id": 2, "title": "Gerçek Zamanlı CRDT ile İşbirlikçi Düzenleme", "source": "PLDI 2025", "category": "Sistemler", "summary": "Çakışmasız çok kullanıcılı graf düzenleme." },
+    { "id": 3, "title": "İnce-Film Güneş Paneli Verimliliği", "source": "Nature Energy", "category": "Enerji", "summary": "Kentsel cephe entegrasyonu için verim artışı." },
+    { "id": 4, "title": "Algae-Derived Biyoplastik Formülasyonu", "source": "Materials Today", "category": "Malzeme", "summary": "Dayanıklılıkta 3x artış hedefi." },
+    { "id": 5, "title": "Veri Görselleştirmenin Psikolojisi", "source": "Nature HBC", "category": "UX", "summary": "Fikir üretiminde görsel hiyerarşi etkisi." },
+    { "id": 6, "title": "Hibrit Kuantum-Klasik Veri Yolu", "source": "arXiv:2403.0021", "category": "Kuantum", "summary": "Kuantum core compute mimarisi." }
+  ],
+  "ideas": [
+    { "id": 1, "title": "Dinamik Bağlı Not Sistemi", "category": "Üretkenlik", "description": "Her paragraf bir düğüm; AI ilişkileri öneriyor." },
+    { "id": 2, "title": "AI Destekli Mind Map", "category": "AI", "description": "Bağlantının nedenini de anlayan graf traversal aracı." },
+    { "id": 3, "title": "Topluluk Isı Haritası", "category": "İşbirliği", "description": "Ekibin araştırma yoğunluğunu gösteren shared-brain." },
+    { "id": 4, "title": "Solar Nanotech Modülü", "category": "Enerji", "description": "İnce-film güneş paneli ile kentsel cephe entegrasyonu." },
+    { "id": 5, "title": "Bio-Plastic v2 Üretim Hattı", "category": "Sürdürülebilirlik", "description": "Algae-derived biyoplastik ölçeklenebilir üretim." },
+    { "id": 6, "title": "Quantum Core Compute Path", "category": "Altyapı", "description": "Hibrit kuantum-klasik veri yolu mimarisi." }
+  ],
+  "projects": [
+    { "id": 1, "title": "NeuralMind v0.4", "stage": "Mimari", "description": "Graf-native AI hafıza katmanı." },
+    { "id": 2, "title": "SyncNode Realtime Editor", "stage": "Keşif", "description": "CRDT tabanlı işbirlikçi graf düzenleme." },
+    { "id": 3, "title": "Green Neighborhood Verticals", "stage": "Build", "description": "Sürdürülebilir kentsel dikey tarım modülleri." },
+    { "id": 4, "title": "Vertical Farm Prototype", "stage": "Build", "description": "İklim kontrollü dikey tarım hücresi." }
+  ],
+  "ideaResearch": [
+    { "ideaId": 1, "researchId": 1 },
+    { "ideaId": 1, "researchId": 5 },
+    { "ideaId": 2, "researchId": 1 },
+    { "ideaId": 2, "researchId": 5 },
+    { "ideaId": 2, "researchId": 2 },
+    { "ideaId": 3, "researchId": 5 },
+    { "ideaId": 4, "researchId": 3 },
+    { "ideaId": 5, "researchId": 4 },
+    { "ideaId": 6, "researchId": 6 },
+    { "ideaId": 6, "researchId": 2 }
+  ],
+  "projectIdea": [
+    { "projectId": 1, "ideaId": 1 },
+    { "projectId": 1, "ideaId": 2 },
+    { "projectId": 2, "ideaId": 2 },
+    { "projectId": 2, "ideaId": 3 },
+    { "projectId": 3, "ideaId": 4 },
+    { "projectId": 3, "ideaId": 5 },
+    { "projectId": 4, "ideaId": 5 }
+  ]
+}

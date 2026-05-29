@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { researchTable, ideasTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, GEMINI_MODELS } from "@workspace/integrations-gemini-ai";
 
 const router = Router();
 
@@ -46,7 +46,7 @@ YALNIZCA aşağıdaki JSON formatında yanıt ver:
 {"valid": true/false, "confidence": 0-100, "reason": "kısa Türkçe açıklama (max 100 karakter)"}`;
 
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: GEMINI_MODELS.fast,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: { maxOutputTokens: 256 },
     });

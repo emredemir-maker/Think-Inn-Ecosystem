@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn | Finansal Senaryo Analizi</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Manrope:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#737687",
+                        "surface": "#f9f9ff",
+                        "on-surface-variant": "#424655",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "on-primary-container": "#f0f1ff",
+                        "tertiary-container": "#00798d",
+                        "on-surface": "#0c1b34",
+                        "inverse-primary": "#b3c5ff",
+                        "surface-bright": "#f9f9ff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#d7e2ff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-variant": "#d7e2ff",
+                        "surface-container": "#e8eeff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "tertiary-fixed": "#aaedff",
+                        "on-secondary-container": "#4c5d80",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "tertiary": "#005f6e",
+                        "surface-container-high": "#e0e8ff",
+                        "on-tertiary-container": "#dbf7ff",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-tint": "#0054d7",
+                        "surface-dim": "#ccdafc",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "on-tertiary-fixed": "#001f26",
+                        "on-error": "#ffffff",
+                        "on-background": "#0c1b34",
+                        "secondary-container": "#c6d7ff",
+                        "primary": "#004cc5",
+                        "outline-variant": "#c2c6d8",
+                        "on-primary-fixed": "#00184a",
+                        "background": "#f9f9ff",
+                        "secondary": "#4e5e81",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "primary-fixed": "#dbe1ff",
+                        "error": "#ba1a1a",
+                        "primary-container": "#1463f3",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#d7e2ff",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-error-container": "#93000a",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "inverse-surface": "#22304a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "80px",
+                        "md": "24px",
+                        "margin-desktop": "40px",
+                        "lg": "48px",
+                        "gutter": "24px",
+                        "base": "8px",
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "sm": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "label-md": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "body-sm": ["Manrope"],
+                        "headline-sm": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-left: 1px solid rgba(226, 232, 240, 1);
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: #E2E8F0;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #004cc5;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -6px;
+            box-shadow: 0 2px 4px rgba(0, 76, 197, 0.2);
+        }
+        .hexagon-indicator {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .active-simulation-glow {
+            box-shadow: 0 0 20px rgba(0, 76, 197, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background font-body-md text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- Main Navigation Bar (TopAppBar) -->
+<header class="w-full h-16 sticky top-0 z-50 bg-surface-bright/80 backdrop-blur-md shadow-sm flex justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-sm">
+<span class="font-display-lg text-display-lg bg-clip-text text-transparent bg-gradient-to-r from-tertiary to-primary">think-Inn</span>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full">settings</button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A professional headshot of a corporate executive in a modern, brightly lit office environment. The lighting is soft and natural, emphasizing a confident yet approachable demeanor. The background features blurred architectural elements of a tech innovation hub, maintaining a clean, high-key light mode aesthetic consistent with professional corporate branding." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBDikFjanIaEtp1eWouy-rocrbB_hfFrLc-dPPbFeFvaOA9lpiFtBRdpjNn1NV3nJDmuVcxMM1IsdycVDcUqVduX5r5nMr-2EmV-xZ-9eZE4Kbft6TCzhQ1Fe4t5cWRK6eqj6_-UYQqlo1y-v7aFcRe1D2FIE5cwXutcG4OL7LCCdYldikKJlR28ezjZcYl1nHpgV-Me8xA1mo3R-21cNJ0Vd6nuW5g4Ok0oGt_Y696mOnL75CJPe5l0B51vCR_OYsN9ano82djcGYi"/>
+</div>
+</header>
+<div class="flex min-h-[calc(100vh-64px)] overflow-hidden">
+<!-- Side Navigation (SideNavBar) -->
+<aside class="hidden md:flex flex-col h-[calc(100vh-64px)] w-64 py-base px-sm bg-surface-container-low border-r border-outline-variant shrink-0">
+<nav class="flex-1 space-y-xs">
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-base bg-primary-container text-on-primary-container rounded-lg font-bold transition-all hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md">Research</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-body-md">Ideas</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-body-md">Projects</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-body-md">Map</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-body-md">Community</span>
+</a>
+</nav>
+<div class="border-t border-outline-variant pt-base space-y-xs">
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md">Help</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-base text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md">Logout</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 relative overflow-y-auto p-margin-desktop bg-surface">
+<header class="mb-lg">
+<h1 class="font-headline-lg text-headline-lg text-on-surface mb-xs">Finansal Senaryo Analizi</h1>
+<p class="text-on-surface-variant font-body-md">Gelecek projeksiyonlarını simüle edin ve ekosistem üzerindeki etkilerini gözlemleyin.</p>
+</header>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Main Dashboard Content (Mockup) -->
+<div class="col-span-12 lg:col-span-8 space-y-gutter">
+<!-- Project Overview Card -->
+<section class="bg-surface-container-lowest p-md rounded-xl border border-outline-variant shadow-sm relative overflow-hidden">
+<div class="flex justify-between items-start mb-md">
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Merkez İnovasyon Kompleksi</h3>
+<p class="text-on-surface-variant font-body-sm">Proje ID: TK-2024-089</p>
+</div>
+<div class="hexagon-indicator bg-gradient-to-br from-tertiary-fixed-dim to-primary-container text-white px-4 py-3 flex flex-col items-center justify-center">
+<span class="font-label-md">AI SKOR</span>
+<span class="font-headline-md text-headline-md" id="mainAiScore">84</span>
+</div>
+</div>
+<img alt="Architectural visualization" class="w-full h-64 object-cover rounded-lg mb-md" data-alt="A high-end architectural visualization of a futuristic glass and steel innovation center at dusk. The building features glowing internal nodes and clean geometric lines, nestled within a lush green urban landscape. The lighting is dramatic yet professional, with soft blue and cyan highlights reflecting off the glass surfaces, conveying a sense of technological progress and sustainable corporate excellence." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9CbfAaAkjvWT3hHQRofK7ncLgoB5AJfxbIVqo-kx7KdUXeC4yyhSQSVN1fVYSdGfGrv2AY0iGHUCcB1_N8oJlbmLIAZcIZK5T4w2bKtRfnAETVHHjZyWGugCGb2ySdjf1jAbajrLpW2L2kVerPhcAC70xYgYx5ZLqh_63eKc0TN5ls4SAxIHnAxsZ8QzMMhg84XtE2Vq3Se3kRYwUWervhPKNxodNZtV86_vf2Sdqyxidh-au72_9xtolQjOhrQsIPd2OD_uX5RaB"/>
+<div class="grid grid-cols-3 gap-md">
+<div class="p-sm bg-surface-container rounded-lg">
+<p class="text-on-surface-variant font-label-md mb-xs">MEVCUT IRR</p>
+<p class="font-headline-sm text-headline-sm text-primary" id="mainIrr">18.2%</p>
+</div>
+<div class="p-sm bg-surface-container rounded-lg">
+<p class="text-on-surface-variant font-label-md mb-xs">TOPLAM CAPEX</p>
+<p class="font-headline-sm text-headline-sm text-on-surface">₺142M</p>
+</div>
+<div class="p-sm bg-surface-container rounded-lg">
+<p class="text-on-surface-variant font-label-md mb-xs">OPERASYONEL MARJ</p>
+<p class="font-headline-sm text-headline-sm text-on-surface">24.5%</p>
+</div>
+</div>
+</section>
+<!-- Connectivity Map Placeholder -->
+<div class="h-64 bg-surface-container rounded-xl border border-outline-variant flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#004cc5 1px, transparent 1px); background-size: 24px 24px;"></div>
+<span class="material-symbols-outlined text-primary text-[48px] mb-sm">hub</span>
+<p class="font-headline-sm text-headline-sm text-on-surface">Ekosistem Bağlantı Ağı</p>
+<p class="text-on-surface-variant">Simülasyon etkileri tüm ağ düğümlerine yansıtılır.</p>
+</div>
+</div>
+</div>
+<!-- Side Panel Overlay -->
+<aside class="fixed right-0 top-16 bottom-0 w-full md:w-[400px] glass-panel z-40 transition-transform duration-300 translate-x-0 overflow-y-auto flex flex-col shadow-xl" id="simulationPanel">
+<!-- Header -->
+<div class="p-md border-b border-outline-variant flex justify-between items-center bg-white/50">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Simülasyon Paneli</h2>
+<p class="text-on-surface-variant text-body-sm">Değişkenleri optimize edin.</p>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" onclick="togglePanel()">close</button>
+</div>
+<!-- Simulation Variables -->
+<div class="flex-1 p-md space-y-lg">
+<!-- Variable 1: CAPEX -->
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-on-surface">CAPEX AYARLAMASI</label>
+<span class="text-primary font-bold" id="val_capex">0%</span>
+</div>
+<input class="sim-slider" id="input_capex" max="20" min="-20" type="range" value="0"/>
+<div class="flex justify-between text-[10px] text-outline">
+<span>-20%</span>
+<span>NORMAL</span>
+<span>+20%</span>
+</div>
+</div>
+<!-- Variable 2: Energy Price -->
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-on-surface">ENERJİ FİYAT DALGALANMASI</label>
+<span class="text-primary font-bold" id="val_energy">0%</span>
+</div>
+<input class="sim-slider" id="input_energy" max="50" min="-30" type="range" value="0"/>
+</div>
+<!-- Variable 3: Subsidies -->
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-on-surface">DEVLET TEŞVİKLERİ</label>
+<span class="text-primary font-bold" id="val_subsidy">Standart</span>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<button class="px-sm py-2 rounded-lg border border-primary bg-primary-container text-on-primary-container text-body-sm font-bold subsidy-btn active" data-val="Standart">Standart</button>
+<button class="px-sm py-2 rounded-lg border border-outline-variant hover:border-primary text-on-surface-variant text-body-sm subsidy-btn" data-val="Stratejik">Stratejik (+12%)</button>
+</div>
+</div>
+<!-- Variable 4: Occupancy -->
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-on-surface">DOLULUK ORANI</label>
+<span class="text-primary font-bold" id="val_occupancy">85%</span>
+</div>
+<input class="sim-slider" id="input_occupancy" max="100" min="50" type="range" value="85"/>
+</div>
+<!-- Variable 5: Maintenance -->
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-md text-on-surface">BAKIM REZERVELERİ</label>
+<div class="flex items-center gap-xs">
+<span class="text-on-surface-variant text-body-sm">₺</span>
+<input class="w-24 bg-surface border-none focus:ring-0 text-right text-primary font-bold p-0" id="input_maintenance" type="number" value="450000"/>
+</div>
+</div>
+<div class="h-1 bg-outline-variant rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 45%"></div>
+</div>
+</div>
+<!-- Live Impact Preview -->
+<section class="mt-xl p-md bg-primary/5 rounded-xl border-2 border-dashed border-primary/20 space-y-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<h4 class="font-label-md text-on-primary-fixed-variant">CANLI ETKİ ÖNİZLEME</h4>
+</div>
+<div class="grid grid-cols-2 gap-md">
+<div class="text-center">
+<p class="text-on-surface-variant text-[10px] mb-xs">YENİ IRR</p>
+<div class="flex items-center justify-center gap-xs">
+<span class="font-headline-md text-headline-md text-on-surface" id="previewIrr">18.2%</span>
+<span class="material-symbols-outlined text-success-600 text-sm hidden" id="irrArrow">arrow_upward</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-on-surface-variant text-[10px] mb-xs">AI SKOR DEĞİŞİMİ</p>
+<div class="flex items-center justify-center gap-xs">
+<span class="font-headline-md text-headline-md text-on-surface" id="previewAiScore">84</span>
+<span class="text-success-600 text-xs font-bold hidden" id="scoreDiff">+2</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Footer Actions -->
+<div class="p-md border-t border-outline-variant bg-white/50 grid grid-cols-2 gap-sm">
+<button class="px-md py-base border border-secondary text-secondary font-bold rounded-lg hover:bg-secondary/5 transition-colors active:scale-95 duration-200" onclick="resetDefaults()">
+                        Sıfırla
+                    </button>
+<button class="px-md py-base bg-gradient-to-r from-tertiary to-primary text-white font-bold rounded-lg shadow-md hover:opacity-90 transition-all active:scale-95 duration-200" onclick="applySimulation()">
+                        Uygula
+                    </button>
+</div>
+</aside>
+</main>
+</div>
+<!-- Floating Action Button -->
+<button class="fixed bottom-lg right-lg w-14 h-14 bg-primary text-on-primary rounded-full shadow-lg flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-all md:hidden" onclick="togglePanel()">
+<span class="material-symbols-outlined">tune</span>
+</button>
+<script>
+        const panel = document.getElementById('simulationPanel');
+        const sliders = document.querySelectorAll('.sim-slider');
+        const subsidyBtns = document.querySelectorAll('.subsidy-btn');
+        
+        // Data nodes for updates
+        const nodes = {
+            capex: document.getElementById('input_capex'),
+            energy: document.getElementById('input_energy'),
+            occupancy: document.getElementById('input_occupancy'),
+            maintenance: document.getElementById('input_maintenance'),
+            irr: document.getElementById('previewIrr'),
+            score: document.getElementById('previewAiScore'),
+            mainIrr: document.getElementById('mainIrr'),
+            mainScore: document.getElementById('mainAiScore')
+        };
+
+        const displayVals = {
+            capex: document.getElementById('val_capex'),
+            energy: document.getElementById('val_energy'),
+            occupancy: document.getElementById('val_occupancy')
+        };
+
+        function togglePanel() {
+            panel.classList.toggle('translate-x-full');
+        }
+
+        function updateSimulation() {
+            const cx = parseInt(nodes.capex.value);
+            const en = parseInt(nodes.energy.value);
+            const occ = parseInt(nodes.occupancy.value);
+            
+            // UI Visual Feedback
+            displayVals.capex.innerText = (cx > 0 ? '+' : '') + cx + '%';
+            displayVals.energy.innerText = (en > 0 ? '+' : '') + en + '%';
+            displayVals.occupancy.innerText = occ + '%';
+
+            // Simple Logic for Real-time Impact (Mock logic)
+            let baseIrr = 18.2;
+            let irrMod = (occ - 85) * 0.15 - (cx * 0.1) - (en * 0.05);
+            let finalIrr = (baseIrr + irrMod).toFixed(1);
+            nodes.irr.innerText = finalIrr + '%';
+
+            let baseScore = 84;
+            let scoreMod = Math.round((occ - 85) * 0.5 - (cx * 0.2));
+            nodes.score.innerText = baseScore + scoreMod;
+        }
+
+        sliders.forEach(s => s.addEventListener('input', updateSimulation));
+
+        subsidyBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                subsidyBtns.forEach(b => {
+                    b.classList.remove('bg-primary-container', 'text-on-primary-container', 'active');
+                    b.classList.add('border-outline-variant', 'text-on-surface-variant');
+                });
+                btn.classList.add('bg-primary-container', 'text-on-primary-container', 'active');
+                btn.classList.remove('border-outline-variant', 'text-on-surface-variant');
+                document.getElementById('val_subsidy').innerText = btn.dataset.val;
+                updateSimulation();
+            });
+        });
+
+        function resetDefaults() {
+            nodes.capex.value = 0;
+            nodes.energy.value = 0;
+            nodes.occupancy.value = 85;
+            nodes.maintenance.value = 450000;
+            updateSimulation();
+        }
+
+        function applySimulation() {
+            // "Sync" to dashboard
+            nodes.mainIrr.innerText = nodes.irr.innerText;
+            nodes.mainScore.innerText = nodes.score.innerText;
+            
+            // Visual success feedback
+            const btn = event.currentTarget;
+            const originalText = btn.innerText;
+            btn.innerText = "Uygulandı!";
+            btn.classList.add('from-green-600', 'to-green-500');
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.remove('from-green-600', 'to-green-500');
+                if (window.innerWidth < 768) togglePanel();
+            }, 1500);
+        }
+
+        // Initial update
+        updateSimulation();
+    </script>
+</body></html>

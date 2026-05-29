@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Research &amp; Knowledge Library | think-Inn AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Manrope:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#0c1b34",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "on-primary-container": "#f0f1ff",
+                        "surface-tint": "#0054d7",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-primary-fixed": "#00184a",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#aaedff",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "on-background": "#0c1b34",
+                        "tertiary": "#005f6e",
+                        "primary-container": "#1463f3",
+                        "surface-dim": "#ccdafc",
+                        "outline": "#737687",
+                        "on-tertiary-container": "#dbf7ff",
+                        "on-secondary-container": "#4c5d80",
+                        "background": "#f9f9ff",
+                        "on-surface-variant": "#424655",
+                        "primary": "#004cc5",
+                        "inverse-surface": "#22304a",
+                        "inverse-on-surface": "#ecf0ff",
+                        "surface-bright": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#b3c5ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "secondary-container": "#c6d7ff",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#4e5e81",
+                        "outline-variant": "#c2c6d8",
+                        "surface-container-high": "#e0e8ff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-secondary-fixed": "#071b3a",
+                        "surface": "#f9f9ff",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "surface-container": "#e8eeff",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-tertiary-fixed": "#001f26",
+                        "tertiary-container": "#00798d",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f1f3ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "lg": "48px",
+                        "sm": "12px",
+                        "margin-desktop": "40px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Montserrat"],
+                        "body-md": ["Manrope"],
+                        "display-lg": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-lg": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "body-sm": ["Manrope"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .hexagon-mask {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .connection-node {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #1463f3;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        .connection-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, #1463f3 0%, rgba(20, 99, 243, 0) 100%);
+            transform-origin: left center;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">think-Inn AI</span>
+<div class="hidden lg:flex items-center bg-surface-container-low px-sm py-xs rounded-full border border-outline-variant">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-sm px-xs w-64" placeholder="Search the library..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<button class="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-secondary hover:text-primary transition-colors cursor-pointer" data-icon="explore">explore</button>
+<div class="h-10 w-10 rounded-full overflow-hidden border-2 border-primary-container">
+<img alt="User Profile" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFlx_Ff4sRtVNkVqrniz4l5hI9qzpLVbA1PpRnmXjPZ94HAylsqyMqqQcNC1Rci1GfNfr0M54gEYy95bykRI4q5QeN6zIQ2MlFtRCWSse1469GQy4n27xrnrXy7f-qRgqVNj0oyx38CEamcmmbcuiW0-y-mwWk7P2rF7yQenP2_dhIr3MKw4CradRoqSQOZF9Zd95-KyDYMDK8qNTEioUPHW8VL5Lc5OTqdGgiHagNr9VuPvCCkM2wDR1uBqFerGk3R5k3RkKuXMV_"/>
+</div>
+</div>
+</header>
+<!-- Side Navigation Bar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 flex flex-col py-md px-sm bg-surface-container-low shadow-md pt-20">
+<div class="mb-lg px-sm">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-[20px]">auto_awesome</span>
+</div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface">AI Workspace</h2>
+</div>
+<p class="text-label-md font-label-md text-on-surface-variant opacity-70">Chat-First Innovation</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md text-label-md">Ideas</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-primary font-bold border-r-4 border-primary bg-surface-container-high translate-x-1 transition-transform duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-label-md text-label-md">Research</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-label-md text-label-md">Projects</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-label-md text-label-md">Map</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Community</span>
+</a>
+</nav>
+<div class="mt-auto space-y-1 pt-md border-t border-outline-variant">
+<button class="w-full flex items-center justify-center gap-xs py-sm bg-gradient-to-r from-tertiary-fixed-dim to-primary rounded-xl text-on-primary font-bold shadow-lg mb-md hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">add</span>
+<span class="font-label-md text-label-md">New Idea Query</span>
+</button>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-sm py-sm px-md rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-64 pt-16 min-h-screen">
+<!-- Hero Header -->
+<section class="relative h-64 w-full overflow-hidden">
+<img alt="Innovation Header" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlbOf30CfwtYN853H8A6_8emwMlfoP0o-_IbMpxuCZFw0bLwyMA3aUztdvEm8Z1yndSNO6m-xdyVLq2EDUiIt3S6vjJFEnEsth7EU7CSLcuQR8bc66tIOFLb8r6Pl_iurREtZSWJ-2AdDLW-_rTDJTgy0cotu_uvvg5zibBw-Fv04rOm8L7VUEJTdV8nm0fAyAU-RH-PFEuMq3YegcYhff0cJ9dmDfotEbypowk6TH3wvqspwVAym9ZSIM7Lj5oyxyZdI6If8737KH"/>
+<div class="absolute inset-0 bg-gradient-to-r from-on-surface/80 via-on-surface/40 to-transparent flex items-center px-lg">
+<div class="max-w-2xl">
+<h1 class="font-display-lg text-display-lg text-on-primary mb-xs">Knowledge Library</h1>
+<p class="font-body-lg text-body-lg text-primary-fixed">Access organized research nodes and AI-generated insights across your global ecosystem.</p>
+</div>
+</div>
+</section>
+<!-- Functional Bar -->
+<div class="sticky top-16 z-30 bg-surface/95 backdrop-blur-sm px-gutter py-md flex flex-col md:flex-row justify-between items-center gap-md">
+<div class="flex items-center gap-sm overflow-x-auto pb-xs w-full md:w-auto">
+<button class="px-md py-xs rounded-full bg-primary text-on-primary font-label-md text-label-md transition-all">All Sources</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all">AI &amp; ML</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all">Market Trends</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all">Deep Tech</button>
+<button class="px-md py-xs rounded-full bg-surface-container-high text-on-surface-variant font-label-md text-label-md hover:bg-primary-container hover:text-on-primary-container transition-all">Sustainability</button>
+</div>
+<button class="flex items-center gap-xs px-md py-md bg-tertiary-fixed text-on-tertiary-fixed-variant rounded-xl font-bold shadow-sm hover:shadow-md transition-all shrink-0">
+<span class="material-symbols-outlined">post_add</span>
+<span>Add Research</span>
+</button>
+</div>
+<!-- Research Grid -->
+<div class="px-gutter pb-xl">
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter mt-base">
+<!-- Research Card 1 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-[0px_4px_20px_rgba(7,27,58,0.05)] hover:shadow-lg transition-all flex flex-col gap-sm overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-xs">
+<div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="psychology">psychology</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">LLM Optimization Strategies</h3>
+<span class="text-label-md font-label-md text-outline">Source: Internal Lab A</span>
+</div>
+</div>
+<div class="hexagon-mask w-10 h-10 bg-gradient-to-br from-primary to-tertiary flex items-center justify-center text-on-primary font-bold text-label-md">
+                            94
+                        </div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                        Comprehensive summary of fine-tuning techniques for localized language models, focusing on latency reduction in corporate private clouds.
+                    </p>
+<div class="flex flex-wrap gap-xs mt-auto">
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#AI</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Efficiency</span>
+</div>
+<!-- Decorative Connectivity Nodes -->
+<div class="connection-node -right-1 top-1/2 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+<div class="connection-line right-0 top-1/2 w-12 group-hover:w-24 opacity-10 group-hover:opacity-40 transition-all"></div>
+</div>
+<!-- Research Card 2 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-[0px_4px_20px_rgba(7,27,58,0.05)] hover:shadow-lg transition-all flex flex-col gap-sm overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-xs">
+<div class="w-10 h-10 bg-surface-variant rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="monitoring">monitoring</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Q3 Market Disruptors</h3>
+<span class="text-label-md font-label-md text-outline">Source: McKinsey Insights</span>
+</div>
+</div>
+<div class="hexagon-mask w-10 h-10 bg-gradient-to-br from-secondary to-outline-variant flex items-center justify-center text-on-primary font-bold text-label-md">
+                            82
+                        </div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                        Analysis of non-linear growth patterns in decentralized finance and its impact on traditional banking security protocols.
+                    </p>
+<div class="flex flex-wrap gap-xs mt-auto">
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Market</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Finance</span>
+</div>
+<div class="connection-node -left-1 bottom-1/4 opacity-20 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<!-- Research Card 3 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-[0px_4px_20px_rgba(7,27,58,0.05)] hover:shadow-lg transition-all flex flex-col gap-sm overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-xs">
+<div class="w-10 h-10 bg-tertiary-fixed-dim rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-on-tertiary-fixed-variant" data-icon="energy_savings_leaf">energy_savings_leaf</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Carbon-Neutral Compute</h3>
+<span class="text-label-md font-label-md text-outline">Source: GreenTech Coalition</span>
+</div>
+</div>
+<div class="hexagon-mask w-10 h-10 bg-gradient-to-br from-tertiary to-secondary flex items-center justify-center text-on-primary font-bold text-label-md">
+                            97
+                        </div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                        Emerging architectures for sustainable data centers utilizing underwater cooling and solar-harvesting glass shells.
+                    </p>
+<div class="flex flex-wrap gap-xs mt-auto">
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Sustainability</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Hardware</span>
+</div>
+</div>
+<!-- Research Card 4 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-[0px_4px_20px_rgba(7,27,58,0.05)] hover:shadow-lg transition-all flex flex-col gap-sm overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-xs">
+<div class="w-10 h-10 bg-primary-fixed-dim rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="shield_lock">shield_lock</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Quantum Security Layers</h3>
+<span class="text-label-md font-label-md text-outline">Source: MIT CSAIL</span>
+</div>
+</div>
+<div class="hexagon-mask w-10 h-10 bg-gradient-to-br from-primary to-inverse-surface flex items-center justify-center text-on-primary font-bold text-label-md">
+                            89
+                        </div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                        Exploration of post-quantum cryptography standards and their implementation in enterprise-grade encryption modules.
+                    </p>
+<div class="flex flex-wrap gap-xs mt-auto">
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Tech</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Security</span>
+</div>
+</div>
+<!-- Research Card 5 -->
+<div class="group relative bg-surface-container-lowest border border-outline-variant p-md rounded-xl shadow-[0px_4px_20px_rgba(7,27,58,0.05)] hover:shadow-lg transition-all flex flex-col gap-sm overflow-hidden">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-xs">
+<div class="w-10 h-10 bg-secondary-fixed rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary" data-icon="hub">hub</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Edge Node Mesh Networks</h3>
+<span class="text-label-md font-label-md text-outline">Source: 5G Standards Hub</span>
+</div>
+</div>
+<div class="hexagon-mask w-10 h-10 bg-gradient-to-br from-on-secondary-container to-secondary flex items-center justify-center text-on-primary font-bold text-label-md">
+                            76
+                        </div>
+</div>
+<p class="text-body-sm text-on-surface-variant leading-relaxed">
+                        Defining the next generation of autonomous mesh connectivity for industrial IoT applications in remote environments.
+                    </p>
+<div class="flex flex-wrap gap-xs mt-auto">
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#Connectivity</span>
+<span class="px-xs py-0.5 bg-surface-variant text-on-surface-variant rounded text-[10px] font-bold">#IoT</span>
+</div>
+</div>
+<!-- Bento Style Large Featured Card -->
+<div class="group relative bg-primary-container xl:col-span-2 p-md rounded-xl shadow-lg flex flex-col md:flex-row gap-md overflow-hidden text-on-primary-container">
+<div class="md:w-1/2 space-y-md">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[32px]">auto_awesome</span>
+<span class="font-label-md text-label-md uppercase tracking-widest opacity-80">AI Synthesis Report</span>
+</div>
+<h2 class="font-headline-md text-headline-md font-bold">Predictive Innovation Cycles</h2>
+<p class="text-body-md opacity-90">Our latest AI-driven meta-analysis of over 5,000 research papers reveals a critical convergence point in neuromorphic computing slated for 2027.</p>
+<button class="px-md py-sm bg-on-primary-container text-primary-container rounded-lg font-bold hover:bg-white transition-colors">View Deep Dive</button>
+</div>
+<div class="md:w-1/2 relative min-h-[160px] flex items-center justify-center">
+<!-- Abstract Mesh Representation -->
+<div class="absolute inset-0 opacity-20">
+<div class="connection-node left-10 top-10"></div>
+<div class="connection-node right-20 top-20"></div>
+<div class="connection-node left-1/2 bottom-10"></div>
+<div class="connection-line left-10 top-10 w-40 rotate-12 bg-white"></div>
+<div class="connection-line left-1/2 bottom-10 w-32 -rotate-45 bg-white"></div>
+</div>
+<div class="hexagon-mask w-32 h-32 bg-on-primary-container/20 backdrop-blur-md flex items-center justify-center">
+<span class="material-symbols-outlined text-[64px] text-on-primary-container">insights</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (Mobile only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-20 md:hidden bg-surface shadow-[0_-4px_20px_rgba(7,27,58,0.05)] rounded-t-xl">
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="lightbulb">lightbulb</span>
+<span class="font-label-md text-label-md">Ideas</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1 scale-95 transition-transform">
+<span class="material-symbols-outlined" data-icon="biotech">biotech</span>
+<span class="font-label-md text-label-md">Research</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="hub">hub</span>
+<span class="font-label-md text-label-md">Map</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+<span class="font-label-md text-label-md">Projects</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Community</span>
+</button>
+</nav>
+<script>
+        // Simple micro-interaction for connection nodes
+        document.addEventListener('mousemove', (e) => {
+            const nodes = document.querySelectorAll('.connection-node');
+            nodes.forEach(node => {
+                const rect = node.getBoundingClientRect();
+                const dx = e.clientX - (rect.left + rect.width/2);
+                const dy = e.clientY - (rect.top + rect.height/2);
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if(dist < 100) {
+                    const moveX = dx / 15;
+                    const moveY = dy / 15;
+                    node.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                } else {
+                    node.style.transform = `translate(0, 0)`;
+                }
+            });
+        });
+    </script>
+</body></html>

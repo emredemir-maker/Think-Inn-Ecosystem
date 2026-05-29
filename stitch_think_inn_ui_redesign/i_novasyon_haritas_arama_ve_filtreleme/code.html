@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Manrope:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "on-background": "#0c1b34",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "surface-variant": "#d7e2ff",
+                        "surface-container-high": "#e0e8ff",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "on-tertiary-fixed": "#001f26",
+                        "tertiary-fixed": "#aaedff",
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-surface": "#0c1b34",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-container": "#dbf7ff",
+                        "inverse-surface": "#22304a",
+                        "tertiary": "#005f6e",
+                        "secondary-fixed": "#d7e2ff",
+                        "primary-container": "#1463f3",
+                        "outline-variant": "#c2c6d8",
+                        "surface-dim": "#ccdafc",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-surface-variant": "#424655",
+                        "surface-container": "#e8eeff",
+                        "on-primary-container": "#f0f1ff",
+                        "primary": "#004cc5",
+                        "on-secondary-fixed-variant": "#364768",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-primary-fixed": "#00184a",
+                        "surface-container-low": "#f1f3ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "secondary": "#4e5e81",
+                        "surface-tint": "#0054d7",
+                        "on-secondary-container": "#4c5d80",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9ff",
+                        "surface-container-lowest": "#ffffff",
+                        "background": "#f9f9ff",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f9f9ff",
+                        "inverse-primary": "#b3c5ff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#c6d7ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "outline": "#737687",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#00798d",
+                        "primary-fixed": "#dbe1ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "margin-desktop": "40px",
+                        "lg": "48px",
+                        "sm": "12px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "gutter": "24px",
+                        "margin-mobile": "16px",
+                        "md": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Montserrat"],
+                        "display-lg": ["Montserrat"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "body-lg": ["Manrope"],
+                        "label-md": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "headline-sm": ["Montserrat"],
+                        "headline-lg": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .network-line {
+            stroke: #cbd5e1;
+            stroke-dasharray: 4;
+            animation: dash 20s linear infinite;
+        }
+        @keyframes dash {
+            to { stroke-dashoffset: -1000; }
+        }
+        .hexagon-clip {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+        .search-overlay {
+            backdrop-filter: blur(4px);
+            background: rgba(248, 250, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md overflow-hidden h-screen flex">
+<!-- SideNavBar Anchor -->
+<aside class="flex flex-col h-screen fixed left-0 top-0 p-4 border-r border-outline-variant bg-surface-container-low z-50 w-64">
+<div class="mb-lg px-2">
+<h1 class="text-headline-sm font-headline-sm text-primary">think-Inn</h1>
+<p class="text-label-md font-label-md text-on-surface-variant opacity-70">Enterprise Tier</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-label-md font-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="text-label-md font-label-md">Ideas</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">magnification_small</span>
+<span class="text-label-md font-label-md">Research</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="text-label-md font-label-md">Projects</span>
+</a>
+<!-- ACTIVE TAB: Map -->
+<a class="flex items-center gap-3 px-3 py-2 text-primary font-bold bg-secondary-container rounded-lg scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-label-md font-label-md">Map</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-on-surface-variant hover:text-primary hover:bg-surface-container-highest transition-all rounded-lg" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-label-md font-label-md">Community</span>
+</a>
+</nav>
+<div class="mt-auto pt-4 border-t border-outline-variant">
+<div class="flex items-center gap-3 p-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">account_circle</span>
+</div>
+<div>
+<p class="text-label-md font-bold">Innovation Hub</p>
+<p class="text-[10px] text-on-surface-variant">User Workspace</p>
+</div>
+</div>
+<button class="w-full mt-4 py-2 px-4 bg-primary text-on-primary font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add</span>
+<span>New Initiative</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 relative flex flex-col h-screen">
+<!-- TopNavBar Integrated -->
+<header class="flex justify-between items-center w-full px-margin-desktop py-4 z-40 sticky top-0 bg-surface shadow-sm">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-xl group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">search</span>
+</div>
+<input class="w-full bg-surface-container-lowest border border-primary ring-2 ring-primary-container/20 rounded-full py-2 pl-12 pr-4 text-body-md focus:outline-none focus:ring-2 focus:ring-primary transition-all" placeholder="Search the Innovation Map..." type="text" value="Quantum Neural"/>
+</div>
+<button class="flex items-center gap-2 px-4 py-2 bg-secondary-container text-on-secondary-container rounded-full font-label-md hover:bg-surface-container-highest transition-colors" id="filterToggle">
+<span class="material-symbols-outlined">filter_list</span>
+<span>Filters</span>
+</button>
+</div>
+<div class="flex items-center gap-4 ml-gutter">
+<button class="text-primary hover:bg-surface-container transition-colors p-2 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-secondary-fixed-dim border border-outline-variant overflow-hidden">
+<img alt="User Profile" data-alt="A professional close-up portrait of a tech innovation lead in a modern corporate setting. The lighting is soft and professional with a cool blue and white tone. The background is a blurred office environment with glowing screens and network-inspired geometry. The subject is a woman with a confident expression, embodying the brand's intelligent systematics aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJbPvFjQtc0nbkQ5xxR0M9ZICgX3kbosRD9uPN1ooQLd0Ah110mHAYYsog1yguv8WGtYUlRTY0lo0N03TbDB17ln21bkmlDEE8juIGvu0bMFJWiHqxwWRviLLnMa-FWOpcmN5J_nSuAa4Ykw7dn5XfhbseHJ8_XKmITQ6vTyMhjeL5dtsn1KUnHn7VJeNdp2XmHVgG08SdaSWeKhzcW8MKaepOVS7wXnDDuKm3y1nD-SyaatOpfha6xXm9Xw2dEebKx91nnRB4xyK4"/>
+</div>
+</div>
+</header>
+<!-- Innovation Map Area -->
+<div class="flex-1 relative bg-[#F8FAFF] overflow-hidden">
+<!-- Filter Dropdown (Active State) -->
+<div class="absolute top-4 left-margin-desktop z-50 w-80 bg-surface-container-lowest rounded-xl shadow-lg border border-outline-variant p-gutter" id="filterMenu">
+<div class="space-y-6">
+<div>
+<h4 class="text-label-md font-bold mb-3 text-on-surface">Entity Type</h4>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 rounded-full bg-primary-container text-on-primary-container text-label-md border border-primary">Idea</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-md hover:bg-primary-container/30 cursor-pointer">Project</span>
+<span class="px-3 py-1 rounded-full bg-primary-container text-on-primary-container text-label-md border border-primary">Research</span>
+<span class="px-3 py-1 rounded-full bg-surface-container-highest text-on-surface-variant text-label-md hover:bg-primary-container/30 cursor-pointer">Person</span>
+</div>
+</div>
+<div>
+<h4 class="text-label-md font-bold mb-3 text-on-surface">Status</h4>
+<div class="grid grid-cols-2 gap-2">
+<label class="flex items-center gap-2 text-label-md text-on-surface-variant cursor-pointer">
+<input checked="" class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary" type="checkbox"/>
+                                Active
+                            </label>
+<label class="flex items-center gap-2 text-label-md text-on-surface-variant cursor-pointer">
+<input class="w-4 h-4 rounded text-primary border-outline-variant focus:ring-primary" type="checkbox"/>
+                                Archived
+                            </label>
+</div>
+</div>
+<div>
+<h4 class="text-label-md font-bold mb-3 text-on-surface">Connectivity</h4>
+<input class="w-full h-1.5 bg-surface-container-highest rounded-lg appearance-none cursor-pointer accent-primary" max="3" min="1" step="1" type="range"/>
+<div class="flex justify-between text-[10px] mt-2 text-on-surface-variant uppercase font-bold tracking-wider">
+<span>Low</span>
+<span>Medium</span>
+<span>High</span>
+</div>
+</div>
+<div class="pt-4 border-t border-outline-variant flex gap-2">
+<button class="flex-1 py-2 text-label-md font-bold bg-primary text-white rounded-lg">Apply Filters</button>
+<button class="px-3 py-2 text-label-md font-bold text-on-surface-variant hover:bg-surface-container rounded-lg">Reset</button>
+</div>
+</div>
+</div>
+<!-- SVG Background Network -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-40">
+<defs>
+<lineargradient id="lineGrad" x1="0%" x2="100%" y1="0%" y2="0%">
+<stop offset="0%" stop-color="#1463f3"></stop>
+<stop offset="100%" stop-color="#39d8f7"></stop>
+</lineargradient>
+</defs>
+<line class="network-line" stroke="url(#lineGrad)" stroke-width="1.5" x1="20%" x2="40%" y1="30%" y2="50%"></line>
+<line class="network-line" stroke="#cbd5e1" stroke-width="1" x1="40%" x2="60%" y1="50%" y2="40%"></line>
+<line class="network-line" stroke="url(#lineGrad)" stroke-width="2" x1="40%" x2="45%" y1="50%" y2="75%"></line>
+<line class="network-line" stroke="#cbd5e1" stroke-width="1" x1="60%" x2="80%" y1="40%" y2="20%"></line>
+</svg>
+<!-- Map Nodes -->
+<!-- Active Node (Matched Search) -->
+<div class="absolute top-[48%] left-[38%] z-30 group cursor-pointer transition-transform hover:scale-110">
+<div class="w-24 h-24 hexagon-clip bg-gradient-to-br from-[#1463f3] to-[#39d8f7] p-0.5 shadow-xl">
+<div class="w-full h-full hexagon-clip bg-white flex flex-col items-center justify-center p-2 text-center">
+<span class="material-symbols-outlined text-primary mb-1">psychology</span>
+<span class="text-[10px] font-bold leading-tight">Quantum Neural Core</span>
+</div>
+</div>
+<div class="absolute -top-2 -right-2 w-8 h-8 hexagon-clip bg-primary text-white text-[10px] font-bold flex items-center justify-center border-2 border-white">
+                    98
+                </div>
+</div>
+<div class="absolute top-[70%] left-[43%] z-30 group cursor-pointer transition-transform hover:scale-110">
+<div class="w-20 h-20 hexagon-clip bg-gradient-to-br from-[#1463f3] to-[#39d8f7] p-0.5 shadow-lg">
+<div class="w-full h-full hexagon-clip bg-white flex flex-col items-center justify-center p-2 text-center">
+<span class="material-symbols-outlined text-primary mb-1">science</span>
+<span class="text-[10px] font-bold leading-tight">Synaptic Research</span>
+</div>
+</div>
+</div>
+<!-- Desaturated Nodes (Unmatched) -->
+<div class="absolute top-[25%] left-[20%] opacity-30 grayscale pointer-events-none transition-opacity duration-500">
+<div class="w-16 h-16 hexagon-clip bg-outline-variant p-0.5">
+<div class="w-full h-full hexagon-clip bg-surface flex flex-col items-center justify-center p-2 text-center">
+<span class="material-symbols-outlined text-outline">rocket_launch</span>
+<span class="text-[8px] font-bold text-on-surface-variant">Mars Logistics</span>
+</div>
+</div>
+</div>
+<div class="absolute top-[35%] left-[58%] opacity-30 grayscale pointer-events-none transition-opacity duration-500">
+<div class="w-16 h-16 hexagon-clip bg-outline-variant p-0.5">
+<div class="w-full h-full hexagon-clip bg-surface flex flex-col items-center justify-center p-2 text-center">
+<span class="material-symbols-outlined text-outline">payments</span>
+<span class="text-[8px] font-bold text-on-surface-variant">Fintech Beta</span>
+</div>
+</div>
+</div>
+<!-- Search Results Integrated List (Bento-style panel) -->
+<div class="absolute right-gutter top-gutter bottom-gutter w-96 bg-white/80 backdrop-blur-xl border border-outline-variant rounded-2xl shadow-2xl flex flex-col z-40 overflow-hidden">
+<div class="p-gutter border-b border-outline-variant bg-surface-container-lowest/50">
+<div class="flex justify-between items-center mb-1">
+<h2 class="text-headline-sm font-headline-sm">Search Results</h2>
+<span class="text-label-md font-bold text-primary bg-primary-container px-2 py-0.5 rounded">3 found</span>
+</div>
+<p class="text-body-sm text-on-surface-variant">Query: "Quantum Neural"</p>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-4">
+<!-- Result 1 -->
+<div class="group bg-surface-container-lowest border border-primary p-4 rounded-xl hover:shadow-md transition-all cursor-pointer ring-1 ring-primary-container">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-container text-on-primary-container uppercase tracking-wider">Research</span>
+<div class="flex items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="text-label-md font-bold">98</span>
+</div>
+</div>
+<h3 class="font-headline-sm text-on-surface group-hover:text-primary transition-colors">Quantum Neural Core Architecture</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mt-1">Foundational research into bio-mimetic AI synaptic weighting for large scale models.</p>
+<div class="mt-3 flex items-center gap-2">
+<div class="flex -space-x-2">
+<img alt="Avatar" class="w-6 h-6 rounded-full border-2 border-white" data-alt="Close-up profile photo of a diverse engineering lead, shot in a bright studio with soft lighting. The aesthetic is clean and corporate, featuring cool blues and whites consistent with high-performance SaaS design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSqwVWWyv4Ty3OqGoR_08T9JL-f7qFDX3ettkRZp-RU9D9jwge83BjmNGIobJgT6fCQrsnDBKR7Bf-ylyg7FoSe539BEkTT11HippyduV_Wd4n4nFvdD4bNbtVxH9yA2V1nh6x4uHw-RTfHEFYqfjD-X9WvjgLIwe7mKfhy8Z7A02-jP684-_Tfr8Jnol7a-PPiCi_XqVbn8bkS_Pd61fLnQus-ktusanQq_IkNm_KtB-hPOfHipZl9_OmoOo9koFCgzrXBBBz8QQ1"/>
+<img alt="Avatar" class="w-6 h-6 rounded-full border-2 border-white" data-alt="Professional avatar portrait of a data scientist. High-key lighting, bright white background, and a sharp, modern corporate feel. The color palette follows the brand's navy and cyan accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuACmcGdrTopzhpPEt8EI2PdctR079JrQ4BpLFucbgsyzdRCpqujn6jkbvryQn1TxBOvZM7bhODn8kOtO2yHvJpIvCojVDfO1SeE57oMWl8QJyA-8OU17ufKVNpaEylRadLN6I8lqFKyA_FuzRRtA0p5mmnItEouaqnS4wo88rNcXNjyLu3di4Cqh3ctkAseOPios7lp5yVIss8qruUCJ8Vssnp5JGvyO-CumPFu20zZk6zVLNPyizuLvjlzpbKSrsyW-ctkXZ9KTF2a"/>
+</div>
+<span class="text-[10px] text-on-surface-variant font-medium">8 contributors</span>
+</div>
+</div>
+<!-- Result 2 -->
+<div class="group bg-surface-container-low border border-outline-variant p-4 rounded-xl hover:border-primary/50 transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-tertiary-container text-white uppercase tracking-wider">Idea</span>
+<div class="flex items-center gap-1 text-tertiary">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span class="text-label-md font-bold">72</span>
+</div>
+</div>
+<h3 class="font-headline-sm text-on-surface group-hover:text-primary transition-colors">Neural Synaptic Mapping</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mt-1">Application of quantum entanglement principles to decentralized neural networks.</p>
+<div class="mt-3 flex items-center gap-2">
+<span class="text-[10px] bg-surface-container-highest px-2 py-0.5 rounded text-on-surface-variant">Active Stage 2</span>
+</div>
+</div>
+<!-- Result 3 -->
+<div class="group bg-surface-container-low border border-outline-variant p-4 rounded-xl hover:border-primary/50 transition-all cursor-pointer opacity-80">
+<div class="flex justify-between items-start mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-secondary-container text-on-secondary-container uppercase tracking-wider">Project</span>
+<div class="flex items-center gap-1 text-secondary">
+<span class="material-symbols-outlined text-[16px]">bolt</span>
+<span class="text-label-md font-bold">54</span>
+</div>
+</div>
+<h3 class="font-headline-sm text-on-surface group-hover:text-primary transition-colors">Project Q-Net</h3>
+<p class="text-body-sm text-on-surface-variant line-clamp-2 mt-1">Scaling the neural architecture for enterprise-grade secure connectivity nodes.</p>
+<div class="mt-3 flex items-center gap-2 text-error text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                            Needs Review
+                        </div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (FAB) suppression on Search State but keeping for context if requested by JSON mandate logic -->
+<!-- Suppressing FAB on Details/Search as per mandate -->
+</main>
+<script>
+        // Simple micro-interactions for the demo
+        const filterToggle = document.getElementById('filterToggle');
+        const filterMenu = document.getElementById('filterMenu');
+
+        filterToggle.addEventListener('click', () => {
+            filterMenu.classList.toggle('hidden');
+            filterMenu.classList.toggle('scale-up-center');
+        });
+
+        // Atmospheric parallax for the map nodes
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.01;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.01;
+            const nodes = document.querySelectorAll('.hexagon-clip');
+            nodes.forEach((node, index) => {
+                const depth = (index % 3 + 1) * 0.5;
+                node.parentElement.style.transform = `translate(${moveX * depth}px, ${moveY * depth}px)`;
+            });
+        });
+    </script>
+</body></html>

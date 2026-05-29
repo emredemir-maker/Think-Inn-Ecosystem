@@ -7,12 +7,13 @@ import {
   ideasTable,
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { ai } from "@workspace/integrations-gemini-ai";
+import { ai, GEMINI_MODELS } from "@workspace/integrations-gemini-ai";
 import { generateImage } from "@workspace/integrations-gemini-ai/image";
 import { setImmediate } from "timers";
 import { backgroundEvaluateIdea } from "../../utils/evaluate-idea";
 import { buildResearchCoverPrompt } from "../../utils/cover-image";
 import { autoCreateResearchThread } from "../../utils/community-auto";
+import { autoLinkResearchToIdeas } from "../../utils/auto-link-research";
 
 const router = Router();
 
@@ -281,7 +282,7 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 {"summary":"...","findings":"...","technicalAnalysis":"..."}`;
 
         const formatRes = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: GEMINI_MODELS.chat,
           contents: [{ role: "user", parts: [{ text: formatPrompt }] }],
           config: { maxOutputTokens: 32768 },
         });
@@ -322,9 +323,20 @@ SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
       actions.push({ action: "research_saved", data: { id: item.id, title: item.title } });
 
-      // ── Step 3: Generate cover image + community thread in background ────────
+      // ── Step 3: Generate cover image + community thread + AI auto-link in background ──
       setImmediate(() => {
         autoCreateResearchThread({ id: item.id, title: item.title, summary: fmtSummary || "" });
+      });
+      // Otomatik fikir eşleştirme — araştırma chat ile eklendiğinde de tetiklensin.
+      // (Önceden sadece REST route'unda vardı; chat akışında eksikti → bu yüzden çalışmıyordu.)
+      setImmediate(() => {
+        autoLinkResearchToIdeas(
+          item.id,
+          item.title,
+          fmtSummary || "",
+          fmtFindings || "",
+          fmtTechnical || "",
+        );
       });
       setImmediate(async () => {
         try {
@@ -521,7 +533,7 @@ Opsiyonel Araştırma Konuları: ${(idea.optionalResearchTopics || []).join(", "
       const geminiCall = async (prompt: string, tokens = 6000): Promise<string> => {
         try {
           const r = await ai.models.generateContent({
-            model: "gemini-2.5-flash",
+            model: GEMINI_MODELS.chat,
             contents: [{ role: "user", parts: [{ text: prompt }] }],
             config: { maxOutputTokens: tokens },
           });
@@ -561,7 +573,7 @@ JSON (SADECE bunu döndür, başka hiçbir şey yazma):
 Proje gerçekliğine uygun 6-12 node üret. Her edge'de protokol/teknoloji belirt.`;
 
         const flowRes = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: GEMINI_MODELS.chat,
           contents: [{ role: "user", parts: [{ text: flowPrompt }] }],
           config: { maxOutputTokens: 4096, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } } as any,
         });
@@ -836,7 +848,7 @@ router.post("/:id/messages", async (req, res) => {
 
       const result = await Promise.race([
         ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: GEMINI_MODELS.chat,
           contents: currentContents,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           config: { tools: TOOLS as any, maxOutputTokens: 16384, thinkingConfig: { thinkingBudget: 0 } } as any,
@@ -921,7 +933,7 @@ router.post("/:id/messages", async (req, res) => {
       try {
         // No tools in the summary call — we want text, not another tool invocation
         const summaryResult = await ai.models.generateContent({
-          model: "gemini-2.5-flash",
+          model: GEMINI_MODELS.chat,
           contents: currentContents,
           config: { maxOutputTokens: 1024 },
         });

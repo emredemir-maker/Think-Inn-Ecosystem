@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html class="light" lang="tr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>think-Inn AI | İnovasyon Haritası</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&amp;family=Manrope:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface": "#0c1b34",
+                        "on-primary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#d7e2ff",
+                        "on-primary-container": "#f0f1ff",
+                        "surface-tint": "#0054d7",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-primary-fixed": "#00184a",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed": "#aaedff",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "on-background": "#0c1b34",
+                        "tertiary": "#005f6e",
+                        "primary-container": "#1463f3",
+                        "surface-dim": "#ccdafc",
+                        "outline": "#737687",
+                        "on-tertiary-container": "#dbf7ff",
+                        "on-secondary-container": "#4c5d80",
+                        "background": "#f9f9ff",
+                        "on-surface-variant": "#424655",
+                        "primary": "#004cc5",
+                        "inverse-surface": "#22304a",
+                        "inverse-on-surface": "#ecf0ff",
+                        "surface-bright": "#f9f9ff",
+                        "on-error": "#ffffff",
+                        "inverse-primary": "#b3c5ff",
+                        "secondary-fixed": "#d7e2ff",
+                        "secondary-container": "#c6d7ff",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#4e5e81",
+                        "outline-variant": "#c2c6d8",
+                        "surface-container-high": "#e0e8ff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-secondary-fixed": "#071b3a",
+                        "surface": "#f9f9ff",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#dbe1ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-container-highest": "#d7e2ff",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "surface-container": "#e8eeff",
+                        "on-secondary-fixed-variant": "#364768",
+                        "on-tertiary-fixed": "#001f26",
+                        "tertiary-container": "#00798d",
+                        "on-error-container": "#93000a",
+                        "surface-container-low": "#f1f3ff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "24px",
+                        "lg": "48px",
+                        "sm": "12px",
+                        "margin-desktop": "40px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "margin-mobile": "16px",
+                        "xs": "4px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Montserrat"],
+                        "headline-md": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-lg": ["Manrope"],
+                        "body-md": ["Manrope"],
+                        "body-sm": ["Manrope"],
+                        "label-md": ["Manrope"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        /* Interactive Background Dots */
+        .dot-background {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* Node Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .floating-node {
+            animation: float 4s ease-in-out infinite;
+        }
+        .floating-node:nth-child(even) {
+            animation-delay: 1s;
+        }
+
+        /* Connection Pulse Effect */
+        @keyframes line-pulse {
+            0% { stroke-dashoffset: 0; stroke-opacity: 0.3; }
+            50% { stroke-opacity: 1; }
+            100% { stroke-dashoffset: -20; stroke-opacity: 0.3; }
+        }
+        .connection-line {
+            stroke-dasharray: 10, 5;
+            animation: line-pulse 2s linear infinite;
+            transition: all 0.3s ease;
+        }
+        .connection-line.highlighted {
+            stroke-width: 4px;
+            stroke-opacity: 1;
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+
+        /* Glass Panels */
+        .glass-panel {
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* Node Transitions */
+        .node-group {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .node-group:hover {
+            transform: scale(1.15) !important;
+        }
+        .node-circle {
+            transition: filter 0.3s ease;
+        }
+        .node-group:hover .node-circle {
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.2));
+        }
+
+        /* Custom Scrollbar for side panel */
+        aside::-webkit-scrollbar {
+            width: 4px;
+        }
+        aside::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop h-16 bg-surface/80 backdrop-blur-md border-b border-outline-variant/20 shadow-sm">
+<div class="flex items-center gap-md">
+<span class="font-headline-md text-headline-md font-bold text-primary">think-Inn AI</span>
+<div class="hidden lg:flex items-center gap-sm ml-lg">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="bg-surface-container-low border-none rounded-full pl-10 pr-4 py-2 w-64 focus:ring-2 focus:ring-primary font-body-sm text-on-surface-variant transition-all" placeholder="Workspace ara..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex gap-sm">
+<button class="p-2 rounded-full hover:bg-surface-variant/50 transition-colors text-on-surface-variant cursor-pointer active:opacity-70">
+<span class="material-symbols-outlined">explore</span>
+</button>
+<button class="p-2 rounded-full hover:bg-surface-variant/50 transition-colors text-on-surface-variant cursor-pointer active:opacity-70 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border border-outline-variant cursor-pointer active:opacity-70">
+<img alt="User" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvJ5HJXORodI77wO3ZG4lQzNMha7iynIYlM6L_8jdk07bXS-sL13f9zas2en-AHVnTUUm1MqzAIxndfOMet0d0fw5NnzBSdOP5_9XQ9f252aNLTtmK5NeLNHdlOG30HASmH_rttMbUev_4JkzoVHVzvoaTcbjQsdDL-cZW8tSwfRWFGFaxst6UOX6SzqPbfLEec94wYPXbp1CIweq4ZEbrBwGyImZy_bbmGq2szmdnEID-5ZGZTiBLM_dlvc2YoXu8x2nKf-rnkNo3"/>
+</div>
+</div>
+</nav>
+<!-- SideNavBar -->
+<aside class="fixed left-0 top-0 h-full w-64 z-40 flex flex-col py-md px-sm bg-surface-container-low shadow-md pt-20 hidden md:flex transition-transform duration-300">
+<div class="px-sm mb-lg">
+<div class="flex items-center gap-sm mb-xs">
+<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 to-primary flex items-center justify-center text-white shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div>
+<h2 class="font-headline-sm text-headline-sm font-bold text-on-surface leading-tight">AI Workspace</h2>
+<p class="text-[10px] font-label-md uppercase tracking-wider text-outline">Chat-First Innovation</p>
+</div>
+</div>
+<button class="w-full mt-md bg-gradient-to-r from-[#06b6d4] to-[#8b5cf6] text-on-primary py-3 rounded-xl font-bold font-label-md flex items-center justify-center gap-2 shadow-lg hover:shadow-xl active:scale-95 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+            Yeni Sorgu
+        </button>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#"><span class="material-symbols-outlined">dashboard</span><span class="font-label-md">Dashboard</span></a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#"><span class="material-symbols-outlined">lightbulb</span><span class="font-label-md">Fikirler</span></a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#"><span class="material-symbols-outlined">biotech</span><span class="font-label-md">Araştırma</span></a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#"><span class="material-symbols-outlined">account_tree</span><span class="font-label-md">Projeler</span></a>
+<a class="flex items-center gap-sm px-md py-3 text-primary font-bold border-r-4 border-primary bg-surface-container-high transition-all rounded-l-lg" href="#"><span class="material-symbols-outlined">hub</span><span class="font-label-md">Harita</span></a>
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#"><span class="material-symbols-outlined">group</span><span class="font-label-md">Topluluk</span></a>
+</nav>
+<div class="mt-auto pt-md border-t border-outline-variant/20">
+<a class="flex items-center gap-sm px-md py-3 text-on-surface-variant hover:bg-surface-variant/50 transition-all rounded-lg" href="#"><span class="material-symbols-outlined">settings</span><span class="font-label-md">Ayarlar</span></a>
+</div>
+</aside>
+<!-- Main Map Canvas -->
+<main class="md:ml-64 pt-16 h-screen relative bg-surface-bright overflow-hidden">
+<!-- Interactive Background -->
+<div class="absolute inset-0 dot-background opacity-40 z-0"></div>
+<!-- Map Logic SVG -->
+<div class="relative w-full h-full z-10 cursor-grab active:cursor-grabbing" id="map-container">
+<svg class="w-full h-full" id="map-svg" viewbox="0 0 1000 800">
+<defs>
+<filter height="140%" id="shadow" width="140%" x="-20%" y="-20%">
+<fegaussianblur in="SourceAlpha" stddeviation="3"></fegaussianblur>
+<feoffset dx="0" dy="4" result="offsetblur"></feoffset>
+<fecomponenttransfer>
+<fefunca slope="0.2" type="linear"></fefunca>
+</fecomponenttransfer>
+<femerge>
+<femergenode></femergenode>
+<femergenode in="SourceGraphic"></femergenode>
+</femerge>
+</filter>
+</defs>
+<!-- Connections Layer -->
+<g id="edges-layer">
+<!-- Data edges will be injected here -->
+</g>
+<!-- Nodes Layer -->
+<g id="nodes-layer">
+<!-- Main Hub -->
+<g class="node-group floating-node" data-id="hub" transform="translate(500,400)">
+<circle class="node-circle fill-primary stroke-white stroke-2" filter="url(#shadow)" r="45"></circle>
+<text class="font-bold fill-white text-[12px] select-none" text-anchor="middle" y="5">CORE AI</text>
+</g>
+<!-- Satellite Nodes -->
+<g class="node-group node-item floating-node" data-id="n1" data-logic="Yüksek Araştırma Sinerjisi" data-title="Neural Interface" data-type="Idea" transform="translate(300,250)">
+<circle class="node-circle fill-primary-container stroke-white stroke-2" filter="url(#shadow)" r="24"></circle>
+<text class="fill-on-surface text-[11px] font-semibold select-none" text-anchor="middle" y="45">Neural Interface</text>
+</g>
+<g class="node-group node-item floating-node" data-id="n2" data-logic="Kullanıcı geri bildirimi ile doğrulandı" data-title="Haptic Feedback" data-type="Research" transform="translate(700,300)">
+<circle class="node-circle fill-tertiary-fixed-dim stroke-white stroke-2" filter="url(#shadow)" r="22"></circle>
+<text class="fill-on-surface text-[11px] font-semibold select-none" text-anchor="middle" y="42">Haptic Feedback</text>
+</g>
+<g class="node-group node-item floating-node" data-id="n3" data-logic="Q3 Teslimat Döngüsü Kritik Yol" data-title="EcoSystem Pro" data-type="Project" transform="translate(450,650)">
+<circle class="node-circle fill-secondary stroke-white stroke-2" filter="url(#shadow)" r="28"></circle>
+<text class="fill-on-surface text-[11px] font-semibold select-none" text-anchor="middle" y="48">EcoSystem Pro</text>
+</g>
+<g class="node-group node-item floating-node" data-id="n4" data-logic="3 yeni uzman dahil oldu" data-title="Expert Network" data-type="Community" transform="translate(650,550)">
+<circle class="node-circle fill-[#22c55e] stroke-white stroke-2" filter="url(#shadow)" r="20"></circle>
+<text class="fill-on-surface text-[11px] font-semibold select-none" text-anchor="middle" y="38">Expert Network</text>
+</g>
+</g>
+</svg>
+</div>
+<!-- UI Overlays -->
+<!-- Info Header (Floating) -->
+<div class="absolute top-6 left-6 z-20 glass-panel p-md rounded-2xl shadow-sm border border-outline-variant/30 max-w-sm">
+<div class="flex items-center gap-md mb-sm">
+<div class="w-12 h-12 rounded-lg overflow-hidden shadow-sm">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDlbOf30CfwtYN853H8A6_8emwMlfoP0o-_IbMpxuCZFw0bLwyMA3aUztdvEm8Z1yndSNO6m-xdyVLq2EDUiIt3S6vjJFEnEsth7EU7CSLcuQR8bc66tIOFLb8r6Pl_iurREtZSWJ-2AdDLW-_rTDJTgy0cotu_uvvg5zibBw-Fv04rOm8L7VUEJTdV8nm0fAyAU-RH-PFEuMq3YegcYhff0cJ9dmDfotEbypowk6TH3wvqspwVAym9ZSIM7Lj5oyxyZdI6If8737KH"/>
+</div>
+<div>
+<h1 class="font-headline-sm text-on-surface leading-tight">İnovasyon Haritası</h1>
+<p class="text-xs text-on-surface-variant">42 aktif bağlantı görselleştiriliyor.</p>
+</div>
+</div>
+<div class="flex flex-wrap gap-1">
+<span class="px-2 py-0.5 bg-primary/10 text-primary rounded-full text-[10px] font-bold">Fikir (12)</span>
+<span class="px-2 py-0.5 bg-tertiary/10 text-tertiary rounded-full text-[10px] font-bold">Araştırma (8)</span>
+<span class="px-2 py-0.5 bg-secondary/10 text-secondary rounded-full text-[10px] font-bold">Proje (15)</span>
+</div>
+</div>
+<!-- Map Modes (Left Top - Under Header) -->
+<div class="absolute top-40 left-6 z-20 flex flex-col gap-2 glass-panel p-2 rounded-xl shadow-lg border border-outline-variant/20">
+<button class="p-3 rounded-lg bg-primary text-white shadow-md transition-all hover:scale-105" title="Bağlantılar">
+<span class="material-symbols-outlined">hub</span>
+</button>
+<button class="p-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" title="Isı Haritası">
+<span class="material-symbols-outlined">heat_pump</span>
+</button>
+<button class="p-3 rounded-lg text-on-surface-variant hover:bg-surface-variant/50 transition-all" title="Katmanlar">
+<span class="material-symbols-outlined">layers</span>
+</button>
+</div>
+<!-- Zoom & Pan Controls (Bottom Right) -->
+<div class="absolute bottom-10 right-10 z-20 flex flex-col gap-3">
+<div class="flex flex-col glass-panel rounded-full shadow-2xl p-2 border border-primary/20">
+<button class="w-12 h-12 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-primary hover:text-white transition-all active:scale-90" id="zoom-in">
+<span class="material-symbols-outlined">add</span>
+</button>
+<div class="w-8 h-px bg-outline-variant/30 self-center"></div>
+<button class="w-12 h-12 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-primary hover:text-white transition-all active:scale-90" id="zoom-out">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+<button class="w-14 h-14 flex items-center justify-center rounded-full glass-panel shadow-2xl text-primary border border-primary/30 hover:bg-primary hover:text-white transition-all active:rotate-180" id="reset-view">
+<span class="material-symbols-outlined">restart_alt</span>
+</button>
+</div>
+<!-- Node Context Popover (Hidden by default) -->
+<div class="fixed opacity-0 pointer-events-none transition-all duration-300 z-50 glass-panel p-md rounded-xl shadow-2xl border border-primary/20 w-64 translate-y-4" id="hover-popover">
+<div class="flex justify-between items-start mb-sm">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider" id="popover-tag">IDEA</span>
+<div class="flex gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary/20"></span>
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+</div>
+</div>
+<h3 class="font-headline-sm text-on-surface mb-xs leading-tight" id="popover-title">Node Title</h3>
+<p class="font-body-sm text-on-surface-variant italic border-l-2 border-cyan-400 pl-2" id="popover-logic">AI Connection Logic...</p>
+<div class="mt-md flex justify-end">
+<button class="text-primary font-bold font-label-md flex items-center gap-1 hover:underline">
+                Detaylar <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-margin-mobile pb-safe h-16 md:hidden bg-surface border-t border-outline-variant/20 shadow-lg">
+<button class="flex flex-col items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">lightbulb</span></button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">biotech</span></button>
+<button class="flex flex-col items-center justify-center bg-primary text-white rounded-full w-12 h-12 -mt-6 shadow-xl"><span class="material-symbols-outlined">hub</span></button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">account_tree</span></button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant"><span class="material-symbols-outlined">group</span></button>
+</nav>
+<script>
+    // Map State & Data
+    const state = {
+        zoom: 1,
+        translate: { x: 0, y: 0 },
+        isDragging: false,
+        dragStart: { x: 0, y: 0 }
+    };
+
+    const nodesData = [
+        { id: 'hub', x: 500, y: 400 },
+        { id: 'n1', x: 300, y: 250 },
+        { id: 'n2', x: 700, y: 300 },
+        { id: 'n3', x: 450, y: 650 },
+        { id: 'n4', x: 650, y: 550 }
+    ];
+
+    const connections = [
+        { from: 'hub', to: 'n1', color: '#004cc5' },
+        { from: 'hub', to: 'n2', color: '#39d8f7' },
+        { from: 'hub', to: 'n3', color: '#4e5e81' },
+        { from: 'hub', to: 'n4', color: '#22c55e' }
+    ];
+
+    const svg = document.getElementById('map-svg');
+    const container = document.getElementById('map-container');
+    const edgesLayer = document.getElementById('edges-layer');
+    const nodesLayer = document.getElementById('nodes-layer');
+    const popover = document.getElementById('hover-popover');
+
+    // Initialize Edges
+    function drawEdges() {
+        edgesLayer.innerHTML = '';
+        connections.forEach(conn => {
+            const from = nodesData.find(n => n.id === conn.from);
+            const to = nodesData.find(n => n.id === conn.to);
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", `M ${from.x},${from.y} L ${to.x},${to.y}`);
+            path.setAttribute("stroke", conn.color);
+            path.setAttribute("stroke-width", "2");
+            path.setAttribute("fill", "none");
+            path.setAttribute("class", "connection-line");
+            path.dataset.from = conn.from;
+            path.dataset.to = conn.to;
+            edgesLayer.appendChild(path);
+        });
+    }
+
+    // Interaction Handlers
+    function updateTransform() {
+        nodesLayer.setAttribute('transform', `translate(${state.translate.x}, ${state.translate.y}) scale(${state.zoom})`);
+        edgesLayer.setAttribute('transform', `translate(${state.translate.x}, ${state.translate.y}) scale(${state.zoom})`);
+    }
+
+    // Node Interactions
+    document.querySelectorAll('.node-item').forEach(node => {
+        node.addEventListener('mouseenter', (e) => {
+            const id = node.dataset.id;
+            const type = node.dataset.type;
+            const title = node.dataset.title;
+            const logic = node.dataset.logic;
+
+            // Highlight Edges
+            document.querySelectorAll(`.connection-line[data-from="${id}"], .connection-line[data-to="${id}"]`).forEach(l => {
+                l.classList.add('highlighted');
+            });
+
+            // Show Popover
+            const rect = node.getBoundingClientRect();
+            document.getElementById('popover-tag').innerText = type;
+            document.getElementById('popover-title').innerText = title;
+            document.getElementById('popover-logic').innerText = logic;
+            
+            popover.style.left = `${rect.left + rect.width + 10}px`;
+            popover.style.top = `${rect.top - 20}px`;
+            popover.style.opacity = '1';
+            popover.style.pointerEvents = 'auto';
+            popover.style.transform = 'translateY(0)';
+        });
+
+        node.addEventListener('mouseleave', () => {
+            document.querySelectorAll('.connection-line').forEach(l => l.classList.remove('highlighted'));
+            popover.style.opacity = '0';
+            popover.style.pointerEvents = 'none';
+            popover.style.transform = 'translateY(1rem)';
+        });
+    });
+
+    // Zoom Controls
+    document.getElementById('zoom-in').onclick = () => {
+        state.zoom += 0.1;
+        updateTransform();
+    };
+    document.getElementById('zoom-out').onclick = () => {
+        state.zoom = Math.max(0.4, state.zoom - 0.1);
+        updateTransform();
+    };
+    document.getElementById('reset-view').onclick = () => {
+        state.zoom = 1;
+        state.translate = { x: 0, y: 0 };
+        updateTransform();
+    };
+
+    // Pan Functionality
+    container.onmousedown = (e) => {
+        if (e.target.closest('.node-group')) return;
+        state.isDragging = true;
+        state.dragStart = { x: e.clientX - state.translate.x, y: e.clientY - state.translate.y };
+    };
+
+    window.onmousemove = (e) => {
+        if (!state.isDragging) return;
+        state.translate.x = e.clientX - state.dragStart.x;
+        state.translate.y = e.clientY - state.dragStart.y;
+        updateTransform();
+    };
+
+    window.onmouseup = () => {
+        state.isDragging = false;
+    };
+
+    // Init
+    drawEdges();
+    
+    // Background dot movement effect
+    window.addEventListener('mousemove', (e) => {
+        const moveX = (e.clientX / window.innerWidth) * 20;
+        const moveY = (e.clientY / window.innerHeight) * 20;
+        document.querySelector('.dot-background').style.backgroundPosition = `${moveX}px ${moveY}px`;
+    });
+</script>
+</body></html>

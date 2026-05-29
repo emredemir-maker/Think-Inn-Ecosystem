@@ -1,10 +1,37 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Send, Bot, User, Loader2, FileText, Lightbulb, CheckCircle2, Sparkles, Zap, RefreshCw } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useChatStream } from "@/hooks/use-chat-stream";
-import { useCreateGeminiConversation, useListGeminiConversations } from "@workspace/api-client-react";
+import {
+  useCreateGeminiConversation,
+  useListGeminiConversations,
+} from "@workspace/api-client-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+/* Material Symbols ikon */
+function Icon({
+  name,
+  size = 18,
+  filled = false,
+  className = "",
+}: {
+  name: string;
+  size?: number;
+  filled?: boolean;
+  className?: string;
+}) {
+  return (
+    <span
+      className={`material-symbols-outlined select-none leading-none ${className}`}
+      style={{
+        fontSize: size,
+        fontVariationSettings: `'FILL' ${filled ? 1 : 0}, 'wght' 400, 'GRAD' 0, 'opsz' ${size}`,
+      }}
+    >
+      {name}
+    </span>
+  );
+}
 
 export function OrchestratorChat() {
   const [input, setInput] = useState("");
@@ -15,25 +42,32 @@ export function OrchestratorChat() {
 
   const { messages, sendMessage, isTyping, error } = useChatStream(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  // İlk konuşmayı al veya yeni yarat
   useEffect(() => {
     if (conversations && !conversationId) {
       if (conversations.length > 0) {
         setConversationId(conversations[0].id);
       } else {
         createConvo({ data: { title: "Session " + new Date().getTime() } })
-          .then(res => setConversationId(res.id))
+          .then((res) => setConversationId(res.id))
           .catch(console.error);
       }
     }
   }, [conversations, conversationId, createConvo]);
 
+  // Yeni mesaj geldikçe aşağı kaydır
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   }, [messages, isTyping]);
 
+  // Custom event listener — başka componentten mesaj gönderme
   useEffect(() => {
     const handler = (e: Event) => {
       const msg = (e as CustomEvent<{ message: string }>).detail?.message;
@@ -41,9 +75,17 @@ export function OrchestratorChat() {
         sendMessage(msg);
       }
     };
-    window.addEventListener('think-inn:send-message', handler);
-    return () => window.removeEventListener('think-inn:send-message', handler);
+    window.addEventListener("think-inn:send-message", handler);
+    return () => window.removeEventListener("think-inn:send-message", handler);
   }, [conversationId, isTyping, sendMessage]);
+
+  // Textarea auto-resize
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+  }, [input]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,114 +95,74 @@ export function OrchestratorChat() {
   };
 
   return (
-    <div
-      className="w-full flex flex-col relative z-20 h-full lg:w-[440px] lg:shrink-0"
-      style={{
-        background: 'rgba(6,11,24,0.95)',
-        backdropFilter: 'blur(20px)',
-        borderLeft: '1px solid rgba(99,102,241,0.2)',
-        boxShadow: '-4px 0 40px rgba(0,0,0,0.6)',
-      }}
-    >
-
-      {/* ── Header ────────────────────────────────────────────────── */}
-      <div className="relative overflow-hidden shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#060b18] via-[#0d1535] to-[#12082a]" />
-        <div className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage: 'radial-gradient(circle at 80% 50%, white 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }}
-        />
-        <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-purple-500/20 blur-2xl" />
-
-        {/* Scan-line at bottom of chat header */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-px pointer-events-none z-10"
-          style={{
-            background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.6) 30%, rgba(34,211,238,0.5) 50%, rgba(99,102,241,0.6) 70%, transparent)',
-          }}
-        />
-
-        <div
-          className="relative flex items-center gap-3 px-5 py-4"
-          style={{ borderBottom: '1px solid rgba(99,102,241,0.2)' }}
-        >
-          <div className="relative">
-            <div className="absolute inset-0 bg-white rounded-xl blur-sm opacity-30" />
-            <div
-              className="relative w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center shadow-lg"
-              style={{ boxShadow: '0 0 16px rgba(99,102,241,0.4)' }}
-            >
-              <Bot size={20} className="text-white" />
-            </div>
+    <aside className="flex h-full w-full flex-1 flex-col bg-surface-container-low">
+      {/* ── Header (referans .cd-head) ──────────────────────────── */}
+      <header className="shrink-0 border-b border-outline-variant bg-white px-[22px] py-[18px]">
+        <div className="flex items-center gap-3">
+          {/* ai-badge: brand gradient 38px */}
+          <div className="brand-gradient flex h-[38px] w-[38px] items-center justify-center rounded-[12px] text-white shadow-[0_6px_16px_rgba(20,99,243,0.30)]">
+            <Icon name="auto_awesome" size={18} filled />
           </div>
           <div className="flex-1">
-            <h2 className="text-sm font-bold text-white">İnovasyon Asistanı</h2>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-300 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
-              </span>
-              <span className="text-[11px] text-slate-400 font-medium">Çevrimiçi · Gemini 2.5</span>
+            <h2 className="font-heading text-[15px] font-bold leading-tight text-on-surface">
+              İnovasyon Asistanı
+            </h2>
+            <div className="mt-0.5 flex items-center gap-1.5">
+              <span className="h-[7px] w-[7px] rounded-full bg-[#20C997] shadow-[0_0_8px_rgba(32,201,151,0.6)]" />
+              <span className="text-[11px] font-semibold text-primary">Çevrimiçi · Gemini 3.5</span>
             </div>
-          </div>
-          <div className="flex items-center gap-1 bg-cyan-400/10 rounded-lg px-2 py-1 border border-cyan-400/20">
-            <Zap size={10} className="text-cyan-400" />
-            <span className="text-[10px] font-semibold text-cyan-400">AI</span>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* ── Messages ──────────────────────────────────────────────── */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-5 bg-transparent">
+      {/* ── Messages ─────────────────────────────────────────────── */}
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-4 overflow-y-auto px-5 py-5 custom-scrollbar"
+      >
         {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center gap-5 py-8">
-            {/* Animated bot icon */}
-            <div className="relative">
-              <motion.div
-                animate={{ scale: [1, 1.05, 1] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg"
-                style={{
-                  background: 'rgba(99,102,241,0.1)',
-                  border: '1px solid rgba(99,102,241,0.2)',
-                }}
-              >
-                <Bot size={36} className="text-indigo-400" />
-              </motion.div>
-              <motion.div
-                animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.4, 0.8, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center"
-              >
-                <Sparkles size={10} className="text-white" />
-              </motion.div>
+          <div className="flex flex-col gap-4">
+            {/* Karşılama balonu (referans seed mesajı) */}
+            <div className="flex items-start gap-2.5">
+              <div className="brand-gradient flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white">
+                Ai
+              </div>
+              <div className="max-w-[78%] rounded-[14px] rounded-tl-[4px] border border-outline-variant bg-surface-container-low px-4 py-3 text-[13.5px] leading-relaxed text-on-surface">
+                Merhaba! Ne yapalım? Araştırma yapıştırabilir, fikir anlatabilir veya ekosisteme soru
+                sorabilirsin.
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-base font-bold text-slate-200 mb-1">Nasıl yardımcı olabilirim?</h3>
-              <p className="text-sm text-slate-500 max-w-[75%] mx-auto leading-relaxed">
-                Araştırma veya fikir paylaşın — analiz edip sisteme ekleyeyim.
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2 w-full max-w-[90%]">
+            {/* 4 hızlı-araç kartı (referans .cd-tools — 2 sütun) */}
+            <div className="grid grid-cols-2 gap-2">
               {[
-                { icon: <FileText size={13} />, label: "Araştırma metni yapıştırın", color: "text-violet-400 bg-violet-500/10 border-violet-500/20" },
-                { icon: <Lightbulb size={13} />, label: "Bir fikir anlatın", color: "text-amber-400 bg-amber-500/10 border-amber-500/20" },
-              ].map((hint, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  className={`flex items-center gap-2.5 text-xs font-medium border rounded-xl px-4 py-3 shadow-sm ${hint.color}`}
-                  style={{ background: i === 0 ? 'rgba(10,16,34,0.8)' : 'rgba(10,16,34,0.8)' }}
+                { id: "research", icon: "menu_book", iconBg: "rgba(24,201,232,0.10)", iconColor: "#0A8FA8", t: "Araştırma yapıştır", d: "Metni yapıştır, AI başlık ve özet üretsin", starter: "" },
+                { id: "idea", icon: "lightbulb", iconBg: "rgba(255,176,32,0.14)", iconColor: "#8A5A00", t: "Fikrini anlat", d: "Serbest yaz, yapılandırılmış karta dönsün", starter: "Bir fikrim var: " },
+                { id: "ask", icon: "contact_support", iconBg: "rgba(122,92,255,0.10)", iconColor: "#5B3FE0", t: "Soru sor", d: "Ekosisteme dair her şeyi sorabilirsin", starter: "" },
+                { id: "connect", icon: "hub", iconBg: "rgba(20,99,243,0.10)", iconColor: "#1463F3", t: "Bağlantı öner", d: "İki düğüm arasında ilişki kur", starter: "Şu iki öğe arasında bağlantı öner: " },
+              ].map((tool) => (
+                <button
+                  key={tool.id}
+                  onClick={() => {
+                    // Gerçek kullanım: input'a başlangıç metni koy + odakla (otomatik göndermez)
+                    setInput(tool.starter);
+                    setTimeout(() => textareaRef.current?.focus(), 0);
+                  }}
+                  className="flex items-start gap-2.5 rounded-[12px] border border-outline-variant bg-surface-container-low p-3 text-left transition-all hover:border-primary/30 hover:bg-white hover:shadow-[0_4px_12px_rgba(7,27,58,0.05)]"
                 >
-                  {hint.icon}
-                  <span className="text-slate-400">{hint.label}</span>
-                </motion.div>
+                  <div
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: tool.iconBg, color: tool.iconColor }}
+                  >
+                    <Icon name={tool.icon} size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-heading text-[13px] font-semibold leading-tight text-on-surface">
+                      {tool.t}
+                    </div>
+                    <div className="mt-0.5 text-[11.5px] leading-snug text-on-surface-variant">{tool.d}</div>
+                  </div>
+                </button>
               ))}
             </div>
           </div>
@@ -174,90 +176,136 @@ export function OrchestratorChat() {
               animate={{ opacity: 1, y: 0 }}
               className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
             >
-              {/* Role label */}
-              <div className={`flex items-center gap-1.5 mb-1.5 text-[11px] font-semibold px-1 ${
-                msg.role === "user" ? "text-slate-600 flex-row-reverse" : "text-indigo-400"
-              }`}>
+              {/* Rol etiketi */}
+              <div
+                className={`mb-1.5 flex items-center gap-1.5 px-1 text-[11px] font-bold ${
+                  msg.role === "user" ? "flex-row-reverse text-outline" : "text-primary"
+                }`}
+              >
                 {msg.role === "user" ? (
                   <>
-                    <div className="w-5 h-5 rounded-full bg-slate-700 flex items-center justify-center">
-                      <User size={11} className="text-slate-400" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-container-high">
+                      <Icon name="person" size={12} className="text-on-surface-variant" />
                     </div>
                     <span>Siz</span>
                   </>
                 ) : (
                   <>
-                    <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                      <Bot size={11} className="text-white" />
+                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-tertiary-fixed-dim to-primary">
+                      <Icon name="smart_toy" size={12} className="text-white" filled />
                     </div>
-                    <span>Asistan</span>
+                    <span>think-Inn AI</span>
                   </>
                 )}
               </div>
 
-              {/* Saved items badges */}
+              {/* Saved items — tıklanınca kart açılır (global event) */}
+              {/* AI'ın sisteme eklediği kart(lar) — referans .cd-result preview-card */}
               {msg.role === "assistant" && msg.savedItems && msg.savedItems.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2 max-w-[92%]">
+                <div className="mb-2 ml-[42px] w-[78%] max-w-[78%] space-y-2">
                   {msg.savedItems.map((item) => (
                     <motion.div
                       key={`${item.type}-${item.id}`}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full font-semibold border shadow-sm"
-                      style={
-                        item.type === "research"
-                          ? { background: 'rgba(167,139,250,0.1)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.2)' }
-                          : { background: 'rgba(251,191,36,0.1)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }
-                      }
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="rounded-[12px] border border-primary/20 bg-primary/[0.05] p-3.5"
                     >
-                      <CheckCircle2 size={11} />
-                      {item.type === "research" ? <FileText size={10} /> : <Lightbulb size={10} />}
-                      <span className="truncate max-w-[130px]">{item.title}</span>
+                      <div className="mb-2 flex items-center gap-2 text-[13px] font-bold text-primary">
+                        <Icon name="auto_awesome" size={14} filled />
+                        SİSTEME EKLENEN {item.type === "research" ? "ARAŞTIRMA" : "FİKİR"}
+                      </div>
+                      <div className="rounded-[10px] border border-outline-variant bg-white p-3">
+                        <div className="flex items-start gap-2">
+                          <div
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                            style={
+                              item.type === "research"
+                                ? { background: "rgba(24,201,232,0.12)", color: "#0A8FA8" }
+                                : { background: "rgba(20,99,243,0.10)", color: "#1463F3" }
+                            }
+                          >
+                            <Icon name={item.type === "research" ? "menu_book" : "lightbulb"} size={15} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="font-heading text-[14px] font-bold leading-snug text-on-surface">
+                              {item.title}
+                            </div>
+                            <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-[#157A3A]">
+                              <Icon name="check_circle" size={12} filled /> Sisteme eklendi
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <button
+                          onClick={() =>
+                            window.dispatchEvent(
+                              new CustomEvent("think-inn:open-card", {
+                                detail: { type: item.type, id: item.id },
+                              })
+                            )
+                          }
+                          className="flex-1 rounded-[10px] bg-primary px-3.5 py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[#0e54d8]"
+                        >
+                          Kartı Aç
+                        </button>
+                        <button
+                          onClick={() =>
+                            window.dispatchEvent(new CustomEvent("think-inn:open-card", { detail: { type: item.type, id: item.id } }))
+                          }
+                          className="rounded-[10px] border border-outline-variant bg-white px-3.5 py-2 text-[12px] font-semibold text-on-surface-variant transition-colors hover:border-outline-strong hover:text-on-surface"
+                        >
+                          Düzenle
+                        </button>
+                      </div>
                     </motion.div>
                   ))}
                 </div>
               )}
 
-              {/* Message bubble */}
+              {/* Bubble */}
               <div
-                className={`p-4 text-sm max-w-[92%] shadow-sm ${
+                className={[
+                  "max-w-[92%] p-3.5 shadow-sm font-body-md text-body-sm",
                   msg.role === "user"
-                    ? "bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-2xl rounded-tr-md"
-                    : "rounded-2xl rounded-tl-md"
-                }`}
-                style={
-                  msg.role === "user"
-                    ? { boxShadow: '0 0 20px rgba(99,102,241,0.3)' }
-                    : { background: 'rgba(10,16,34,0.8)', border: '1px solid rgba(99,102,241,0.15)', color: '#e2e8f0' }
-                }
+                    ? "bg-secondary text-on-secondary rounded-2xl chat-bubble-user"
+                    : "bg-surface-container-lowest text-on-surface border border-outline-variant/40 ai-accent-border rounded-2xl chat-bubble-ai",
+                ].join(" ")}
               >
                 {msg.role === "assistant" ? (
                   <div>
-                    {/* Progress label — shown while tool is running, no content yet */}
                     {msg.isStreaming && msg.progressLabel && !msg.content && (
-                      <div className="flex items-center gap-2 text-xs text-cyan-400 font-medium py-1">
-                        <RefreshCw size={12} className="animate-spin shrink-0" />
+                      <div className="flex items-center gap-2 py-1 text-[12px] font-bold text-primary">
+                        <Icon
+                          name="refresh"
+                          size={14}
+                          className="animate-spin shrink-0"
+                        />
                         <span>{msg.progressLabel}</span>
                       </div>
                     )}
-                    <div className="prose prose-sm max-w-none
-                      prose-p:leading-relaxed prose-p:my-1.5 prose-p:text-slate-300
-                      prose-headings:text-slate-100 prose-headings:font-bold
-                      prose-strong:text-slate-100 prose-strong:font-semibold
-                      prose-ul:my-2 prose-li:my-0.5
-                      prose-a:text-cyan-400 prose-code:text-cyan-400 prose-code:bg-cyan-400/10 prose-code:rounded prose-code:px-1
-                      prose-table:text-xs prose-th:bg-slate-800/50 prose-th:p-2 prose-td:p-2 prose-td:text-slate-300"
+                    <div
+                      className="prose prose-sm max-w-none
+                      prose-p:my-1.5 prose-p:leading-relaxed prose-p:text-on-surface
+                      prose-headings:font-bold prose-headings:text-on-surface
+                      prose-strong:font-semibold prose-strong:text-on-surface
+                      prose-ul:my-2 prose-li:my-0.5 prose-li:text-on-surface
+                      prose-a:text-primary prose-code:text-primary prose-code:bg-primary-container/10 prose-code:rounded prose-code:px-1
+                      prose-table:text-xs prose-th:bg-surface-container prose-th:p-2 prose-td:p-2"
                     >
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {msg.content || (msg.isStreaming && !msg.progressLabel ? "..." : "")}
+                        {msg.content ||
+                          (msg.isStreaming && !msg.progressLabel ? "..." : "")}
                       </ReactMarkdown>
                       {msg.isStreaming && msg.content && (
-                        <span className="inline-block w-1.5 h-4 bg-indigo-500 animate-pulse ml-1 align-middle rounded-sm" />
+                        <span className="ml-1 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary align-middle" />
                       )}
                     </div>
                   </div>
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
+                  <p className="whitespace-pre-wrap font-body-md text-body-sm leading-relaxed">
+                    {msg.content}
+                  </p>
                 )}
               </div>
             </motion.div>
@@ -265,25 +313,22 @@ export function OrchestratorChat() {
         </AnimatePresence>
 
         {/* Typing indicator */}
-        {isTyping && messages.every(m => !m.isStreaming) && (
+        {isTyping && messages.every((m) => !m.isStreaming) && (
           <motion.div
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex items-center gap-2"
           >
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-              <Bot size={11} className="text-white" />
+            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-tertiary-fixed-dim to-primary">
+              <Icon name="smart_toy" size={12} className="text-white" filled />
             </div>
-            <div
-              className="rounded-2xl rounded-tl-md px-4 py-3 shadow-sm flex items-center gap-1"
-              style={{ background: 'rgba(10,16,34,0.8)', border: '1px solid rgba(99,102,241,0.15)' }}
-            >
-              {[0, 1, 2].map(i => (
+            <div className="flex items-center gap-1 rounded-2xl chat-bubble-ai border border-outline-variant/40 bg-surface-container-lowest ai-accent-border px-4 py-3 shadow-sm">
+              {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
                   animate={{ y: [0, -4, 0] }}
                   transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }}
-                  className="w-1.5 h-1.5 rounded-full bg-cyan-400"
+                  className="h-1.5 w-1.5 rounded-full bg-primary"
                 />
               ))}
             </div>
@@ -291,31 +336,25 @@ export function OrchestratorChat() {
         )}
 
         {error && (
-          <div className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl p-3 text-center">
+          <div className="rounded-xl border border-error/30 bg-error/10 p-3 text-center font-body-sm text-body-sm text-error">
             {error}
           </div>
         )}
       </div>
 
-      {/* ── Input ─────────────────────────────────────────────────── */}
-      <div
-        className="p-4 shrink-0"
-        style={{
-          background: 'rgba(6,11,24,0.95)',
-          borderTop: '1px solid rgba(99,102,241,0.15)',
-        }}
-      >
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-          <div
-            className={`relative flex items-end gap-0 transition-all`}
-            style={{
-              background: 'rgba(10,16,34,0.6)',
-              border: input ? '1px solid rgba(99,102,241,0.4)' : '1px solid rgba(99,102,241,0.2)',
-              borderRadius: '16px',
-              boxShadow: input ? '0 0 0 3px rgba(99,102,241,0.1)' : 'none',
-            }}
-          >
+      {/* ── Input bar (glass-card) ──────────────────────────────── */}
+      <div className="shrink-0 border-t border-outline-variant/40 bg-surface-container-low p-3">
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-end gap-1 rounded-2xl border border-outline-variant bg-surface-container-lowest p-1 shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 transition-all">
+            <button
+              type="button"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant/50 transition-colors"
+            >
+              <Icon name="add_circle" size={20} />
+            </button>
+
             <textarea
+              ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -324,37 +363,42 @@ export function OrchestratorChat() {
                   handleSubmit(e);
                 }
               }}
-              placeholder="Mesajınızı yazın..."
-              className="flex-1 bg-transparent rounded-2xl p-3.5 text-sm focus:outline-none resize-none h-20 transition-shadow text-slate-200 placeholder:text-slate-600"
+              placeholder="Yeni fikrini anlat..."
+              rows={1}
               disabled={isTyping || isLoadingConvos}
+              className="flex-1 resize-none border-none bg-transparent py-2 font-body-md text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-0 max-h-32"
             />
-          </div>
-          <div className="flex justify-between items-center px-0.5">
-            <span className="text-[11px] text-slate-600">Shift+Enter yeni satır</span>
+
+            <button
+              type="button"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-variant/50 transition-colors"
+            >
+              <Icon name="mic" size={20} />
+            </button>
+
             <motion.button
               whileTap={{ scale: 0.94 }}
               type="submit"
               disabled={!input.trim() || isTyping || !conversationId}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md ${
+              className={[
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-all",
                 input.trim() && !isTyping && conversationId
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:shadow-lg'
-                  : 'cursor-not-allowed'
-              }`}
-              style={
-                input.trim() && !isTyping && conversationId
-                  ? { boxShadow: '0 0 16px rgba(99,102,241,0.4)' }
-                  : { background: 'rgba(99,102,241,0.05)', color: 'rgba(99,102,241,0.3)' }
-              }
+                  ? "bg-primary text-on-primary hover:opacity-90 shadow-md"
+                  : "bg-surface-container text-outline cursor-not-allowed",
+              ].join(" ")}
             >
               {isTyping ? (
-                <><Loader2 size={15} className="animate-spin" /><span>İşleniyor</span></>
+                <Icon name="progress_activity" size={18} className="animate-spin" />
               ) : (
-                <><Send size={15} /><span>Gönder</span></>
+                <Icon name="send" size={18} filled />
               )}
             </motion.button>
           </div>
+          <p className="mt-1 px-2 text-[10px] text-outline">
+            Shift+Enter yeni satır · Enter ile gönder
+          </p>
         </form>
       </div>
-    </div>
+    </aside>
   );
 }

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Feasibility Report: Green Neighborhood Verticals</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&amp;family=Manrope:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-fixed-variant": "#003fa5",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "tertiary-container": "#00798d",
+                        "outline": "#737687",
+                        "surface-variant": "#d7e2ff",
+                        "primary-container": "#1463f3",
+                        "on-secondary-fixed": "#071b3a",
+                        "on-background": "#0c1b34",
+                        "tertiary-fixed": "#aaedff",
+                        "outline-variant": "#c2c6d8",
+                        "on-secondary-container": "#4c5d80",
+                        "secondary-fixed": "#d7e2ff",
+                        "secondary-container": "#c6d7ff",
+                        "surface-container-high": "#e0e8ff",
+                        "surface-bright": "#f9f9ff",
+                        "inverse-surface": "#22304a",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-highest": "#d7e2ff",
+                        "secondary-fixed-dim": "#b5c7ee",
+                        "on-tertiary-fixed-variant": "#004e5c",
+                        "on-tertiary-container": "#dbf7ff",
+                        "tertiary-fixed-dim": "#39d8f7",
+                        "inverse-on-surface": "#ecf0ff",
+                        "on-error": "#ffffff",
+                        "primary": "#004cc5",
+                        "on-surface-variant": "#424655",
+                        "surface-tint": "#0054d7",
+                        "background": "#f9f9ff",
+                        "surface-dim": "#ccdafc",
+                        "error-container": "#ffdad6",
+                        "on-error-container": "#93000a",
+                        "surface": "#f9f9ff",
+                        "on-tertiary-fixed": "#001f26",
+                        "inverse-primary": "#b3c5ff",
+                        "on-primary-container": "#f0f1ff",
+                        "on-primary-fixed": "#00184a",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f1f3ff",
+                        "primary-fixed-dim": "#b3c5ff",
+                        "surface-container": "#e8eeff",
+                        "on-surface": "#0c1b34",
+                        "tertiary": "#005f6e",
+                        "secondary": "#4e5e81",
+                        "on-secondary-fixed-variant": "#364768"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "xs": "4px",
+                        "margin-desktop": "40px",
+                        "gutter": "24px",
+                        "sm": "12px",
+                        "base": "8px",
+                        "xl": "80px",
+                        "md": "24px",
+                        "lg": "48px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Manrope"],
+                        "headline-lg": ["Montserrat"],
+                        "headline-sm": ["Montserrat"],
+                        "body-md": ["Manrope"],
+                        "display-lg": ["Montserrat"],
+                        "label-md": ["Manrope"],
+                        "headline-lg-mobile": ["Montserrat"],
+                        "body-sm": ["Manrope"],
+                        "headline-md": ["Montserrat"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-sm": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ai-gradient-border {
+            border: 1px solid transparent;
+            background: linear-gradient(white, white) padding-box, linear-gradient(to right, #00BCD4, #7E57C2) border-box;
+        }
+        .hexagon-shape {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+        }
+    </style>
+</head>
+<body class="bg-surface-bright text-on-surface font-body-md overflow-x-hidden">
+<!-- Top Navigation -->
+<header class="w-full h-16 sticky top-0 z-50 bg-surface-bright/80 backdrop-blur-md shadow-sm flex justify-between items-center px-margin-desktop">
+<div class="flex items-center gap-base">
+<span class="font-display-lg text-display-lg bg-clip-text text-transparent bg-gradient-to-r from-tertiary to-primary">think-Inn</span>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center gap-gutter">
+<a class="text-primary font-semibold border-b-2 border-primary py-xs" href="#">Dashboard</a>
+<a class="text-on-surface-variant font-normal hover:bg-surface-container-high transition-colors px-sm py-xs rounded" href="#">Ideas</a>
+<a class="text-on-surface-variant font-normal hover:bg-surface-container-high transition-colors px-sm py-xs rounded" href="#">Research</a>
+</div>
+<div class="flex items-center gap-sm">
+<button class="p-xs text-primary material-symbols-outlined hover:bg-surface-container-high transition-colors rounded-full">notifications</button>
+<button class="p-xs text-primary material-symbols-outlined hover:bg-surface-container-high transition-colors rounded-full">settings</button>
+<img alt="User avatar" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary-fixed" data-alt="A professional headshot of a female executive with a confident smile, set against a blurred high-tech office background. The lighting is soft and natural, emphasizing a professional and intelligent corporate aesthetic. The color palette includes soft blues and whites consistent with a clean SaaS platform design." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD78HlzvDn7YKIKTqqdSqG5w7tU4SLm63lo9TNyDWtHX4zq2xpQlMRFJWOT12SUJi5vxKjK9FrbgExr4s1TkJSucKI264MrUcCVk2D09oZcqjoV06yCBbu2oUJVsCgs21Dc9qptjGVH5ORMY-tfSfnKRLakI1-JqoFAc-_5JBCjnWVxro8FUmOQBQU5RfaNcdhb3_HXdM0c1ztu1p1v2AgF2cf86pBMseJW23G_Y4sUbudRXodFvuZtWxxrs_jf9IEACefUC9HmnA0J"/>
+</div>
+</div>
+</header>
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<nav class="hidden md:flex flex-col h-[calc(100vh-64px)] w-64 fixed left-0 top-16 bg-surface-container-low border-r border-outline-variant py-base px-sm z-40">
+<div class="space-y-xs">
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-body-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md bg-primary-container text-on-primary-container rounded-lg font-bold shadow-sm" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="font-body-md">Research</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">lightbulb</span>
+<span class="font-body-md">Ideas</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg transition-all hover:translate-x-1 duration-150" href="#">
+<span class="material-symbols-outlined">rocket_launch</span>
+<span class="font-body-md">Projects</span>
+</a>
+</div>
+<div class="mt-auto border-t border-outline-variant pt-base">
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="font-body-md">Help</span>
+</a>
+<a class="flex items-center gap-sm px-sm py-md text-on-secondary-container hover:bg-surface-container-high rounded-lg" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-body-md">Logout</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 md:ml-64 p-margin-mobile md:p-margin-desktop bg-surface-bright">
+<!-- Page Header -->
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-lg gap-md">
+<div>
+<nav class="flex items-center gap-xs text-on-surface-variant font-label-md mb-xs">
+<span>Projects</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span>Active Research</span>
+</nav>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Green Neighborhood Verticals</h1>
+<p class="text-on-surface-variant font-body-md">Comprehensive Feasibility Analysis v2.4</p>
+</div>
+<div class="flex flex-wrap gap-sm">
+<button class="px-md py-sm rounded-lg border border-primary text-primary font-bold hover:bg-primary-container hover:text-white transition-all active:scale-95">
+                        Export Full Report
+                    </button>
+<button class="px-md py-sm rounded-lg bg-gradient-to-r from-tertiary to-primary text-white font-bold shadow-md hover:shadow-lg transition-all active:scale-95">
+                        Initiate Development Phase
+                    </button>
+</div>
+</div>
+<!-- Dashboard Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Overall Score Card -->
+<div class="md:col-span-4 bg-white p-md rounded-xl border border-outline-variant shadow-sm flex flex-col items-center justify-center relative overflow-hidden">
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-primary"></div>
+<div class="relative mb-sm">
+<svg class="w-32 h-32 transform -rotate-90">
+<circle class="text-surface-container" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.42" stroke-dashoffset="58.3" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg text-on-surface">84%</span>
+<span class="font-label-md text-on-surface-variant">FEASIBILITY</span>
+</div>
+</div>
+<div class="text-center">
+<p class="font-headline-sm text-headline-sm text-tertiary mb-xs">High Confidence</p>
+<p class="font-body-sm text-on-surface-variant">System-wide data indicates a strong potential for project success with current parameters.</p>
+</div>
+<!-- AI Hexagon Indicator -->
+<div class="absolute top-4 right-4 hexagon-shape bg-gradient-to-br from-tertiary to-primary w-10 h-10 flex items-center justify-center shadow-lg">
+<span class="text-white font-bold text-sm">84</span>
+</div>
+</div>
+<!-- AI Recommendation Section -->
+<div class="md:col-span-8 ai-gradient-border bg-white p-md rounded-xl shadow-md flex items-start gap-md">
+<div class="bg-primary-container/10 p-sm rounded-full">
+<span class="material-symbols-outlined text-primary text-display-lg" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-sm mb-base">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">AI Recommendation: GO</h2>
+<span class="px-sm py-xs bg-tertiary-container/20 text-tertiary rounded-full font-label-md">PRIORITY HIGH</span>
+</div>
+<p class="font-body-md text-on-surface-variant leading-relaxed">
+                            "Green Neighborhood Verticals" exhibits a rare alignment between market demand for sustainable ESG-compliant urban infrastructure and current technological readiness. While operational risks in local regulatory compliance exist (35% probability), the ROI projections (22% YoY) and scalable architecture justify an immediate initiation of the prototype phase.
+                        </p>
+<div class="mt-md flex items-center gap-md">
+<button class="text-primary font-bold font-body-sm flex items-center gap-xs hover:underline transition-all">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+                                View Data Sources
+                            </button>
+<button class="text-primary font-bold font-body-sm flex items-center gap-xs hover:underline transition-all">
+<span class="material-symbols-outlined text-[18px]">share</span>
+                                Request Peer Review
+                            </button>
+</div>
+</div>
+</div>
+<!-- Technical Feasibility Pillar -->
+<div class="md:col-span-6 lg:col-span-3 bg-white p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Technical</h3>
+<span class="material-symbols-outlined text-primary">architecture</span>
+</div>
+<div class="space-y-md">
+<div>
+<div class="flex justify-between font-label-md text-on-surface-variant mb-xs">
+<span>Architecture Readiness</span>
+<span>92%</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 92%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-label-md text-on-surface-variant mb-xs">
+<span>Scalability Metrics</span>
+<span>Optimal</span>
+</div>
+<div class="flex gap-1">
+<div class="h-1 flex-1 bg-tertiary rounded-full"></div>
+<div class="h-1 flex-1 bg-tertiary rounded-full"></div>
+<div class="h-1 flex-1 bg-tertiary rounded-full"></div>
+<div class="h-1 flex-1 bg-surface-container rounded-full"></div>
+</div>
+</div>
+<div class="pt-sm border-t border-outline-variant">
+<span class="font-label-md text-on-surface-variant block mb-base">Risk Assessment</span>
+<span class="inline-flex items-center gap-xs px-sm py-xs bg-error-container text-on-error-container rounded-lg font-bold text-sm">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                                Low Risk
+                            </span>
+</div>
+</div>
+</div>
+<!-- Financial Feasibility Pillar -->
+<div class="md:col-span-6 lg:col-span-3 bg-white p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Financial</h3>
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<div class="space-y-sm text-sm">
+<div class="flex justify-between">
+<span class="text-on-surface-variant">CAPEX Est.</span>
+<span class="font-bold">$2.4M</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant">OPEX Est.</span>
+<span class="font-bold">$180k/mo</span>
+</div>
+<div class="flex justify-between">
+<span class="text-on-surface-variant">ROI Projection</span>
+<span class="font-bold text-tertiary">+22.4%</span>
+</div>
+<div class="pt-base">
+<span class="font-label-md text-on-surface-variant block mb-xs">Break-even Chart</span>
+<div class="h-16 flex items-end gap-1">
+<div class="w-full bg-primary/20 h-4 rounded-sm"></div>
+<div class="w-full bg-primary/40 h-8 rounded-sm"></div>
+<div class="w-full bg-primary/60 h-10 rounded-sm"></div>
+<div class="w-full bg-primary h-14 rounded-sm"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Market Feasibility Pillar -->
+<div class="md:col-span-6 lg:col-span-3 bg-white p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Market</h3>
+<span class="material-symbols-outlined text-primary">trending_up</span>
+</div>
+<div class="space-y-md">
+<div>
+<span class="font-label-md text-on-surface-variant block mb-base">Trend Alignment</span>
+<div class="flex flex-wrap gap-xs">
+<span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">ESG COMPLIANT</span>
+<span class="px-sm py-xs bg-secondary-container text-on-secondary-container rounded-full text-xs font-bold">SMART CITIES</span>
+</div>
+</div>
+<div class="p-sm bg-surface-container-low rounded-lg">
+<span class="font-label-md text-on-surface-variant block mb-xs">Competitor Landscape</span>
+<div class="flex items-center gap-xs">
+<div class="w-3 h-3 rounded-full bg-tertiary"></div>
+<span class="text-xs font-bold">Blue Ocean Position</span>
+</div>
+</div>
+<div>
+<span class="font-label-md text-on-surface-variant">Target Segment Size</span>
+<p class="font-headline-sm text-primary">12.5M Users</p>
+</div>
+</div>
+</div>
+<!-- Operational Feasibility Pillar -->
+<div class="md:col-span-6 lg:col-span-3 bg-white p-md rounded-xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow">
+<div class="flex items-center justify-between mb-md">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Operational</h3>
+<span class="material-symbols-outlined text-primary">settings_suggest</span>
+</div>
+<div class="space-y-sm">
+<div>
+<span class="font-label-md text-on-surface-variant block mb-base">Compliance Status</span>
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-tertiary">verified</span>
+<span class="font-bold text-sm">Regulatory Ready</span>
+</div>
+</div>
+<div>
+<span class="font-label-md text-on-surface-variant block mb-base">Resource Availability</span>
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="A portrait of a male data scientist working in a modern technology laboratory. The image is bright and professional, following the smart city tech aesthetic with cool tones and sharp focus." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtftZRBV8dmzEqt8lVAvs5eEHa8O9m5C1sHdeKY8z9ibhPR1tUMEuzZPr3co9wUSEtCJsFvMkobcxR57CKPUrZ9x13yML7t75rEmbqWkgGWpcboo02iL8Scfqwro9MgS1pBAslZtkXWqW5FAGCgCfDTdrqfyJm0mDLFPDp-Mx7vb3HAqueMzmX0k_CYIyHwHbQLHJt5n5-yJdWjaj43TpqAtb_sb-UfNtp1VORpFxtKDxxslQ9wX72T2vgOtipvQdYNaXx_wMKpFof"/>
+<img class="w-8 h-8 rounded-full border-2 border-white object-cover" data-alt="A portrait of a female project manager in a collaborative co-working space. The image is brightly lit with a high-key aesthetic, emphasizing the corporate innovation and intelligence theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAggJTBI7TTrl3k_cxtR9z80a7DtP3lC8DQURYJPNXT5CT8N5T-OEP5IpKHpGtddyDWGp-YJ0aWHpaZVE7aK7ECUYW6Fe0rYpfRuhS5UkoNdht-OTkA8XjefBpGJHpsaJleBssU4EKhOvqFWLl902Xu7rkq_hc5GXbJGU_Hc3uON-25ZtlAbv8b0JVqbRW4ZtD4UZdRUJ3aNzt2O9RA-2lHlpB32iinXKKndFMGhIQ4wGoSjGUlwPQxIe3FWGCE0UPgqj1VMNfWHe1V"/>
+<div class="w-8 h-8 rounded-full bg-primary-container text-white text-[10px] flex items-center justify-center font-bold border-2 border-white">+8</div>
+</div>
+</div>
+<div class="pt-sm">
+<span class="font-label-md text-on-surface-variant block mb-xs">Implementation Timeline</span>
+<p class="font-bold text-sm">Phase 1: 14 Weeks</p>
+</div>
+</div>
+</div>
+<!-- Implementation Timeline Visualization -->
+<div class="md:col-span-12 bg-white p-md rounded-xl border border-outline-variant shadow-sm overflow-x-auto">
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-lg">Implementation Roadmap</h3>
+<div class="relative min-w-[800px] h-32 flex items-center px-lg">
+<div class="absolute left-lg right-lg h-0.5 bg-outline-variant top-1/2"></div>
+<div class="relative z-10 flex justify-between w-full">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold mb-xs">01</div>
+<span class="font-label-md text-on-surface font-bold">Research</span>
+<span class="text-[10px] text-on-surface-variant">Completed</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold mb-xs">02</div>
+<span class="font-label-md text-on-surface font-bold">Design</span>
+<span class="text-[10px] text-on-surface-variant">In Progress</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-bold mb-xs">03</div>
+<span class="font-label-md text-on-surface-variant">Prototype</span>
+<span class="text-[10px] text-on-surface-variant">Week 12</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-bold mb-xs">04</div>
+<span class="font-label-md text-on-surface-variant">Market Pilot</span>
+<span class="text-[10px] text-on-surface-variant">Week 20</span>
+</div>
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-bold mb-xs">05</div>
+<span class="font-label-md text-on-surface-variant">Scaling</span>
+<span class="text-[10px] text-on-surface-variant">Week 34</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Mobile Navigation Menu Toggle (Visible on small screens) -->
+<div class="md:hidden fixed bottom-6 right-6 z-50">
+<button class="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center active:scale-95 transition-transform">
+<span class="material-symbols-outlined">menu</span>
+</button>
+</div>
+<script>
+        // Simple micro-interaction for active state navigation
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                // In a real app, this would handle routing
+                if (this.classList.contains('bg-primary-container')) return;
+            });
+        });
+
+        // Atmospheric effect: Subtle hexagon pulse on hover
+        const hexagon = document.querySelector('.hexagon-shape');
+        if(hexagon) {
+            hexagon.addEventListener('mouseenter', () => {
+                hexagon.classList.add('scale-110');
+            });
+            hexagon.addEventListener('mouseleave', () => {
+                hexagon.classList.remove('scale-110');
+            });
+        }
+    </script>
+</body></html>
