@@ -55,6 +55,29 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Düğüm etiketini sözcük bazlı satırlara böler (wrap). Geçerli ctx.font ile ölçer.
+// maxW: piksel satır genişliği · maxLines: en fazla satır (taşarsa son satır … ile kesilir)
+function wrapLabel(ctx, text, maxW, maxLines) {
+  const words = (text || "").trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return [""];
+  const fits = (s) => ctx.measureText(s).width <= maxW;
+  // tek satırı maxW'ye sığacak şekilde karakter bazlı … ile kes
+  const ell = (s) => { let t = s; while (t.length > 1 && !fits(t + "…")) t = t.slice(0, -1); return t.replace(/\s+$/, "") + "…"; };
+  const lines = [];
+  let line = "", i = 0;
+  while (i < words.length && lines.length < maxLines) {
+    const w = words[i];
+    const test = line ? line + " " + w : w;
+    if (fits(test)) { line = test; i++; }          // kelime sığıyor → satıra ekle
+    else if (!line) { lines.push(ell(w)); i++; }   // tek kelime bile sığmıyor → kısalt
+    else { lines.push(line); line = ""; }          // satırı kapat, kelimeyi yeni satırda dene
+  }
+  if (line && lines.length < maxLines) lines.push(line);
+  // hâlâ işlenmemiş kelime kaldıysa içerik kırpıldı → son satırı … ile bitir
+  if (i < words.length && lines.length) lines[lines.length - 1] = ell(lines[lines.length - 1]);
+  return lines.length ? lines : [""];
+}
+
 // Y ve X ekseni rotasyonu
 function rotate(p, ax, ay) {
   const cy = Math.cos(ay), sy = Math.sin(ay);
@@ -259,24 +282,31 @@ export default function MindMap({ data }) {
         }
         ctx.globalAlpha = 1;
 
-        // etiket (merkez / seçili / hover / yakın düğümde görünür)
-        const showLabel = n.type === "center" || (sel && n.id === sel.id) || hov === n.id || P.s > 1.02;
+        // etiket (merkez / seçili / hover her zaman; diğerleri uzaklaşsa da görünür → daha düşük eşik)
+        const emphasized = n.type === "center" || (sel && n.id === sel.id) || hov === n.id;
+        const showLabel = emphasized || P.s > 0.82;
         if (showLabel) {
-          const fs = Math.max(10, 11 * P.s);
+          // Yazı boyu sınırlı: yakınlaşınca çok büyümesin, uzaklaşınca okunur kalsın
+          const fs = Math.max(8.5, Math.min(emphasized ? 14 : 12, 10.5 * P.s));
           ctx.font = "600 " + fs + "px Inter, Manrope, system-ui, sans-serif";
-          // Uzun başlıklar haritada üst üste binmesin — kısalt (… ile)
-          const rawLabel = n.name || "";
-          const label = rawLabel.length > 26 ? rawLabel.slice(0, 26).trimEnd() + "…" : rawLabel;
-          const tw = ctx.measureText(label).width;
-          const ly = P.sy + P.rad + 9;
-          ctx.globalAlpha = Math.min(1, a + 0.15);
-          roundRect(ctx, P.sx - tw / 2 - 8, ly, tw + 16, fs + 9, 999);
-          ctx.fillStyle = "rgba(255,255,255,0.94)";
+          // Tek uzun satır yerine sözcük bazlı sar (wrap). Yakın/seçili düğümde daha çok satır → başlığın çoğu görünür
+          const big = emphasized || P.s > 1.2;
+          const maxW = big ? 152 : 128;
+          const lines = wrapLabel(ctx, n.name || "", maxW, big ? 3 : 2);
+          const lh = fs + 3;
+          const padX = 8, padY = 5;
+          const boxW = Math.max(...lines.map((l) => ctx.measureText(l).width));
+          const boxH = lines.length * lh + padY * 2;
+          const ly = P.sy + P.rad + 9; // kutunun üst kenarı
+          // Uzaklaşan düğümlerde etiket de sönükleşir ama kaybolmaz (en az ~0.5 opaklık)
+          ctx.globalAlpha = Math.min(1, Math.max(emphasized ? 1 : 0.5, a + 0.15));
+          roundRect(ctx, P.sx - boxW / 2 - padX, ly, boxW + padX * 2, boxH, 11);
+          ctx.fillStyle = "rgba(255,255,255,0.95)";
           ctx.fill();
           ctx.strokeStyle = "rgba(232,238,249,1)"; ctx.lineWidth = 1; ctx.stroke();
           ctx.fillStyle = "#071B3A";
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
-          ctx.fillText(label, P.sx, ly + (fs + 9) / 2 + 0.5);
+          lines.forEach((l, li) => ctx.fillText(l, P.sx, ly + padY + lh * li + lh / 2));
           ctx.globalAlpha = 1;
         }
       });
