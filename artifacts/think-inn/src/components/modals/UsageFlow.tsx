@@ -1,6 +1,5 @@
-import { Fragment } from "react";
 import {
-  ChevronRight, UserPlus, LogIn, Upload, Database, Sparkles, Search,
+  UserPlus, LogIn, Upload, Database, Sparkles, Search,
   MousePointerClick, GitMerge, Share2, Send, BarChart3, FileText, Bell,
   CreditCard, MessageCircle, Activity, Eye, CheckCircle2, Wand2, User,
   Settings, Rocket, Target, ListChecks,
@@ -55,14 +54,11 @@ export default function UsageFlow({ steps }: { steps: string[] }) {
           const Ic = stepIcon(s);
           const last = i === steps.length - 1; // son aşama = çıktı/onay → yeşil vurgu
           return (
-            <Fragment key={i}>
-              <div className={"uf-step" + (last ? " final" : "")}>
-                <span className="uf-num">{i + 1}</span>
-                <div className="uf-ic"><Ic size={32} strokeWidth={1.9} /></div>
-                <div className="uf-text">{s}</div>
-              </div>
-              {!last && <div className="uf-arrow"><ChevronRight size={22} /></div>}
-            </Fragment>
+            <div className={"uf-step" + (last ? " final" : "")} key={i}>
+              <span className="uf-num">{i + 1}</span>
+              <div className="uf-ic"><Ic size={30} strokeWidth={1.9} /></div>
+              <div className="uf-text">{s}</div>
+            </div>
           );
         })}
       </div>

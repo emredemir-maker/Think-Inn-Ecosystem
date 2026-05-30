@@ -549,24 +549,9 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               </div>
             )}
 
-            {/* Bağlı içerikler */}
-            {(linkedResearch.length > 0 || relatedIdeas.length > 0) && (
-              <section className="dp-section">
-                <h3><GitMerge size={16} color="#1463F3" />Bağlı içerikler</h3>
-                <div className="connected-grid">
-                  {linkedResearch.map((r) => (
-                    <ConnectedItem key={"r" + r.id} kind="research" type="Araştırma" name={r.title} score="kaynak" onClick={() => openCard("research", r.id)} />
-                  ))}
-                  {relatedIdeas.map((i) => {
-                    const proj = !!(i as any).architecturalAnalysis;
-                    return <ConnectedItem key={"i" + i.id} kind={proj ? "project" : "idea"} type={proj ? "Proje" : "Benzer Fikir"} name={i.title} score={proj ? "sinerji" : "benzer"} onClick={() => openCard("idea", i.id)} />;
-                  })}
-                </div>
-              </section>
-            )}
           </div>
 
-          {/* Sağ kolon — FİKİR değerlendirmesi: 5 eksen skor + fikir aşamaları */}
+          {/* Sağ kolon — FİKİR değerlendirmesi: 5 eksen skor + fikir aşamaları + bağlı içerikler */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
             <section className="dp-section">
               <h3><Gauge size={16} color="#1463F3" />Fikir Değerlendirmesi</h3>
@@ -649,6 +634,22 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 Fikir aşamaları <b>olgunluk skoruna</b> göre belirlenir. <b>%75'e</b> ulaşınca projeye dönüştürülebilir — proje aşamaları (Keşif→Lansman) ayrı işler.
               </p>
             </section>
+
+            {/* Bağlı içerikler — sağ kolonda (tek sütun), boş alanı doldurur */}
+            {(linkedResearch.length > 0 || relatedIdeas.length > 0) && (
+              <section className="dp-section">
+                <h3><GitMerge size={16} color="#1463F3" />Bağlı içerikler</h3>
+                <div className="connected-grid" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+                  {linkedResearch.map((r) => (
+                    <ConnectedItem key={"r" + r.id} kind="research" type="Araştırma" name={r.title} score="kaynak" onClick={() => openCard("research", r.id)} />
+                  ))}
+                  {relatedIdeas.map((i) => {
+                    const proj = !!(i as any).architecturalAnalysis;
+                    return <ConnectedItem key={"i" + i.id} kind={proj ? "project" : "idea"} type={proj ? "Proje" : "Benzer Fikir"} name={i.title} score={proj ? "sinerji" : "benzer"} onClick={() => openCard("idea", i.id)} />;
+                  })}
+                </div>
+              </section>
+            )}
           </aside>
         </div>
       </div>
