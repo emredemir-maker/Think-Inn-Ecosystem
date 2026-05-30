@@ -1152,45 +1152,9 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
               </div>
             )}
 
-            {/* Bağlı içerikler */}
-            {/* Bağlı Fikirler — bu projeyi besleyen fikirler (çok-bir). Admin yeni fikir bağlayabilir. */}
-            <section className="dp-section">
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
-                <h3 style={{ margin: 0 }}><Lightbulb size={16} color="#1463F3" />Bağlı Fikirler ({1 + feedingIdeas.length})</h3>
-                {isAdmin && (
-                  <button onClick={() => setShowLinkIdea(true)} className="flex items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/[0.06] px-3 py-1.5 text-[12px] font-semibold text-primary transition-all hover:bg-primary/[0.12]">
-                    <Plus size={13} />Fikir Bağla
-                  </button>
-                )}
-              </div>
-              <div className="connected-grid">
-                {/* Kaynak fikir — bu projenin türediği fikrin kendisi (fikir yüzünü açar) */}
-                <ConnectedItem kind="idea" type="Kaynak Fikir" name={idea.title} score="bu proje" onClick={() => openCard("idea", idea.id, "idea")} />
-                {feedingIdeas.map((i) => (
-                  <ConnectedItem key={"i" + i.id} kind="idea" type="Besleyen Fikir" name={i.title} score="bağlı" onClick={() => openCard("idea", i.id)} />
-                ))}
-              </div>
-              {feedingIdeas.length === 0 && isAdmin && (
-                <p className="dp-prose" style={{ fontSize: 12.5, color: "#94A0B8", marginTop: 10 }}>
-                  Başka fikirleri de bu projeye bağlamak için “Fikir Bağla”yı kullan (çok-bir).
-                </p>
-              )}
-            </section>
-
-            {/* Bağlı Araştırmalar */}
-            {linkedResearch.length > 0 && (
-              <section className="dp-section">
-                <h3><BookOpen size={16} color="#1463F3" />Bağlı Araştırmalar ({linkedResearch.length})</h3>
-                <div className="connected-grid">
-                  {linkedResearch.map((r) => (
-                    <ConnectedItem key={"r" + r.id} kind="research" type="Araştırma" name={r.title} score="referans" onClick={() => openCard("research", r.id)} />
-                  ))}
-                </div>
-              </section>
-            )}
           </div>
 
-          {/* Sağ kolon */}
+          {/* Sağ kolon — proje durumu + ekip + bağlı içerikler (boş sağ alanı doldurur) */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
             <section className="dp-section">
               <h3><Activity size={16} color="#1463F3" />Proje durumu</h3>
@@ -1236,6 +1200,42 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
                 </button>
               )}
             </section>
+
+            {/* Bağlı Fikirler — bu projeyi besleyen fikirler (çok-bir). Sağ kolonda, tek sütun. */}
+            <section className="dp-section">
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
+                <h3 style={{ margin: 0 }}><Lightbulb size={16} color="#1463F3" />Bağlı Fikirler ({1 + feedingIdeas.length})</h3>
+                {isAdmin && (
+                  <button onClick={() => setShowLinkIdea(true)} className="flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary/[0.06] px-3 py-1.5 text-[12px] font-semibold text-primary transition-all hover:bg-primary/[0.12]">
+                    <Plus size={13} />Fikir Bağla
+                  </button>
+                )}
+              </div>
+              <div className="connected-grid" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+                {/* Kaynak fikir — bu projenin türediği fikrin kendisi (fikir yüzünü açar) */}
+                <ConnectedItem kind="idea" type="Kaynak Fikir" name={idea.title} score="bu proje" onClick={() => openCard("idea", idea.id, "idea")} />
+                {feedingIdeas.map((i) => (
+                  <ConnectedItem key={"i" + i.id} kind="idea" type="Besleyen Fikir" name={i.title} score="bağlı" onClick={() => openCard("idea", i.id)} />
+                ))}
+              </div>
+              {feedingIdeas.length === 0 && isAdmin && (
+                <p className="dp-prose" style={{ fontSize: 12.5, color: "#94A0B8", marginTop: 10 }}>
+                  Başka fikirleri de bu projeye bağlamak için “Fikir Bağla”yı kullan (çok-bir).
+                </p>
+              )}
+            </section>
+
+            {/* Bağlı Araştırmalar — sağ kolonda, tek sütun */}
+            {linkedResearch.length > 0 && (
+              <section className="dp-section">
+                <h3><BookOpen size={16} color="#1463F3" />Bağlı Araştırmalar ({linkedResearch.length})</h3>
+                <div className="connected-grid" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+                  {linkedResearch.map((r) => (
+                    <ConnectedItem key={"r" + r.id} kind="research" type="Araştırma" name={r.title} score="referans" onClick={() => openCard("research", r.id)} />
+                  ))}
+                </div>
+              </section>
+            )}
           </aside>
         </div>
       </div>
