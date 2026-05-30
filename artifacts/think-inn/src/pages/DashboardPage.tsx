@@ -4,6 +4,7 @@ import { useListResearch, useListIdeas, type Idea, type Research } from "@worksp
 import { useAuth } from "@/lib/auth-context";
 import { formatDistanceToNow } from "date-fns";
 import { tr } from "date-fns/locale";
+import ConceptStrip from "@/components/brand/ConceptStrip";
 
 /* Material Symbols ikon helper */
 function Icon({
@@ -245,6 +246,9 @@ export default function DashboardPage() {
             </button>
           )}
         </section>
+
+        {/* ===== Konsept şeridi — hero altı (logo konsept sayfasındaki 5 belirteç) ===== */}
+        <ConceptStrip variant="hero" />
 
         {/* ===== KPI row ===== */}
         <section className="grid grid-cols-1 gap-[18px] sm:grid-cols-2 xl:grid-cols-4">

@@ -3,7 +3,9 @@ import { BrandMark } from "./BrandLogo";
 
 /* ════════════════════════════════════════════════════════════════════════
    ConceptStrip — logo konsept sayfasındaki "CONCEPT AT A GLANCE" 5 belirteci.
-   Sayfa altı (footer) şeridi olarak kullanılır. Her belirteç: ikon + başlık.
+   variant="hero"   → hero altında, kart şeklinde belirgin şerit
+   variant="footer" → sayfa altı ince şerit (marka + telif satırı)
+   Renkler brand guide UI kodlamasıyla uyumlu (cyan/mavi/yeşil/mor).
    ════════════════════════════════════════════════════════════════════════ */
 
 const ITEMS: Array<{ icon: any; title: string; tint: string }> = [
@@ -14,12 +16,29 @@ const ITEMS: Array<{ icon: any; title: string; tint: string }> = [
   { icon: BrainCircuit, title: "Akıllı Orkestratör", tint: "#0E54D8" },
 ];
 
-export default function ConceptStrip() {
-  const year = 2026; // sabit — derleme anında değil, marka altbilgisi
+export default function ConceptStrip({ variant = "footer" }: { variant?: "footer" | "hero" }) {
+  if (variant === "hero") {
+    return (
+      <section className="concept-hero" aria-label="Bir bakışta konsept">
+        <span className="ch-eyebrow">Bir Bakışta Konsept</span>
+        <div className="ch-items">
+          {ITEMS.map(({ icon: Ic, title, tint }) => (
+            <div key={title} className="ch-item">
+              <span className="ch-ic" style={{ color: tint, background: tint + "14", borderColor: tint + "33" }}>
+                <Ic size={20} strokeWidth={2} />
+              </span>
+              <span className="ch-label">{title}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  // footer (varsayılan)
   return (
     <footer className="concept-strip">
       <div className="cs-inner">
-        {/* Sol: marka + bir bakışta etiketi */}
         <div className="cs-brand">
           <BrandMark size={30} />
           <div className="cs-brand-tx">
@@ -27,8 +46,6 @@ export default function ConceptStrip() {
             <span className="cs-brand-sub">Bir bakışta konsept</span>
           </div>
         </div>
-
-        {/* Orta: 5 belirteç */}
         <div className="cs-items">
           {ITEMS.map(({ icon: Ic, title, tint }) => (
             <div key={title} className="cs-item">
@@ -40,10 +57,7 @@ export default function ConceptStrip() {
           ))}
         </div>
       </div>
-
-      <div className="cs-baseline">
-        © {year} think-Inn · AI Innovation Ecosystem
-      </div>
+      <div className="cs-baseline">© 2026 think-Inn · AI Innovation Ecosystem</div>
     </footer>
   );
 }

@@ -324,8 +324,8 @@ export function HUDLayout({ children }: { children: ReactNode }) {
           ) : (
             children
           )}
-          {/* Konsept şeridi — sayfa altı (immersive harita hariç) */}
-          {!location.startsWith("/map") && <ConceptStrip />}
+          {/* Konsept şeridi — sayfa altı footer (dashboard'da hero altında olduğu için orada gizli; harita immersive) */}
+          {location !== "/" && !location.startsWith("/map") && <ConceptStrip />}
         </main>
       </div>
 
