@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, ArrowRight, Lock, Mail, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
+import { BrandLogo, BrandMark, Wordmark } from "@/components/brand/BrandLogo";
 
 /* Material Symbols ikon (brand hub ikonları için) */
 function Icon({ name, size = 18, filled = false, className = "" }: {
@@ -79,16 +80,16 @@ export default function AuthPage() {
         <div className="pointer-events-none absolute -right-20 -top-20 h-96 w-96 rounded-full bg-white/15 blur-3xl" />
         <div className="pointer-events-none absolute -bottom-24 left-10 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
 
-        {/* Logo */}
+        {/* Logo — koyu gradient panelde beyaz chip + beyaz wordmark */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm">
-            <Icon name="hub" size={26} className="text-white" filled />
+            <BrandMark size={30} />
           </div>
-          <div>
-            <div className="font-display text-[22px] font-bold leading-none text-white">think-Inn</div>
-            <div className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
-              AI Innovation Hub
-            </div>
+          <div className="flex flex-col gap-1.5">
+            <Wordmark fontSize={22} onDark />
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+              AI Innovation Ecosystem
+            </span>
           </div>
         </div>
 
@@ -175,16 +176,8 @@ export default function AuthPage() {
           style={{ width: "100%", maxWidth: 420 }}
         >
           {/* Mobil logo */}
-          <div className="mb-8 flex items-center justify-center gap-3 lg:hidden">
-            <div className="brand-gradient flex h-11 w-11 items-center justify-center rounded-2xl shadow-md">
-              <Icon name="hub" size={22} className="text-white" filled />
-            </div>
-            <div>
-              <div className="font-display text-[18px] font-bold leading-none text-primary">think-Inn</div>
-              <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.18em] text-on-surface-variant">
-                AI Innovation Hub
-              </div>
-            </div>
+          <div className="mb-8 flex items-center justify-center lg:hidden">
+            <BrandLogo size="sm" />
           </div>
 
           {/* Kart */}

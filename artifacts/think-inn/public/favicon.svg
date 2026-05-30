@@ -1,3 +1,20 @@
-<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tiFav" x1="6" y1="6" x2="58" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18C9E8"/>
+      <stop offset="0.52" stop-color="#1463F3"/>
+      <stop offset="1" stop-color="#7A5CFF"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="#0B1A33"/>
+  <polygon points="32,5 55.4,18.5 55.4,45.5 32,59 8.6,45.5 8.6,18.5" stroke="url(#tiFav)" stroke-width="2.6" stroke-linejoin="round" opacity="0.5"/>
+  <g stroke="url(#tiFav)" stroke-width="3" stroke-linecap="round" opacity="0.6">
+    <line x1="32" y1="32" x2="32" y2="5"/>
+    <line x1="32" y1="32" x2="8.6" y2="45.5"/>
+    <line x1="32" y1="32" x2="55.4" y2="45.5"/>
+  </g>
+  <circle cx="32" cy="5" r="5.4" fill="#0B1A33" stroke="#18C9E8" stroke-width="3.2"/>
+  <circle cx="8.6" cy="45.5" r="5.4" fill="#0B1A33" stroke="#1463F3" stroke-width="3.2"/>
+  <circle cx="55.4" cy="45.5" r="5.4" fill="#0B1A33" stroke="#7A5CFF" stroke-width="3.2"/>
+  <circle cx="32" cy="32" r="6.4" fill="url(#tiFav)"/>
 </svg>

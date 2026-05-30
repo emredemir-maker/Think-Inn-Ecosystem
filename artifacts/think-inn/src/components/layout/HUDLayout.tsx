@@ -4,6 +4,8 @@ import { useLocation } from "wouter";
 import { useAuth } from "@/lib/auth-context";
 import { AssistantDrawer, AssistantFab } from "./AssistantDrawer";
 import { CardDetailView } from "@/components/modals/CardDetailView";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+import ConceptStrip from "@/components/brand/ConceptStrip";
 
 type UserRole = "super_admin" | "moderator" | "master" | "user";
 
@@ -124,22 +126,13 @@ export function HUDLayout({ children }: { children: ReactNode }) {
     <div className="flex h-screen w-full overflow-hidden bg-background text-on-background font-sans">
       {/* ============================== SideNavBar — Hub UI Kit pattern ============================== */}
       <aside className="hidden h-full w-[232px] shrink-0 flex-col bg-white md:flex border-r border-outline-variant px-[18px] py-[22px]">
-        {/* Brand mark — think-Inn + AI INNOVATION HUB descriptor */}
+        {/* Brand mark — think-Inn logosu (ağ ikonu + wordmark + tagline) */}
         <button
           onClick={() => navigate("/")}
-          className="flex items-center gap-3 pb-7 pl-1.5 pt-1.5 text-left"
+          className="flex items-center pb-7 pl-1 pt-1.5 text-left"
+          aria-label="think-Inn ana sayfa"
         >
-          <div className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px] brand-gradient shadow-md">
-            <Icon name="hub" size={22} className="text-white" filled />
-          </div>
-          <div>
-            <div className="font-display text-[18px] font-bold leading-none tracking-[-0.01em] text-primary">
-              think-Inn
-            </div>
-            <div className="font-heading mt-1 text-[9.5px] font-semibold uppercase tracking-[0.18em] text-on-surface-variant">
-              AI Innovation Hub
-            </div>
-          </div>
+          <BrandLogo size="sm" />
         </button>
 
         {/* Main nav — public: vitrin sayfaları, admin: + Topluluk */}
@@ -331,6 +324,8 @@ export function HUDLayout({ children }: { children: ReactNode }) {
           ) : (
             children
           )}
+          {/* Konsept şeridi — sayfa altı (immersive harita hariç) */}
+          {!location.startsWith("/map") && <ConceptStrip />}
         </main>
       </div>
 
