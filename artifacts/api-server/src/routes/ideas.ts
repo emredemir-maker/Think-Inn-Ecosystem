@@ -195,9 +195,15 @@ router.put("/:id/research-topic-mapping", async (req, res) => {
     // Ensure researchId is in researchIds
     const newResearchIds = existingIds.includes(researchId) ? existingIds : [...existingIds, researchId];
 
+    // "needed" konu eşleştirildiyse zorunlu listeden çıkar → araştırma eklendikçe liste kısalır (yakınsar)
+    const existingNeeded: string[] = Array.isArray(idea.neededResearchTopics) ? (idea.neededResearchTopics as string[]) : [];
+    const newNeeded = topicType === "needed"
+      ? existingNeeded.filter((t) => String(t).trim().toLowerCase() !== topic.trim().toLowerCase())
+      : existingNeeded;
+
     const [updated] = await db
       .update(ideasTable)
-      .set({ researchTopicMappings: newMappings as any, researchIds: newResearchIds, updatedAt: new Date() })
+      .set({ researchTopicMappings: newMappings as any, researchIds: newResearchIds, neededResearchTopics: newNeeded as any, updatedAt: new Date() })
       .where(eq(ideasTable.id, id))
       .returning();
 

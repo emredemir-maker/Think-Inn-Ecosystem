@@ -118,6 +118,13 @@ Hiçbir fikir ilgili değilse: {"links": []}`;
             },
           ];
         }
+        // Karşılanan "needed" konuyu zorunlu listeden ÇIKAR → araştırma eklendikçe liste kısalır (yakınsar)
+        if (link.topicMatch.topicType === "needed") {
+          const needed: string[] = Array.isArray(idea.neededResearchTopics) ? (idea.neededResearchTopics as string[]) : [];
+          const mt = link.topicMatch.topic.trim().toLowerCase();
+          const pruned = needed.filter((t) => String(t).trim().toLowerCase() !== mt);
+          if (pruned.length !== needed.length) updates.neededResearchTopics = pruned;
+        }
       }
 
       await db.update(ideasTable).set(updates).where(eq(ideasTable.id, link.ideaId));

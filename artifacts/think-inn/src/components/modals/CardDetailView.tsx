@@ -301,8 +301,15 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
   const links = researchIds.length + relatedIds.length;
   const contributors = idea.collaborators?.length ?? 0;
 
-  // Projelendirme için gerekli araştırmalar (gerçek alanlar)
-  const requiredTopics: string[] = (idea as any).neededResearchTopics ?? [];
+  // Projelendirme için gerekli araştırmalar (gerçek alanlar).
+  // Bağlı araştırmaların KARŞILADIĞI "needed" konuları çıkar — böylece araştırma ekledikçe liste kısalır.
+  const coveredNeeded = new Set(
+    (((idea as any).researchTopicMappings as Array<{ topic: string; topicType: string }>) ?? [])
+      .filter((m) => m?.topicType === "needed" && m?.topic)
+      .map((m) => String(m.topic).trim().toLowerCase()),
+  );
+  const requiredTopics: string[] = (((idea as any).neededResearchTopics as string[]) ?? [])
+    .filter((t) => !coveredNeeded.has(String(t).trim().toLowerCase()));
   const optionalTopics: string[] = (idea as any).optionalResearchTopics ?? [];
   // Tüm zorunlu konular karşılandıysa (eksik yok) ve en az bir araştırma bağlıysa proje kartı üretilebilir
   const canBuild = requiredTopics.length === 0 && linkedResearch.length > 0;

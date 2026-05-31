@@ -11,6 +11,12 @@ export async function backgroundEvaluateIdea(
 ) {
   try {
     const allResearch = await db.select().from(researchTable);
+    // Mevcut zorunlu konu listesi — varsa re-eval YENİ konu uydurmaz, yalnız karşılananı çıkarır (yakınsama)
+    const [ideaRow] = await db.select().from(ideasTable).where(eq(ideasTable.id, ideaId));
+    const existingNeeded: string[] = Array.isArray(ideaRow?.neededResearchTopics) ? (ideaRow!.neededResearchTopics as string[]) : [];
+    const neededRule = existingNeeded.length > 0
+      ? `- neededResearchTopics: SADECE aşağıdaki MEVCUT zorunlu konular listesinden, yukarıdaki BAĞLI araştırmalarla HENÜZ KARŞILANMAYANLARI döndür. YENİ KONU EKLEME; mevcut ifadeleri AYNEN koru, sırayı bozma; karşılanmış olanları çıkar. Hepsi karşılandıysa []. MEVCUT ZORUNLU KONULAR: [${existingNeeded.join(" | ")}]`
+      : `- neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU ama yukarıdaki BAĞLI araştırmalarla HENÜZ KARŞILANMAYAN konular (max 5). Bağlı araştırmanın başlığı veya içeriği bir konuyu karşılıyorsa o konuyu bu listeye YAZMA. Tüm zorunlu konular karşılanmışsa boş liste: []. Bağlı araştırma yoksa fikrin gerektirdiği tüm zorunlu konuları listele.`;
 
     const linkedResearch = allResearch.filter(r => linkedResearchIds.includes(r.id));
     const linkedContext = linkedResearch.length > 0
@@ -36,10 +42,7 @@ ${linkedContext}
 5. Risk & AI Yönetişimi (0-10): KVKK, veri gizliliği, etik AI kullanımı açısından risk düzeyi (10=risksiz)
 
 ARAŞTIRMA KAPSAM DEĞERLENDİRMESİ — KRİTİK:
-- neededResearchTopics: Fikrin hayata geçmesi için ZORUNLU ama yukarıdaki BAĞLI araştırmalarla HENÜZ KARŞILANMAYAN konular (max 5).
-  Bağlı araştırmanın başlığı veya içeriği bir konuyu karşılıyorsa o konuyu bu listeye YAZMA.
-  Tüm zorunlu konular bağlı araştırmalarla karşılanmışsa boş liste döndür: []
-  Bağlı araştırma yoksa fikrin gerektirdiği tüm zorunlu konuları listele.
+${neededRule}
 - optionalResearchTopics: Zorunlu olmayan ama fikri güçlendirecek opsiyonel konular (max 3)
 - pivotSuggestion: Herhangi bir eksen <6 ise fikri kurtaracak SOMUT bir pivot önerisi (yoksa null)
 - summary: 2-3 cümlelik özet değerlendirme
