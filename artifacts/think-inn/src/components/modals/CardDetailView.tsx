@@ -451,7 +451,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 )}
 
                 {/* Zorunlu (eksik) konular */}
-                {requiredTopics.length > 0 && (
+                {isAdmin && requiredTopics.length > 0 && (
                   <div>
                     <div className="req-gh"><AlertTriangle size={12} color="#B0292B" />Gerekli Araştırma Konuları ({requiredTopics.length})</div>
                     {requiredTopics.map((t, i) => (
@@ -461,7 +461,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 )}
 
                 {/* Opsiyonel konular */}
-                {optionalTopics.length > 0 && (
+                {isAdmin && optionalTopics.length > 0 && (
                   <div>
                     <div className="req-gh"><BookOpen size={12} color="#0E54D8" />Opsiyonel Konular ({optionalTopics.length})</div>
                     {optionalTopics.map((t, i) => (
@@ -602,7 +602,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                       <p className="text-[12.5px] leading-relaxed text-on-surface">{scores.summary}</p>
                     </div>
                   )}
-                  {scores.pivotSuggestion && (
+                  {isAdmin && scores.pivotSuggestion && (
                     <div className="mt-2.5 rounded-[12px] border px-4 py-3" style={{ background: "rgba(255,176,32,0.06)", borderColor: "rgba(255,176,32,0.25)" }}>
                       <div className="overline mb-1.5 flex items-center gap-1.5" style={{ color: "#8A5A00" }}><Lightbulb size={12} />Pivot Önerisi</div>
                       <p className="text-[12.5px] leading-relaxed text-on-surface">{scores.pivotSuggestion}</p>
@@ -762,7 +762,7 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
                 {md(research.findings)}
               </section>
             )}
-            {(research as any).technicalAnalysis && (
+            {isAdmin && (research as any).technicalAnalysis && (
               <section className="dp-section">
                 <h3><Cpu size={16} color="#1463F3" />Teknik Analiz</h3>
                 {md((research as any).technicalAnalysis)}
