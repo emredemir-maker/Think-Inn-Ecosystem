@@ -173,17 +173,33 @@ export default function FlowDiagram({ data }: { data: FlowData }) {
                 <stop offset="0.5" stopColor="#1463F3" />
                 <stop offset="1" stopColor="#7A5CFF" />
               </linearGradient>
+              <marker id="flowArrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#1463F3" />
+              </marker>
+              <marker id="flowArrowAnim" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#18C9E8" />
+              </marker>
             </defs>
             {edges.map((e, i) => {
               const a = eff(e.from), b = eff(e.to);
               if (!a || !b) return null;
+              // Düğüm yan-merkezlerinden bağla + eğri (bezier) + yönlü ok = flowchart hissi
+              const H = 28;
+              const ltr = b.x >= a.x;
+              const x1 = ltr ? a.x + NODE_W : a.x;
+              const x2 = ltr ? b.x : b.x + NODE_W;
+              const y1 = a.y + H, y2 = b.y + H;
+              const c = Math.max(28, Math.abs(x2 - x1) * 0.45);
+              const d = `M ${x1} ${y1} C ${x1 + (ltr ? c : -c)} ${y1}, ${x2 - (ltr ? c : -c)} ${y2}, ${x2} ${y2}`;
               return (
-                <line
+                <path
                   key={i}
-                  x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                  d={d}
+                  fill="none"
                   className={"flow-edge" + (e.animated ? " animated" : "")}
                   stroke={e.animated ? "#18C9E8" : "url(#flowEdgeGrad)"}
-                  strokeWidth={e.animated ? 2 : 1.5}
+                  strokeWidth={e.animated ? 2.4 : 1.8}
+                  markerEnd={`url(#${e.animated ? "flowArrowAnim" : "flowArrow"})`}
                 />
               );
             })}

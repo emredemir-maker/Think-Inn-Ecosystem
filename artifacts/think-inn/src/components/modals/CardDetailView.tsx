@@ -17,6 +17,7 @@ import { API_ORIGIN } from "@/lib/api-config";
 import { ManualLinkModal } from "./ManualLinkModal";
 import { LinkIdeaToProjectModal } from "./LinkIdeaToProjectModal";
 import LinkedInComposerModal from "./LinkedInComposerModal";
+import AnalysisDoc from "./AnalysisDoc";
 import FlowDiagram from "./FlowDiagram";
 import UsageFlow from "./UsageFlow";
 
@@ -759,13 +760,13 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
             {research.findings && (
               <section className="dp-section">
                 <h3><Sparkles size={16} color="#1463F3" />Bulgular</h3>
-                {md(research.findings)}
+                <AnalysisDoc markdown={research.findings} accent="cyan" />
               </section>
             )}
             {isAdmin && (research as any).technicalAnalysis && (
               <section className="dp-section">
                 <h3><Cpu size={16} color="#1463F3" />Teknik Analiz</h3>
-                {md((research as any).technicalAnalysis)}
+                <AnalysisDoc markdown={(research as any).technicalAnalysis} accent="violet" />
               </section>
             )}
             {tags.length > 0 && (
@@ -1162,13 +1163,13 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <p className="overline" style={{ margin: "4px 2px 0" }}>AI Derin Analiz · Detaylı Açıklama</p>
                 {analysis?.functionalAnalysis && (
-                  <CollapsibleSection icon={<Activity size={16} color="#1463F3" />} title="Fonksiyonel Analiz">{md(analysis.functionalAnalysis)}</CollapsibleSection>
+                  <CollapsibleSection icon={<Activity size={16} color="#1463F3" />} title="Fonksiyonel Analiz"><AnalysisDoc markdown={analysis.functionalAnalysis} accent="blue" /></CollapsibleSection>
                 )}
                 {analysis?.technicalAnalysis && (
-                  <CollapsibleSection icon={<Cpu size={16} color="#1463F3" />} title="Teknik Analiz">{md(analysis.technicalAnalysis)}</CollapsibleSection>
+                  <CollapsibleSection icon={<Cpu size={16} color="#1463F3" />} title="Teknik Analiz"><AnalysisDoc markdown={analysis.technicalAnalysis} accent="cyan" /></CollapsibleSection>
                 )}
                 {analysis?.architecturalPlan && (
-                  <CollapsibleSection icon={<MapIcon size={16} color="#1463F3" />} title="Mimari Plan (Açıklama)">{md(analysis.architecturalPlan)}</CollapsibleSection>
+                  <CollapsibleSection icon={<MapIcon size={16} color="#1463F3" />} title="Mimari Plan (Açıklama)"><AnalysisDoc markdown={analysis.architecturalPlan} accent="violet" /></CollapsibleSection>
                 )}
               </div>
             )}
