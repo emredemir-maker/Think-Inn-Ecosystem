@@ -6,7 +6,9 @@
    Güvenlik: yalnız public-safe alanlar (başlık, özet, kapak) meta'ya konur.
    ════════════════════════════════════════════════════════════════════════ */
 
-const API = process.env.API_ORIGIN || "https://think-inn-api.fly.dev";
+// Vercel Node runtime global'leri (build context'inde @types/node yok) — globalThis üzerinden eriş
+const API = ((globalThis as any).process?.env?.API_ORIGIN as string) || "https://think-inn-api.fly.dev";
+const _fetch = (globalThis as any).fetch as (input: string, init?: any) => Promise<any>;
 
 function esc(s: string): string {
   return String(s || "")
@@ -30,7 +32,7 @@ export default async function handler(req: any, res: any) {
 
   if (id) {
     try {
-      const r = await fetch(`${API}/api/${apiPath}/${id}`, { headers: { accept: "application/json" } });
+      const r = await _fetch(`${API}/api/${apiPath}/${id}`, { headers: { accept: "application/json" } });
       if (r.ok) {
         const e: any = await r.json();
         if (e?.title) title = `${e.title} · think-Inn`;
