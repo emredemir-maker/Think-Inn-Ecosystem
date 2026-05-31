@@ -37,7 +37,16 @@ export default async function handler(req: any, res: any) {
         const e: any = await r.json();
         if (e?.title) title = `${e.title} · think-Inn`;
         const summary = e?.summary || e?.description || "";
-        if (summary) desc = String(summary).replace(/\s+/g, " ").slice(0, 200);
+        // Markdown işaretlerini temizle → LinkedIn önizlemesinde düz, okunur açıklama
+        if (summary) desc = String(summary)
+          .replace(/```[\s\S]*?```/g, " ")
+          .replace(/^\s{0,3}#{1,6}\s+/gm, "")
+          .replace(/(\*\*|__|\*|_|`|~~|>)/g, "")
+          .replace(/-{3,}/g, " ")
+          .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 200);
         // Kapak yalnız araştırmada mevcut (Fly cover endpoint); yoksa marka fallback
         if (type === "research" && (e?.hasCoverImage || e?.coverImageB64)) {
           image = `${API}/api/research/${id}/cover`;
