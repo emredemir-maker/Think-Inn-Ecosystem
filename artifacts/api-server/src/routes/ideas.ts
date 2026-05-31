@@ -214,37 +214,68 @@ router.put("/:id/research-topic-mapping", async (req, res) => {
   }
 });
 
-// Re-generate full architectural analysis (including flowDiagram) for an idea
+// Re-generate architectural analysis (scoped) for an idea/project.
+//   scope:    all | functional | technical | architecturalPlan | flow   (default: all)
+//   guidance: opsiyonel kullanıcı yönlendirmesi — üretilen bölümlere öncelikli uygulanır
+// Bağlam: bu fikir + DOĞRUDAN bağlı araştırmalar + BESLEYEN fikirler + onların araştırmaları.
+// Boş dönen bölüm mevcut içeriği EZMEZ (yenileme = veri kaybı değil).
 router.post("/:id/regenerate-analysis", async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, id));
     if (!idea) return res.status(404).json({ error: "Idea not found" });
 
-    res.json({ success: true, message: "Analysis regeneration started." });
+    const scope = (["all", "functional", "technical", "architecturalPlan", "flow"].includes(String(req.body?.scope))
+      ? String(req.body.scope) : "all") as "all" | "functional" | "technical" | "architecturalPlan" | "flow";
+    const guidance = String(req.body?.guidance || "").trim();
+
+    res.json({ success: true, message: "Analysis regeneration started.", scope });
 
     setImmediate(async () => {
       try {
-        // Fetch linked research
-        let linkedResearch: any[] = [];
-        if (idea.researchIds && idea.researchIds.length > 0) {
-          const all = await db.select().from(researchTable);
-          linkedResearch = all.filter(r => (idea.researchIds || []).includes(r.id));
-        }
+        const allResearch = await db.select().from(researchTable);
+        const allIdeas = await db.select().from(ideasTable);
+
+        // Doğrudan bu fikre bağlı araştırmalar
+        const directResearch = allResearch.filter(r => (idea.researchIds || []).includes(r.id));
+        // Besleyen fikirler: relatedTo'sunda bu projeyi içerenler + projenin kendi relatedTo'su (self hariç)
+        const feedingIds = new Set<number>();
+        allIdeas.forEach(i => { if (i.id !== id && (((i.relatedTo as number[]) || []).includes(id))) feedingIds.add(i.id); });
+        (((idea.relatedTo as number[]) || [])).forEach(rid => { if (rid !== id) feedingIds.add(rid); });
+        const feedingIdeas = allIdeas.filter(i => feedingIds.has(i.id));
+        // Besleyen fikirlere bağlı araştırmalar (doğrudan listeyle çakışanları çıkar)
+        const feedingResearchIds = new Set<number>();
+        feedingIdeas.forEach(i => ((i.researchIds as number[]) || []).forEach(rid => feedingResearchIds.add(rid)));
+        const feedingResearch = allResearch.filter(r => feedingResearchIds.has(r.id) && !(idea.researchIds || []).includes(r.id));
 
         const ideaCtx = `Fikir: ${idea.title}\nAçıklama: ${idea.description}\nEtiketler: ${(idea.tags || []).join(", ")}`;
-        const researchCtx = linkedResearch.length > 0
-          ? linkedResearch.map(r => `Araştırma: ${r.title}\nÖzet: ${(r.summary || "").slice(0, 400)}\nBulgular: ${(r.findings || "").slice(0, 400)}`).join("\n---\n")
-          : "Henüz bağlı araştırma yok.";
-        const baseCtx = `## FİKİR\n${ideaCtx}\n\n## İLGİLİ ARAŞTIRMALAR\n${researchCtx}\n\n`;
+        const directCtx = directResearch.length
+          ? directResearch.map(r => `• ${r.title}\n  Özet: ${(r.summary || "").slice(0, 350)}\n  Bulgular: ${(r.findings || "").slice(0, 350)}`).join("\n")
+          : "Doğrudan bağlı araştırma yok.";
+        const feedingIdeasCtx = feedingIdeas.length
+          ? feedingIdeas.map(i => `• ${i.title}: ${(i.description || "").slice(0, 300)}`).join("\n")
+          : "Besleyen fikir yok.";
+        const feedingResearchCtx = feedingResearch.length
+          ? feedingResearch.map(r => `• ${r.title}\n  Özet: ${(r.summary || "").slice(0, 300)}`).join("\n")
+          : "";
+        const guidanceCtx = guidance ? `\n## KULLANICI YÖNLENDİRMESİ (ÖNCELİKLİ — bölümleri buna göre güncelle)\n${guidance}\n` : "";
 
-        // Sequential calls to avoid Gemini rate limits — each awaited one at a time
+        const baseCtx =
+          `## FİKİR / PROJE\n${ideaCtx}\n\n` +
+          `## DOĞRUDAN BAĞLI ARAŞTIRMALAR\n${directCtx}\n\n` +
+          `## BESLEYEN FİKİRLER (bu projeyi besleyen / ilişkili fikirler)\n${feedingIdeasCtx}\n` +
+          (feedingResearchCtx ? `\n## BESLEYEN FİKİRLERE BAĞLI ARAŞTIRMALAR\n${feedingResearchCtx}\n` : "") +
+          guidanceCtx + `\n`;
+        const guidanceNote = guidance ? ` Yukarıdaki KULLANICI YÖNLENDİRMESİ'ni ÖNCELİKLE uygula.` : "";
+
+        // Sequential calls to avoid Gemini rate limits — each awaited one at a time.
+        // thinkingBudget:0 ZORUNLU — yoksa model düşünme token'ı harcayıp BOŞ/kesik döner (yenileme yapılmaz).
         const geminiCall = async (prompt: string, tokens = 6000): Promise<string> => {
           try {
             const r = await ai.models.generateContent({
               model: GEMINI_MODELS.analysis,
               contents: [{ role: "user", parts: [{ text: prompt }] }],
-              config: { maxOutputTokens: tokens },
+              config: { maxOutputTokens: tokens, thinkingConfig: { thinkingBudget: 0 } } as any,
             });
             const text = r.text?.trim() || "";
             console.log(`[Analysis] Gemini returned ${text.length} chars`);
@@ -255,18 +286,29 @@ router.post("/:id/regenerate-analysis", async (req, res) => {
           }
         };
 
-        const functionalAnalysis  = await geminiCall(`${baseCtx}Bu fikrin FONKSİYONEL ANALİZİNİ yap. Sistemin ne yapacağını, temel özellikleri, kullanıcı senaryolarını, iş akışlarını, fonksiyonel gereksinimleri ve kabul kriterlerini Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık (##) ve alt başlıklar kullan. Madde listeleri ile destekle. Sadece analiz içeriğini döndür, giriş cümlesi ekleme.`);
-        const technicalAnalysis   = await geminiCall(`${baseCtx}Bu fikrin TEKNİK ANALİZİNİ yap. Önerilen teknoloji yığını ve gerekçeleri, mimari pattern'ler, performans ve ölçeklenebilirlik stratejileri, güvenlik mimarisi, API tasarımı, veri modeli ve teknik riskler konularını Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık (##) kullan. Sadece analiz içeriğini döndür.`);
-        const architecturalPlan   = await geminiCall(`${baseCtx}Bu fikrin MİMARİ PLANINI hazırla. Sistem bileşenlerini katmanlara (Kullanıcı Katmanı, Sunum Katmanı, İş Mantığı Katmanı, Veri Katmanı, Harici Servisler) göre detaylı açıkla. Her bileşenin sorumluluğunu, birbirleriyle nasıl iletişim kurduklarını, veri akışını ve deployment stratejisini Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık kullan. Sadece plan içeriğini döndür.`);
+        // Mevcut analiz — yenilenmeyen / boş dönen bölümler buradan korunur
+        const prev = (idea.architecturalAnalysis as any) || {};
+        const want = (s: string) => scope === "all" || scope === s;
 
-        // Generate structured flow diagram — sequential, after text sections
-        let flowDiagram: any = undefined;
-        try {
+        let functionalAnalysis = prev.functionalAnalysis;
+        let technicalAnalysis = prev.technicalAnalysis;
+        let architecturalPlan = prev.architecturalPlan;
+
+        if (want("functional"))
+          functionalAnalysis = (await geminiCall(`${baseCtx}Bu fikrin FONKSİYONEL ANALİZİNİ yap. Sistemin ne yapacağını, temel özellikleri, kullanıcı senaryolarını, iş akışlarını, fonksiyonel gereksinimleri ve kabul kriterlerini Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık (##) ve alt başlıklar kullan. Madde listeleri ile destekle. Sadece analiz içeriğini döndür, giriş cümlesi ekleme.${guidanceNote}`)) || prev.functionalAnalysis;
+        if (want("technical"))
+          technicalAnalysis = (await geminiCall(`${baseCtx}Bu fikrin TEKNİK ANALİZİNİ yap. Önerilen teknoloji yığını ve gerekçeleri, mimari pattern'ler, performans ve ölçeklenebilirlik stratejileri, güvenlik mimarisi, API tasarımı, veri modeli ve teknik riskler konularını Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık (##) kullan. Sadece analiz içeriğini döndür.${guidanceNote}`)) || prev.technicalAnalysis;
+        if (want("architecturalPlan"))
+          architecturalPlan = (await geminiCall(`${baseCtx}Bu fikrin MİMARİ PLANINI hazırla. Sistem bileşenlerini katmanlara (Kullanıcı Katmanı, Sunum Katmanı, İş Mantığı Katmanı, Veri Katmanı, Harici Servisler) göre detaylı açıkla. Her bileşenin sorumluluğunu, birbirleriyle nasıl iletişim kurduklarını, veri akışını ve deployment stratejisini Türkçe Markdown formatında kapsamlı yaz. Minimum 5 ana başlık kullan. Sadece plan içeriğini döndür.${guidanceNote}`)) || prev.architecturalPlan;
+
+        // Akış şeması — scope all|flow iken yenilenir; başarısızsa mevcut korunur
+        let flowDiagram: any = prev.flowDiagram;
+        if (scope === "all" || scope === "flow") try {
           const flowPrompt = `Aşağıdaki proje için sistem mimarisi akış şemasını JSON olarak tanımla.
 
 Proje: ${idea.title}
 Açıklama: ${idea.description}
-Mimari özet: ${architecturalPlan.slice(0, 800)}
+Mimari özet: ${String(architecturalPlan || "").slice(0, 800)}
 
 Katman türleri: "user", "frontend", "backend", "database", "external", "process"
 
@@ -304,18 +346,21 @@ Kurallar:
           console.error("[FlowDiagram] Failed:", (e as Error).message);
         }
 
+        // prev'i koru (financial, prototype vb. alanlar) → yalnız yenilenen bölümleri ez
         const architecturalAnalysis = {
+          ...prev,
           functionalAnalysis,
           technicalAnalysis,
           architecturalPlan,
-          generatedAt: new Date().toISOString(),
           ...(flowDiagram ? { flowDiagram } : {}),
+          generatedAt: new Date().toISOString(),
+          ...(guidance ? { lastGuidance: guidance } : {}),
         };
 
         await db.update(ideasTable)
           .set({ architecturalAnalysis: architecturalAnalysis as any, updatedAt: new Date() })
           .where(eq(ideasTable.id, id));
-        console.log(`[Analysis] Regenerated for idea #${id}: ${idea.title}`);
+        console.log(`[Analysis] Regenerated (scope=${scope}) for idea #${id}: ${idea.title}`);
       } catch (err) {
         console.error(`[Analysis] Regeneration failed for idea #${id}:`, (err as Error).message);
       }

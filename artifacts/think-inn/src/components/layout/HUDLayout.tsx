@@ -6,6 +6,7 @@ import { AssistantDrawer, AssistantFab } from "./AssistantDrawer";
 import { CardDetailView } from "@/components/modals/CardDetailView";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import ConceptStrip from "@/components/brand/ConceptStrip";
+import type { AssistantContext } from "@/lib/assistant";
 
 type UserRole = "super_admin" | "moderator" | "master" | "user";
 
@@ -72,6 +73,9 @@ export function HUDLayout({ children }: { children: ReactNode }) {
   const [location, navigate] = useLocation();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  // Asistan revize bağlamı — "AI ile Revize Et" / "Düzenle" butonları context taşır.
+  // OrchestratorChat mount gecikmesi nedeniyle event yerine PROP ile geçilir.
+  const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
   // Tam-sayfa detay (kart tıklanınca .main içeriğini devralır — referans davranışı)
   // view: hangi listeden açıldı → "idea" (Fikirler) fikir yüzü, "project" (Projeler) proje yüzü
   const [cardDetail, setCardDetail] = useState<{ type: "research" | "idea"; id: number; view?: "idea" | "project" } | null>(null);
@@ -89,9 +93,14 @@ export function HUDLayout({ children }: { children: ReactNode }) {
   const isAuthRoute = location === "/auth";
   const showAssistantFab = isAdmin && !isWorkspaceRoute && !isAuthRoute;
 
-  // "Yeni Fikir" / harici tetikleyiciler asistan drawer'ını açsın
+  // "Yeni Fikir" / harici tetikleyiciler asistan drawer'ını açsın.
+  // detail.context varsa (revize/düzenle) bağlamı yakala → OrchestratorChat'e prop olarak iner.
   useEffect(() => {
-    const handler = () => setAssistantOpen(true);
+    const handler = (e: Event) => {
+      const ctx = (e as CustomEvent<{ context?: AssistantContext }>).detail?.context ?? null;
+      setAssistantContext(ctx);
+      setAssistantOpen(true);
+    };
     window.addEventListener("think-inn:open-assistant", handler);
     return () => window.removeEventListener("think-inn:open-assistant", handler);
   }, []);
@@ -330,8 +339,12 @@ export function HUDLayout({ children }: { children: ReactNode }) {
       </div>
 
       {/* ============================== AI Asistanı — FAB + Drawer ============================== */}
-      {showAssistantFab && <AssistantFab onClick={() => setAssistantOpen(true)} />}
-      <AssistantDrawer open={assistantOpen} onClose={() => setAssistantOpen(false)} />
+      {showAssistantFab && <AssistantFab onClick={() => { setAssistantContext(null); setAssistantOpen(true); }} />}
+      <AssistantDrawer
+        open={assistantOpen}
+        context={assistantContext}
+        onClose={() => { setAssistantOpen(false); setAssistantContext(null); }}
+      />
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 left-0 z-40 flex h-16 w-full items-center justify-around bg-surface-container-lowest px-4 shadow-[0_-4px_20px_rgba(7,27,58,0.08)] md:hidden border-t border-outline-variant/30">

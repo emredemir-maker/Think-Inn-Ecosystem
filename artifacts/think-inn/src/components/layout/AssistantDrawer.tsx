@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { OrchestratorChat } from "@/components/chat/OrchestratorChat";
+import type { AssistantContext } from "@/lib/assistant";
 
 /* Material Symbols ikon */
 function Icon({
@@ -37,7 +38,7 @@ function Icon({
  * `/workspace` route'u hâlâ ayrı bir tam sayfa görünüm olarak kalır;
  * drawer hızlı erişim için.
  */
-export function AssistantDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function AssistantDrawer({ open, context, onClose }: { open: boolean; context?: AssistantContext | null; onClose: () => void }) {
   // ESC ile kapat
   useEffect(() => {
     if (!open) return;
@@ -122,7 +123,7 @@ export function AssistantDrawer({ open, onClose }: { open: boolean; onClose: () 
             {/* Body — mevcut OrchestratorChat'i sar
                 Tüm Gemini bağlantısı, useChatStream, conversation history burada çalışır */}
             <div className="flex-1 overflow-hidden">
-              <OrchestratorChat />
+              <OrchestratorChat reviseContext={context ?? null} />
             </div>
           </motion.aside>
         </>

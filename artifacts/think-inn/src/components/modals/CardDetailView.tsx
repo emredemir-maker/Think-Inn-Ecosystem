@@ -20,6 +20,7 @@ import LinkedInComposerModal from "./LinkedInComposerModal";
 import AnalysisDoc from "./AnalysisDoc";
 import FlowDiagram from "./FlowDiagram";
 import UsageFlow from "./UsageFlow";
+import { openAssistantRevise, type ReviseSection } from "@/lib/assistant";
 
 // 5 eksenli fikir değerlendirme barları (Ticari/Pazar/Teknik/Trend/Risk)
 const SCORE_AXES: { key: string; label: string }[] = [
@@ -181,74 +182,25 @@ function CollapsibleSection({ icon, title, children, defaultOpen = false }: {
   );
 }
 
-/* Revize edilebilir analiz — AnalysisDoc + (admin) kullanıcı yönlendirmesiyle AI revizyonu.
-   section: functional | technical | architecturalPlan → /api/ideas/:id/revise-analysis */
-function RevisableAnalysis({ ideaId, section, markdown, accent }: {
-  ideaId: number; section: "functional" | "technical" | "architecturalPlan"; markdown?: string | null; accent: "blue" | "cyan" | "violet" | "mint";
+/* Revize edilebilir analiz — AnalysisDoc + (admin) "AI ile Revize Et".
+   Buton, bağlam-farkında AI asistanını açar (entity + bölüm); asistan yönlendirip
+   /api/ideas/:id/revise-analysis çağırır ve sonucu kartta tazeler. */
+function RevisableAnalysis({ ideaId, title, section, markdown, accent }: {
+  ideaId: number; title: string; section: "functional" | "technical" | "architecturalPlan"; markdown?: string | null; accent: "blue" | "cyan" | "violet" | "mint";
 }) {
   const { user } = useAuth();
   const isAdmin = !!user;
-  const qc = useQueryClient();
-  const [content, setContent] = useState(markdown || "");
-  useEffect(() => { setContent(markdown || ""); }, [markdown]);
-  const [open, setOpen] = useState(false);
-  const [guidance, setGuidance] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const revise = async () => {
-    if (!guidance.trim()) return;
-    setBusy(true); setErr(null);
-    try {
-      const res = await fetch(`${API_ORIGIN}/api/ideas/${ideaId}/revise-analysis`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
-        body: JSON.stringify({ section, guidance }),
-      });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j?.error || "Revizyon başarısız");
-      setContent(j.content); setOpen(false); setGuidance("");
-      qc.invalidateQueries({ queryKey: ["/api/ideas"] });
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Bir hata oluştu");
-    } finally { setBusy(false); }
-  };
-
   return (
     <div>
-      <AnalysisDoc markdown={content} accent={accent} />
+      <AnalysisDoc markdown={markdown || ""} accent={accent} />
       {isAdmin && (
         <div style={{ marginTop: 14 }}>
-          {!open ? (
-            <button
-              onClick={() => setOpen(true)}
-              className="flex items-center gap-1.5 rounded-lg border border-secondary/30 bg-secondary/[0.07] px-3 py-1.5 text-[12px] font-semibold text-secondary transition-all hover:bg-secondary/[0.14]"
-            >
-              <Sparkles size={13} />AI ile Revize Et
-            </button>
-          ) : (
-            <div className="rounded-xl border border-outline-variant bg-surface-container-low p-3">
-              <div className="overline mb-1.5 flex items-center gap-1.5 text-secondary"><Sparkles size={12} />AI ile revize — yönlendir</div>
-              <textarea
-                value={guidance}
-                onChange={(e) => setGuidance(e.target.value)}
-                rows={2}
-                autoFocus
-                placeholder="Nasıl değişsin? Örn: 'güvenlik bölümünü KVKK odaklı genişlet', 'ölçeklenebilirlik varsayımını daha gerçekçi yap'…"
-                className="w-full resize-none rounded-lg border border-outline-variant bg-white px-3 py-2 text-[13px] text-on-surface outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
-              />
-              {err && <p className="mt-1.5 text-[12px] text-error">{err}</p>}
-              <div className="mt-2 flex gap-2">
-                <button
-                  onClick={revise}
-                  disabled={busy || !guidance.trim()}
-                  className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-1.5 text-[12px] font-semibold text-white transition-all hover:bg-[#0e54d8] disabled:opacity-60"
-                >
-                  {busy ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}{busy ? "Revize ediliyor…" : "Revize Et"}
-                </button>
-                <button onClick={() => { setOpen(false); setGuidance(""); setErr(null); }} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold text-on-surface-variant hover:bg-background">İptal</button>
-              </div>
-            </div>
-          )}
+          <button
+            onClick={() => openAssistantRevise({ intent: "revise", entityType: "project", entityId: ideaId, entityTitle: title, section })}
+            className="flex items-center gap-1.5 rounded-lg border border-secondary/30 bg-secondary/[0.07] px-3 py-1.5 text-[12px] font-semibold text-secondary transition-all hover:bg-secondary/[0.14]"
+          >
+            <Sparkles size={13} />AI ile Revize Et
+          </button>
         </div>
       )}
     </div>
@@ -959,15 +911,21 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
   const flowDiagram = analysis?.flowDiagram;
   const curStage = lifecycleIndex(idea); // proje yaşam-döngüsü aşaması (0-4)
 
-  // Analizi yeniden üret — otonom (asistana gitmez). Eski projeler de böylece akış şeması alır.
+  // Analizi yeniden üret — otonom (asistana gitmez). scope: tüm proje / belirli bölüm.
+  // Bağlam: bağlı fikir + araştırmalar (backend besleyen fikirleri de kapsar).
   const [regenerating, setRegenerating] = useState(false);
+  const [showRegenMenu, setShowRegenMenu] = useState(false);
   const genAtRef = useRef<string | undefined>(undefined);
-  const regenerate = useCallback(async () => {
+  const regenerate = useCallback(async (scope: ReviseSection = "all") => {
     if (regenerating) return;
+    setShowRegenMenu(false);
     genAtRef.current = analysis?.generatedAt;
     setRegenerating(true);
     try {
-      const res = await fetch(`${API_ORIGIN}/api/ideas/${idea.id}/regenerate-analysis`, { method: "POST", credentials: "include" });
+      const res = await fetch(`${API_ORIGIN}/api/ideas/${idea.id}/regenerate-analysis`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        body: JSON.stringify({ scope }),
+      });
       if (!res.ok) throw new Error(String(res.status));
     } catch {
       setRegenerating(false);
@@ -1069,13 +1027,43 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
                 <button className="btn-link" onClick={() => setShowLinkedIn(true)}><Linkedin size={14} color="#0A66C2" />LinkedIn İçeriği</button>
               )}
               {isAdmin && (
-                <button className="btn-link" onClick={regenerate} disabled={regenerating} title="AI analizini ve mimari şemayı yeniden üret">
-                  {regenerating ? <Loader2 size={14} className="animate-spin" color="#1463F3" /> : <RefreshCw size={14} color="#1463F3" />}
-                  {regenerating ? "Yenileniyor…" : "Analizi Yenile"}
-                </button>
+                <div style={{ position: "relative" }}>
+                  <button className="btn-link" onClick={() => regenerating ? undefined : setShowRegenMenu((o) => !o)} disabled={regenerating} title="Bağlı fikir ve araştırmalara göre projeyi yenile">
+                    {regenerating ? <Loader2 size={14} className="animate-spin" color="#1463F3" /> : <RefreshCw size={14} color="#1463F3" />}
+                    {regenerating ? "Yenileniyor…" : "Yenile"}
+                    {!regenerating && <ChevronDown size={13} color="#1463F3" />}
+                  </button>
+                  {showRegenMenu && !regenerating && (
+                    <>
+                      <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setShowRegenMenu(false)} />
+                      <div className="rounded-xl border border-outline-variant bg-white p-1.5 shadow-[0_12px_32px_rgba(7,27,58,0.16)]" style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 50, width: 230 }}>
+                        <div className="overline px-2.5 py-1 text-on-surface-variant">Neyi yenileyelim?</div>
+                        {([
+                          { s: "all", icon: <Sparkles size={14} color="#7A5CFF" />, t: "Tüm proje", d: "Bağlı fikir + araştırmalara göre" },
+                          { s: "functional", icon: <Activity size={14} color="#1463F3" />, t: "Fonksiyonel analiz", d: "" },
+                          { s: "technical", icon: <Cpu size={14} color="#18C9E8" />, t: "Teknik analiz", d: "" },
+                          { s: "architecturalPlan", icon: <MapIcon size={14} color="#7A5CFF" />, t: "Mimari plan", d: "" },
+                          { s: "flow", icon: <Workflow size={14} color="#20C997" />, t: "Akış şeması", d: "" },
+                        ] as { s: ReviseSection; icon: React.ReactNode; t: string; d: string }[]).map((it) => (
+                          <button
+                            key={it.s}
+                            onClick={() => regenerate(it.s)}
+                            className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-background"
+                          >
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-background">{it.icon}</span>
+                            <span className="min-w-0">
+                              <span className="block text-[13px] font-semibold leading-tight text-on-surface">{it.t}</span>
+                              {it.d && <span className="block text-[11px] leading-snug text-on-surface-variant">{it.d}</span>}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
               {isAdmin && (
-                <button className="btn-primary" style={{ marginLeft: 0 }} onClick={() => sendToChat(`"${idea.title}" projesini güncelle / detaylandır.`)}><PenLine size={14} color="#fff" />Düzenle</button>
+                <button className="btn-primary" style={{ marginLeft: 0 }} onClick={() => openAssistantRevise({ intent: "revise", entityType: "project", entityId: idea.id, entityTitle: idea.title, section: "project" })}><PenLine size={14} color="#fff" />Düzenle</button>
               )}
             </span>
           </div>
@@ -1253,13 +1241,13 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <p className="overline" style={{ margin: "4px 2px 0" }}>AI Derin Analiz · Detaylı Açıklama</p>
                 {analysis?.functionalAnalysis && (
-                  <CollapsibleSection icon={<Activity size={16} color="#1463F3" />} title="Fonksiyonel Analiz"><RevisableAnalysis ideaId={idea.id} section="functional" markdown={analysis.functionalAnalysis} accent="blue" /></CollapsibleSection>
+                  <CollapsibleSection icon={<Activity size={16} color="#1463F3" />} title="Fonksiyonel Analiz"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="functional" markdown={analysis.functionalAnalysis} accent="blue" /></CollapsibleSection>
                 )}
                 {analysis?.technicalAnalysis && (
-                  <CollapsibleSection icon={<Cpu size={16} color="#1463F3" />} title="Teknik Analiz"><RevisableAnalysis ideaId={idea.id} section="technical" markdown={analysis.technicalAnalysis} accent="cyan" /></CollapsibleSection>
+                  <CollapsibleSection icon={<Cpu size={16} color="#1463F3" />} title="Teknik Analiz"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="technical" markdown={analysis.technicalAnalysis} accent="cyan" /></CollapsibleSection>
                 )}
                 {analysis?.architecturalPlan && (
-                  <CollapsibleSection icon={<MapIcon size={16} color="#1463F3" />} title="Mimari Plan (Açıklama)"><RevisableAnalysis ideaId={idea.id} section="architecturalPlan" markdown={analysis.architecturalPlan} accent="violet" /></CollapsibleSection>
+                  <CollapsibleSection icon={<MapIcon size={16} color="#1463F3" />} title="Mimari Plan (Açıklama)"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="architecturalPlan" markdown={analysis.architecturalPlan} accent="violet" /></CollapsibleSection>
                 )}
               </div>
             )}

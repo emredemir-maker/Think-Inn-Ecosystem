@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useQueryClient } from "@tanstack/react-query";
 import { useChatStream } from "@/hooks/use-chat-stream";
 import {
   useCreateGeminiConversation,
   useListGeminiConversations,
 } from "@workspace/api-client-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_ORIGIN } from "@/lib/api-config";
+import { SECTION_LABEL, type AssistantContext, type ReviseSection } from "@/lib/assistant";
 
 /* Material Symbols ikon */
 function Icon({
@@ -33,9 +36,254 @@ function Icon({
   );
 }
 
-export function OrchestratorChat() {
+/* ════════════════════════════════════════════════════════════════════════
+   Bağlam-farkında revize paneli — "AI ile Revize Et" / "Düzenle" ile açılır.
+   Asistan hangi öğeyi/bölümü revize ettiğini bilir, yönlendirici soru sorar,
+   öneri çipleri verir; düzenlemeyi doğru endpoint'e yapıp kartı tazeler.
+   ════════════════════════════════════════════════════════════════════════ */
+
+// Bölüme özel yönlendirme soruları
+const REVISE_QUESTION: Partial<Record<ReviseSection, string>> = {
+  functional: "Fonksiyonel analizi nasıl revize edelim? Neyi değiştireyim, neyi ekleyeyim?",
+  technical: "Teknik analizi hangi yönde güncelleyeyim?",
+  architecturalPlan: "Mimari planı nasıl iyileştireyim?",
+  all: "Tüm projeyi bağlı fikir ve araştırmalara göre yenileyeceğim. Özel bir yönlendirmen var mı? (boş bırakabilirsin)",
+  flow: "Sistem mimarisi akış şemasını yeniden üreteceğim. Eklemek istediğin bir not var mı? (opsiyonel)",
+};
+// Bölüme özel öneri çipleri (tıkla → metin alanını doldurur)
+const REVISE_SUGGESTIONS: Partial<Record<ReviseSection, string[]>> = {
+  functional: [
+    "Kullanıcı senaryolarını detaylandır",
+    "Kabul kriterlerini netleştir",
+    "Eksik fonksiyonel gereksinimleri ekle",
+    "KVKK / uyum gereksinimlerini ekle",
+  ],
+  technical: [
+    "Teknoloji yığınını güncelle ve gerekçelendir",
+    "Ölçeklenebilirlik stratejisini güçlendir",
+    "Güvenlik mimarisini genişlet",
+    "Performans hedefleri ve metrikleri ekle",
+  ],
+  architecturalPlan: [
+    "Veri akışını adım adım netleştir",
+    "Deployment stratejisini ekle",
+    "Bileşen sorumluluklarını ayrıştır",
+    "Harici entegrasyon noktalarını belirt",
+  ],
+  all: [
+    "Bağlı araştırma bulgularını analize işle",
+    "Daha gerçekçi ve uygulanabilir yap",
+    "Kurumsal ölçeğe göre yeniden kurgula",
+  ],
+  flow: [],
+};
+
+// "Proje" bağlamında önce bölüm seçtir
+const PICK_SECTIONS: { key: ReviseSection; icon: string; desc: string }[] = [
+  { key: "functional", icon: "fact_check", desc: "Özellikler, senaryolar, gereksinimler" },
+  { key: "technical", icon: "memory", desc: "Teknoloji yığını, güvenlik, ölçek" },
+  { key: "architecturalPlan", icon: "account_tree", desc: "Katmanlar, veri akışı, deployment" },
+  { key: "flow", icon: "schema", desc: "Sistem mimarisi akış şeması" },
+  { key: "all", icon: "auto_awesome", desc: "Bağlı fikir + araştırmalara göre tümünü yenile" },
+];
+
+function GuidedRevise({ ctx, onDismiss }: { ctx: AssistantContext; onDismiss: () => void }) {
+  const qc = useQueryClient();
+  const [section, setSection] = useState<ReviseSection>(ctx.section);
+  const [guidance, setGuidance] = useState("");
+  const [status, setStatus] = useState<"idle" | "working" | "done" | "started" | "error">("idle");
+  const [result, setResult] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const taRef = useRef<HTMLTextAreaElement>(null);
+
+  // Bağlam değişince paneli sıfırla
+  useEffect(() => {
+    setSection(ctx.section); setGuidance(""); setStatus("idle"); setResult(""); setErr(null);
+  }, [ctx.entityId, ctx.section]);
+
+  const needsPick = section === "project";
+  const isSync = section === "functional" || section === "technical" || section === "architecturalPlan";
+  const optionalGuidance = section === "all" || section === "flow";
+
+  const run = async () => {
+    setErr(null);
+    if (isSync && !guidance.trim()) { setErr("Önce nasıl revize edeceğimi yaz."); return; }
+    setStatus("working");
+    try {
+      if (isSync) {
+        const res = await fetch(`${API_ORIGIN}/api/ideas/${ctx.entityId}/revise-analysis`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+          body: JSON.stringify({ section, guidance: guidance.trim() }),
+        });
+        const j = await res.json();
+        if (!res.ok) throw new Error(j?.error || "Revizyon başarısız");
+        setResult(j.content || "");
+        setStatus("done");
+        qc.invalidateQueries({ queryKey: ["/api/ideas"] });
+      } else {
+        const res = await fetch(`${API_ORIGIN}/api/ideas/${ctx.entityId}/regenerate-analysis`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+          body: JSON.stringify({ scope: section, guidance: guidance.trim() || undefined }),
+        });
+        if (!res.ok) throw new Error("Yenileme başlatılamadı");
+        setStatus("started");
+        // Üretim arka planda; kartı birkaç kez tazele ki bitince güncellensin
+        let n = 0;
+        const iv = setInterval(() => { qc.invalidateQueries({ queryKey: ["/api/ideas"] }); if (++n >= 25) clearInterval(iv); }, 4000);
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Bir hata oluştu"); setStatus("error");
+    }
+  };
+
+  const sectionLabel = SECTION_LABEL[section];
+
+  return (
+    <div className="rounded-[16px] border border-secondary/25 bg-gradient-to-b from-secondary/[0.06] to-transparent p-3.5">
+      {/* Bağlam çipi */}
+      <div className="mb-3 flex items-center gap-2">
+        <div className="brand-gradient flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-white">
+          <Icon name="auto_fix_high" size={15} filled />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[10px] font-bold uppercase tracking-wide text-secondary">AI ile düzenleme</div>
+          <div className="truncate text-[13px] font-bold text-on-surface">
+            {ctx.entityTitle}
+            {!needsPick && <span className="font-medium text-on-surface-variant"> · {sectionLabel}</span>}
+          </div>
+        </div>
+        <button onClick={onDismiss} title="Kapat" className="flex h-7 w-7 items-center justify-center rounded-full text-on-surface-variant hover:bg-background">
+          <Icon name="close" size={16} />
+        </button>
+      </div>
+
+      {/* Adım: bölüm seç (proje "Düzenle") */}
+      {needsPick && status === "idle" && (
+        <>
+          <p className="mb-2.5 text-[13px] leading-relaxed text-on-surface">
+            <span className="font-semibold">{ctx.entityTitle}</span> projesinde neyi düzenleyelim? Bir bölüm seç:
+          </p>
+          <div className="space-y-1.5">
+            {PICK_SECTIONS.map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setSection(s.key)}
+                className="flex w-full items-center gap-2.5 rounded-[11px] border border-outline-variant bg-white p-2.5 text-left transition-all hover:border-secondary/40 hover:bg-secondary/[0.05]"
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary/[0.1] text-secondary">
+                  <Icon name={s.icon} size={16} />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-semibold leading-tight text-on-surface">{SECTION_LABEL[s.key]}</div>
+                  <div className="mt-0.5 text-[11.5px] leading-snug text-on-surface-variant">{s.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Adım: yönlendirme gir (bölüm seçili) */}
+      {!needsPick && (status === "idle" || status === "error") && (
+        <>
+          {ctx.section === "project" && (
+            <button onClick={() => setSection("project")} className="mb-2 flex items-center gap-1 text-[12px] font-semibold text-secondary hover:underline">
+              <Icon name="arrow_back" size={13} /> Bölüm değiştir
+            </button>
+          )}
+          <p className="mb-2.5 text-[13px] leading-relaxed text-on-surface">{REVISE_QUESTION[section]}</p>
+
+          {(REVISE_SUGGESTIONS[section] ?? []).length > 0 && (
+            <div className="mb-2.5 flex flex-wrap gap-1.5">
+              {(REVISE_SUGGESTIONS[section] ?? []).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => { setGuidance((g) => (g.trim() ? g.trim() + "; " + s : s)); setTimeout(() => taRef.current?.focus(), 0); }}
+                  className="rounded-full border border-secondary/30 bg-secondary/[0.07] px-2.5 py-1 text-[11.5px] font-medium text-secondary transition-all hover:bg-secondary/[0.14]"
+                >
+                  + {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <textarea
+            ref={taRef}
+            value={guidance}
+            onChange={(e) => setGuidance(e.target.value)}
+            rows={3}
+            autoFocus
+            placeholder={optionalGuidance ? "Opsiyonel yönlendirme… (boş bırakıp doğrudan yenileyebilirsin)" : "Örn: güvenlik bölümünü KVKK odaklı genişlet, ölçeklenebilirlik varsayımını gerçekçi yap…"}
+            className="w-full resize-none rounded-[11px] border border-outline-variant bg-white px-3 py-2.5 text-[13px] text-on-surface outline-none focus:border-secondary/50 focus:ring-2 focus:ring-secondary/15"
+          />
+          {err && <p className="mt-1.5 text-[12px] text-error">{err}</p>}
+          <div className="mt-2.5 flex gap-2">
+            <button
+              onClick={run}
+              disabled={isSync && !guidance.trim()}
+              className="flex items-center gap-1.5 rounded-[11px] bg-primary px-4 py-2 text-[12.5px] font-semibold text-white transition-all hover:bg-[#0e54d8] disabled:opacity-50"
+            >
+              <Icon name="auto_awesome" size={14} filled />
+              {optionalGuidance ? "Yenile" : "Revize Et"}
+            </button>
+            <button onClick={onDismiss} className="rounded-[11px] px-3 py-2 text-[12.5px] font-semibold text-on-surface-variant hover:bg-background">İptal</button>
+          </div>
+        </>
+      )}
+
+      {/* Çalışıyor */}
+      {status === "working" && (
+        <div className="flex items-center gap-2.5 py-2 text-[13px] font-semibold text-primary">
+          <Icon name="progress_activity" size={18} className="animate-spin" />
+          {isSync ? `${sectionLabel} revize ediliyor…` : `${sectionLabel} yenileniyor…`}
+        </div>
+      )}
+
+      {/* Senkron revizyon bitti — önizleme + kartta güncel */}
+      {status === "done" && (
+        <div>
+          <div className="mb-2 flex items-center gap-1.5 text-[13px] font-bold text-[#157A3A]">
+            <Icon name="check_circle" size={16} filled /> {sectionLabel} güncellendi — kartta yenilendi.
+          </div>
+          {result && (
+            <div className="max-h-[220px] overflow-y-auto rounded-[11px] border border-outline-variant bg-white px-3 py-2.5 text-[12.5px] leading-relaxed text-on-surface custom-scrollbar
+              prose prose-sm max-w-none prose-headings:font-bold prose-headings:text-on-surface prose-p:my-1 prose-strong:text-on-surface prose-li:my-0.5">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{result.slice(0, 1400)}</ReactMarkdown>
+            </div>
+          )}
+          <div className="mt-2.5 flex gap-2">
+            <button onClick={() => { setStatus("idle"); setResult(""); setGuidance(""); }} className="flex items-center gap-1.5 rounded-[11px] border border-secondary/30 bg-secondary/[0.07] px-3 py-1.5 text-[12px] font-semibold text-secondary hover:bg-secondary/[0.14]">
+              <Icon name="redo" size={13} /> Tekrar revize et
+            </button>
+            <button onClick={onDismiss} className="rounded-[11px] bg-primary px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#0e54d8]">Bitir</button>
+          </div>
+        </div>
+      )}
+
+      {/* Async yenileme başladı */}
+      {status === "started" && (
+        <div>
+          <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold text-[#157A3A]">
+            <Icon name="check_circle" size={16} filled /> {sectionLabel} yenileniyor.
+          </div>
+          <p className="text-[12.5px] leading-relaxed text-on-surface-variant">
+            Üretim arka planda sürüyor; sonuç birkaç dakika içinde proje kartında otomatik güncellenecek.
+          </p>
+          <div className="mt-2.5">
+            <button onClick={onDismiss} className="rounded-[11px] bg-primary px-3.5 py-1.5 text-[12px] font-semibold text-white hover:bg-[#0e54d8]">Bitir</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function OrchestratorChat({ reviseContext }: { reviseContext?: AssistantContext | null } = {}) {
   const [input, setInput] = useState("");
   const [conversationId, setConversationId] = useState<number | null>(null);
+  // Aktif revize bağlamı — prop'tan alınır; panelde "Bitir/İptal" ile temizlenir
+  const [activeCtx, setActiveCtx] = useState<AssistantContext | null>(reviseContext ?? null);
+  useEffect(() => { if (reviseContext) setActiveCtx(reviseContext); }, [reviseContext]);
 
   const { data: conversations, isLoading: isLoadingConvos } = useListGeminiConversations();
   const { mutateAsync: createConvo } = useCreateGeminiConversation();
@@ -120,7 +368,10 @@ export function OrchestratorChat() {
         ref={scrollRef}
         className="flex-1 space-y-4 overflow-y-auto px-5 py-5 custom-scrollbar"
       >
-        {messages.length === 0 && (
+        {/* Bağlam-farkında revize paneli — "AI ile Revize Et" / "Düzenle" ile açılır */}
+        {activeCtx && <GuidedRevise ctx={activeCtx} onDismiss={() => setActiveCtx(null)} />}
+
+        {!activeCtx && messages.length === 0 && (
           <div className="flex flex-col gap-4">
             {/* Karşılama balonu (referans seed mesajı) */}
             <div className="flex items-start gap-2.5">
