@@ -50,3 +50,7 @@ Thumbs.db
 .vercel
 .gstack/
 .design-audit/
+
+# local env (committed edilmez)
+**/.env.local
+**/.env.*.local
