@@ -974,8 +974,10 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             <span className="tag-pill project-t">PROJE</span>
             <span className={"status-pill-select " + stage.cls}>{stage.label}</span>
             <span style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <button className="btn-link" onClick={() => navigate(`/feasibility?id=${idea.id}`)}><BarChart3 size={14} color="#1463F3" />Fizibilite Raporu</button>
-              <button className="btn-link" onClick={() => navigate(`/financial?id=${idea.id}`)}><Banknote size={14} color="#1463F3" />Finansal Analiz</button>
+              {isAdmin && (<>
+                <button className="btn-link" onClick={() => navigate(`/feasibility?id=${idea.id}`)}><BarChart3 size={14} color="#1463F3" />Fizibilite Raporu</button>
+                <button className="btn-link" onClick={() => navigate(`/financial?id=${idea.id}`)}><Banknote size={14} color="#1463F3" />Finansal Analiz</button>
+              </>)}
               {isAdmin && (
                 <button className="btn-link" onClick={() => setShowLinkedIn(true)}><Linkedin size={14} color="#0A66C2" />LinkedIn İçeriği</button>
               )}
@@ -1156,7 +1158,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
 
             {/* AI Derin Analiz — uzun fonksiyonel/teknik/mimari METİN içeriği proje kapağı altında,
                 katlanabilir bölümler (varsayılan kapalı) içinde. Sayfayı uzun uzun doldurmaz. */}
-            {(analysis?.functionalAnalysis || analysis?.technicalAnalysis || analysis?.architecturalPlan) && (
+            {isAdmin && (analysis?.functionalAnalysis || analysis?.technicalAnalysis || analysis?.architecturalPlan) && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <p className="overline" style={{ margin: "4px 2px 0" }}>AI Derin Analiz · Detaylı Açıklama</p>
                 {analysis?.functionalAnalysis && (
@@ -1199,6 +1201,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
               </div>
             </section>
 
+            {isAdmin && (
             <section className="dp-section">
               <h3><Users size={16} color="#1463F3" />Ekip · {team.length}</h3>
               {team.length > 0 ? (
@@ -1219,6 +1222,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
                 </button>
               )}
             </section>
+            )}
 
             {/* Bağlı Fikirler — bu projeyi besleyen fikirler (çok-bir). Sağ kolonda, tek sütun. */}
             <section className="dp-section">
