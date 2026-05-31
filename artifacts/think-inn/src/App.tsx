@@ -17,6 +17,7 @@ import CommunityPage from "@/pages/CommunityPage";
 import UserManagementPage from "@/pages/admin/UserManagementPage";
 import DepartmentManagementPage from "@/pages/admin/DepartmentManagementPage";
 import AuthPage from "@/pages/AuthPage";
+import { CardDetailView } from "@/components/modals/CardDetailView";
 import { useEffect } from "react";
 import { setBaseUrl } from "@workspace/api-client-react";
 import { API_ORIGIN } from "@/lib/api-config";
@@ -56,6 +57,15 @@ function RequireAdmin({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Public derin link sayfaları — LinkedIn paylaşımları için kanonik URL'ler (/r/:id, /p/:id, /i/:id).
+// CardDetailView'i doğrudan render eder; giriş gerektirmez (public read-mode).
+function PublicCard({ type, id, view }: { type: "research" | "idea"; id: number; view?: "idea" | "project" }) {
+  const [, navigate] = useLocation();
+  if (!id || Number.isNaN(id)) return <NotFound />;
+  const back = type === "research" ? "/research" : view === "project" ? "/projects" : "/ideas";
+  return <CardDetailView detail={{ type, id, view }} onClose={() => navigate(back)} />;
+}
+
 function Router() {
   const [location] = useLocation();
 
@@ -78,6 +88,10 @@ function Router() {
         <Route path="/feasibility" component={FeasibilityPage} />
         <Route path="/financial" component={FinancialPage} />
         <Route path="/map" component={MapPage} />
+        {/* Public derin linkler — LinkedIn paylaşım hedefleri */}
+        <Route path="/r/:id">{(p) => <PublicCard type="research" id={Number(p.id)} />}</Route>
+        <Route path="/p/:id">{(p) => <PublicCard type="idea" view="project" id={Number(p.id)} />}</Route>
+        <Route path="/i/:id">{(p) => <PublicCard type="idea" view="idea" id={Number(p.id)} />}</Route>
         <Route path="/community">
           <RequireAdmin><CommunityPage /></RequireAdmin>
         </Route>

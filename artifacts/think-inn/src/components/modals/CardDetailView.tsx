@@ -669,7 +669,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
         />
       )}
       {showLinkedIn && (
-        <LinkedInComposerModal kind="idea" id={idea.id} title={idea.title} defaultAngle={hasAnalysis ? "problem" : "founder"} onClose={() => setShowLinkedIn(false)} />
+        <LinkedInComposerModal kind="idea" id={idea.id} title={idea.title} defaultAngle={hasAnalysis ? "problem" : "founder"} shareLink={`${window.location.origin}/i/${idea.id}`} onClose={() => setShowLinkedIn(false)} />
       )}
     </div>
   );
@@ -813,7 +813,7 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
         </div>
       </div>
       {showLinkedIn && (
-        <LinkedInComposerModal kind="research" id={research.id} title={research.title} defaultAngle="research" onClose={() => setShowLinkedIn(false)} />
+        <LinkedInComposerModal kind="research" id={research.id} title={research.title} defaultAngle="research" shareLink={`${window.location.origin}/r/${research.id}`} onClose={() => setShowLinkedIn(false)} />
       )}
     </div>
   );
@@ -1268,7 +1268,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
         />
       )}
       {showLinkedIn && (
-        <LinkedInComposerModal kind="idea" id={idea.id} title={idea.title} defaultAngle="problem" onClose={() => setShowLinkedIn(false)} />
+        <LinkedInComposerModal kind="idea" id={idea.id} title={idea.title} defaultAngle="problem" shareLink={`${window.location.origin}/p/${idea.id}`} onClose={() => setShowLinkedIn(false)} />
       )}
 
       {/* Ekran görüntüsü büyütme (lightbox) */}

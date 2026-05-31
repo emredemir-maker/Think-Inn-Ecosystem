@@ -30,12 +30,15 @@ export default function LinkedInComposerModal({
   id,
   title,
   defaultAngle = "problem",
+  shareLink,
   onClose,
 }: {
   kind: "idea" | "research";
   id: number;
   title: string;
   defaultAngle?: Angle;
+  /** İlk yoruma konacak kanonik derin link (yoksa mevcut sayfa linki kullanılır) */
+  shareLink?: string;
   onClose: () => void;
 }) {
   const [angle, setAngle] = useState<Angle>(defaultAngle);
@@ -47,7 +50,7 @@ export default function LinkedInComposerModal({
   const [comment, setComment] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
 
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareUrl = shareLink || (typeof window !== "undefined" ? window.location.href : "");
   const base = kind === "research" ? "research" : "ideas";
 
   const generate = async () => {
@@ -218,7 +221,7 @@ export default function LinkedInComposerModal({
                   rows={2}
                   className="w-full resize-none rounded-xl border border-outline-variant bg-white px-3.5 py-2.5 text-[12.5px] text-on-surface outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15"
                 />
-                <p className="mt-1 text-[10.5px] text-on-surface-variant">Not: kanonik derin link Faz 2'de gelecek; şimdilik mevcut sayfa linki kullanılıyor.</p>
+                <p className="mt-1 text-[10.5px] text-on-surface-variant">Link, içeriğin kanonik public sayfasına gider. LinkedIn'de gönderinin gövdesine değil, bu ilk yoruma koy (erişim için).</p>
               </div>
             </div>
           )}
