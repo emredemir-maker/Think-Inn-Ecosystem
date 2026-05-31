@@ -91,7 +91,7 @@ SADECE şu JSON'u döndür (başka metin yok):
     const r = await ai.models.generateContent({
       model: GEMINI_MODELS.analysis,
       contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: { maxOutputTokens: 2048, responseMimeType: "application/json" } as any,
+      config: { maxOutputTokens: 4096, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } } as any,
     });
     raw = r.text?.trim() || "";
   } catch (e) {
