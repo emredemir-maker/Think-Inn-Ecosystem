@@ -416,6 +416,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               </span>
             </div>
           </div>
+          {isAdmin && (
           <div className="maturity-big" style={{ ["--p" as any]: maturity + "%" }}>
             <div className="center">
               <div className="label">Olgunluk</div>
@@ -423,6 +424,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               <div className="hint">AI tarafından hesaplandı</div>
             </div>
           </div>
+          )}
         </div>
 
         {/* Aksiyon barı */}
@@ -470,7 +472,8 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               )}
             </section>
 
-            {/* Kullanım Akışı — fikrin BASİT kullanıcı akış şeması (sistem mimarisi DEĞİL) */}
+            {/* Kullanım Akışı — AI üretimi (public görmez) */}
+            {isAdmin && (
             <section className="dp-section">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
                 <h3 style={{ margin: 0 }}><Workflow size={16} color="#1463F3" />Kullanım Akışı</h3>
@@ -500,6 +503,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 </p>
               )}
             </section>
+            )}
 
             {/* Projelendirme için gerekli araştırmalar + proje kartı oluşturma */}
             <section className="dp-section">
@@ -580,9 +584,8 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               </div>
             </section>
 
-            {/* AI Derin Analiz — fikir projeye dönüşmüşse "Projeyi Aç", değilse OTONOM üretim CTA'sı.
-                Üretilen uzun analiz fikirde GÖSTERİLMEZ; Proje görünümünde (katlanabilir) yer alır. */}
-            {hasAnalysis ? (
+            {/* AI Derin Analiz — AI üretimi (public görmez) */}
+            {isAdmin && (hasAnalysis ? (
               <div className="dp-analyze">
                 <div className="l">
                   <div className="titlerow">
@@ -634,12 +637,13 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                   <span style={{ fontFamily: "var(--font-body)", fontSize: 13, color: "#94A0B8", whiteSpace: "nowrap" }}>Analiz bekleniyor</span>
                 )}
               </div>
-            )}
+            ))}
 
           </div>
 
-          {/* Sağ kolon — FİKİR değerlendirmesi: 5 eksen skor + fikir aşamaları + bağlı içerikler */}
+          {/* Sağ kolon — public: yalnız Bağlı içerikler (dokümanlar). AI değerlendirme/aşamalar admin'e özel. */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            {isAdmin && (<>
             <section className="dp-section">
               <h3><Gauge size={16} color="#1463F3" />Fikir Değerlendirmesi</h3>
               {evaluating && !scores ? (
@@ -721,6 +725,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 Fikir aşamaları <b>olgunluk skoruna</b> göre belirlenir. <b>%75'e</b> ulaşınca projeye dönüştürülebilir — proje aşamaları (Keşif→Lansman) ayrı işler.
               </p>
             </section>
+            </>)}
 
             {/* Bağlı içerikler — sağ kolonda (tek sütun), boş alanı doldurur */}
             {(linkedResearch.length > 0 || relatedIdeas.length > 0) && (
@@ -1054,7 +1059,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
         <div className="project-banner">
           <div className="row">
             <span className="tag-pill project-t">PROJE</span>
-            <span className={"status-pill-select " + stage.cls}>{stage.label}</span>
+            {isAdmin && <span className={"status-pill-select " + stage.cls}>{stage.label}</span>}
             <span style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
               {isAdmin && (<>
                 <button className="btn-link" onClick={() => navigate(`/feasibility?id=${idea.id}`)}><BarChart3 size={14} color="#1463F3" />Fizibilite Raporu</button>
@@ -1079,6 +1084,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             <p className="lede">{(idea as any).category ? (idea as any).category + " · " : ""}{t.length > 220 ? t.slice(0, 220) + "…" : t}</p>
           ); })()}
 
+          {isAdmin && (
           <div style={{ position: "relative", marginTop: 18 }}>
             <div className="project-progress-bar">
               <span style={{ width: progress + "%" }} />
@@ -1088,12 +1094,14 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
               <span>Başlangıç</span><span>Mimari</span><span style={{ color: "#5B3FE0" }}>Geliştirme</span><span>Beta</span><span>Lansman</span>
             </div>
           </div>
+          )}
         </div>
 
         <div className="project-body-grid">
           {/* Sol kolon */}
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-            {/* Proje Aşamaları — sabit yaşam-döngüsü (fikir olgunluk aşamalarından AYRI) */}
+            {/* Proje Aşamaları — AI yaşam-döngüsü (public görmez) */}
+            {isAdmin && (
             <section className="dp-section">
               <h3><Route size={16} color="#1463F3" />Proje Aşamaları</h3>
               <div className="timeline">
@@ -1112,6 +1120,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
                 })}
               </div>
             </section>
+            )}
 
             {/* Prototip / Demo — built ürünün canlı sergilenmesi (iframe önizleme + aç) */}
             <section className="dp-section">
@@ -1221,8 +1230,8 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
               )}
             </section>
 
-            {/* Sistem mimarisi — yapısal akış şeması (soldan sağa, zoom/pan'lı görsel). Metin değil, diyagram. */}
-            {((flowDiagram && Array.isArray(flowDiagram.nodes) && flowDiagram.nodes.length > 0) || regenerating) && (
+            {/* Sistem mimarisi — AI üretimi şema (public görmez) */}
+            {isAdmin && ((flowDiagram && Array.isArray(flowDiagram.nodes) && flowDiagram.nodes.length > 0) || regenerating) && (
               <section className="dp-section">
                 <h3><GitBranch size={16} color="#1463F3" />Sistem Mimarisi Şeması</h3>
                 {flowDiagram && Array.isArray(flowDiagram.nodes) && flowDiagram.nodes.length > 0 ? (
@@ -1257,8 +1266,9 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
 
           </div>
 
-          {/* Sağ kolon — proje durumu + ekip + bağlı içerikler (boş sağ alanı doldurur) */}
+          {/* Sağ kolon — public: yalnız bağlı içerikler (dokümanlar). Proje durumu/ekip admin'e özel. */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            {isAdmin && (
             <section className="dp-section">
               <h3><Activity size={16} color="#1463F3" />Proje durumu</h3>
               <div className="dp-eval-stack">
@@ -1282,6 +1292,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
                 </div>
               </div>
             </section>
+            )}
 
             {isAdmin && (
             <section className="dp-section">
