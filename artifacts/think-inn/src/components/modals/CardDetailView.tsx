@@ -7,7 +7,7 @@ import {
   Gauge, BarChart3, BookOpen, Lightbulb, Tags, Info, ExternalLink, Plus,
   Route, GitBranch, Activity, UserPlus, Check, PenLine, Banknote,
   CheckCircle2, AlertTriangle, Circle, Lock, FlaskConical, Loader2,
-  ChevronDown, ChevronRight, RefreshCw, Workflow, MonitorPlay, ImagePlus, X,
+  ChevronDown, ChevronRight, RefreshCw, Workflow, MonitorPlay, ImagePlus, X, Linkedin,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -16,6 +16,7 @@ import { useAuth } from "@/lib/auth-context";
 import { API_ORIGIN } from "@/lib/api-config";
 import { ManualLinkModal } from "./ManualLinkModal";
 import { LinkIdeaToProjectModal } from "./LinkIdeaToProjectModal";
+import LinkedInComposerModal from "./LinkedInComposerModal";
 import FlowDiagram from "./FlowDiagram";
 import UsageFlow from "./UsageFlow";
 
@@ -204,6 +205,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
   const { user } = useAuth();
   const isAdmin = !!user;
   const [showLink, setShowLink] = useState(false);
+  const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState(false);
   const [evaluating, setEvaluating] = useState(false);
@@ -347,6 +349,9 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
           <button className="btn-link" onClick={copyLink}><Share2 size={14} color="#1463F3" />Paylaş</button>
           {isAdmin && (
             <button className="btn-link" onClick={() => setShowLink(true)}><GitMerge size={14} color="#1463F3" />Bağlantı ekle</button>
+          )}
+          {isAdmin && (
+            <button className="btn-link" onClick={() => setShowLinkedIn(true)}><Linkedin size={14} color="#0A66C2" />LinkedIn İçeriği</button>
           )}
           {hasAnalysis ? (
             <button className="btn-primary" onClick={() => openCard("idea", idea.id, "project")}>
@@ -663,6 +668,9 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
           onClose={() => setShowLink(false)}
         />
       )}
+      {showLinkedIn && (
+        <LinkedInComposerModal kind="idea" id={idea.id} title={idea.title} defaultAngle={hasAnalysis ? "problem" : "founder"} onClose={() => setShowLinkedIn(false)} />
+      )}
     </div>
   );
 }
@@ -674,6 +682,7 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
 }) {
   const { user } = useAuth();
   const isAdmin = !!user;
+  const [showLinkedIn, setShowLinkedIn] = useState(false);
 
   const linkedIdeas = allIdeas.filter((i) => (i.researchIds ?? []).includes(research.id));
   const tags = research.tags ?? [];
@@ -702,6 +711,9 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
             <span style={{ color: "#CBD3E2" }}>·</span>
             <span>{timeAgo(research.createdAt)} eklendi</span>
             <span style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+              {isAdmin && (
+                <button className="btn-link" onClick={() => setShowLinkedIn(true)}><Linkedin size={14} color="#0A66C2" />LinkedIn İçeriği</button>
+              )}
               {sourceUrl && (
                 <a className="icon-btn" href={sourceUrl} target="_blank" rel="noreferrer" aria-label="Kaynağa git"><ExternalLink size={14} color="#1463F3" /></a>
               )}
@@ -800,6 +812,9 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
           </aside>
         </div>
       </div>
+      {showLinkedIn && (
+        <LinkedInComposerModal kind="research" id={research.id} title={research.title} defaultAngle="research" onClose={() => setShowLinkedIn(false)} />
+      )}
     </div>
   );
 }
@@ -895,6 +910,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
   // Bu projeyi BESLEYEN fikirler (many-to-one): relatedTo'sunda bu projenin id'si olanlar
   // + projenin kendi relatedTo'su (dedup, self hariç). Birden fazla fikir bağlanabilir.
   const [showLinkIdea, setShowLinkIdea] = useState(false);
+  const [showLinkedIn, setShowLinkedIn] = useState(false);
 
   // Prototip / Demo — sistem "prototip var mı"yı architecturalAnalysis.prototype.url'den anlar.
   // Admin demo URL ekler; PUT ile architecturalAnalysis'e gömülür (migration yok). Public de görür.
@@ -960,6 +976,9 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             <span style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button className="btn-link" onClick={() => navigate(`/feasibility?id=${idea.id}`)}><BarChart3 size={14} color="#1463F3" />Fizibilite Raporu</button>
               <button className="btn-link" onClick={() => navigate(`/financial?id=${idea.id}`)}><Banknote size={14} color="#1463F3" />Finansal Analiz</button>
+              {isAdmin && (
+                <button className="btn-link" onClick={() => setShowLinkedIn(true)}><Linkedin size={14} color="#0A66C2" />LinkedIn İçeriği</button>
+              )}
               {isAdmin && (
                 <button className="btn-link" onClick={regenerate} disabled={regenerating} title="AI analizini ve mimari şemayı yeniden üret">
                   {regenerating ? <Loader2 size={14} className="animate-spin" color="#1463F3" /> : <RefreshCw size={14} color="#1463F3" />}
@@ -1247,6 +1266,9 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
           allIdeas={allIdeas}
           onClose={() => setShowLinkIdea(false)}
         />
+      )}
+      {showLinkedIn && (
+        <LinkedInComposerModal kind="idea" id={idea.id} title={idea.title} defaultAngle="problem" onClose={() => setShowLinkedIn(false)} />
       )}
 
       {/* Ekran görüntüsü büyütme (lightbox) */}

@@ -8,6 +8,7 @@ import { setImmediate } from "timers";
 import { autoCreateResearchThread } from "../utils/community-auto";
 // Otomatik fikir eşleştirme artık ortak util'de — chat akışı da aynı fonksiyonu kullanır.
 import { autoLinkResearchToIdeas } from "../utils/auto-link-research";
+import { generateLinkedInContent, type LinkedInAngle } from "../utils/linkedin-content";
 
 const router = Router();
 
@@ -130,6 +131,39 @@ router.get("/:id", async (req, res) => {
     res.json(item);
   } catch (err) {
     req.log.error({ err }, "Failed to get research");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/research/:id/generate-linkedin — araştırma için LinkedIn gönderisi üretir (senkron).
+router.post("/:id/generate-linkedin", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [item] = await db.select().from(researchTable).where(eq(researchTable.id, id));
+    if (!item) return res.status(404).json({ error: "Research not found" });
+
+    const angle = (["founder", "problem", "research"].includes(req.body?.angle) ? req.body.angle : "research") as LinkedInAngle;
+    const tone = typeof req.body?.tone === "number" ? Math.max(0, Math.min(100, req.body.tone)) : 50;
+
+    const facts: string[] = [];
+    if (item.findings) facts.push(`Bulgular: ${String(item.findings).replace(/[#*`>_]/g, "").slice(0, 280)}`);
+    if (item.technicalAnalysis) facts.push(`Teknik öz: ${String(item.technicalAnalysis).replace(/[#*`>_]/g, "").slice(0, 220)}`);
+    if (Array.isArray(item.tags) && item.tags.length) facts.push(`Anahtar konular: ${(item.tags as string[]).slice(0, 6).join(", ")}`);
+
+    const result = await generateLinkedInContent({
+      kind: "research",
+      title: item.title,
+      summary: item.summary || "",
+      category: item.category,
+      tags: (item.tags as string[]) ?? [],
+      facts,
+      angle,
+      tone,
+    });
+    if (!result) return res.status(502).json({ error: "İçerik üretilemedi. Lütfen tekrar deneyin." });
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "Failed to generate LinkedIn content (research)");
     res.status(500).json({ error: "Internal server error" });
   }
 });

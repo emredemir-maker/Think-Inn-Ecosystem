@@ -6,6 +6,7 @@ import { setImmediate } from "timers";
 import { backgroundEvaluateIdea } from "../utils/evaluate-idea";
 import { ai, GEMINI_MODELS } from "@workspace/integrations-gemini-ai";
 import { autoCreateIdeaThread, autoCreateProjectThread } from "../utils/community-auto";
+import { generateLinkedInContent, type LinkedInAngle } from "../utils/linkedin-content";
 
 const router = Router();
 
@@ -395,6 +396,50 @@ JSON formatı (SADECE JSON):
     });
   } catch (err) {
     req.log.error({ err }, "Failed to start financial generation");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/ideas/:id/generate-linkedin — fikir/proje için LinkedIn gönderisi üretir (senkron).
+// Çoklu açı (angle) + ton (tone). Gerçek veriye dayanır; admin düzenleyip paylaşır (auto-publish YOK).
+router.post("/:id/generate-linkedin", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, id));
+    if (!idea) return res.status(404).json({ error: "Idea not found" });
+
+    const angle = (["founder", "problem", "research"].includes(req.body?.angle) ? req.body.angle : "problem") as LinkedInAngle;
+    const tone = typeof req.body?.tone === "number" ? Math.max(0, Math.min(100, req.body.tone)) : 50;
+    const kind = idea.architecturalAnalysis ? "project" : "idea";
+
+    // Somut gerçekleri topla (gönderiyi gerçek veriye demirler)
+    const facts: string[] = [];
+    const ev = idea.evaluationScores as any;
+    if (ev) {
+      if (ev.commercialFeasibility != null) facts.push(`Ticari fizibilite skoru ${ev.commercialFeasibility}/10`);
+      if (ev.marketNeed != null) facts.push(`Pazar ihtiyacı skoru ${ev.marketNeed}/10`);
+      if (ev.trendAlignment != null) facts.push(`Trend uyumu ${ev.trendAlignment}/10`);
+      if (ev.summary) facts.push(`AI değerlendirme özeti: ${String(ev.summary).slice(0, 220)}`);
+    }
+    const flow = (idea.roadmap as string[]) ?? [];
+    if (flow.length) facts.push(`Kullanım akışı: ${flow.slice(0, 6).join(" → ")}`);
+    const aa = idea.architecturalAnalysis as any;
+    if (aa?.functionalAnalysis) facts.push(`Fonksiyonel öz: ${String(aa.functionalAnalysis).replace(/[#*`>_]/g, "").slice(0, 220)}`);
+
+    const result = await generateLinkedInContent({
+      kind,
+      title: idea.title,
+      summary: idea.description,
+      category: idea.category,
+      tags: (idea.tags as string[]) ?? [],
+      facts,
+      angle,
+      tone,
+    });
+    if (!result) return res.status(502).json({ error: "İçerik üretilemedi. Lütfen tekrar deneyin." });
+    res.json(result);
+  } catch (err) {
+    req.log.error({ err }, "Failed to generate LinkedIn content (idea)");
     res.status(500).json({ error: "Internal server error" });
   }
 });
