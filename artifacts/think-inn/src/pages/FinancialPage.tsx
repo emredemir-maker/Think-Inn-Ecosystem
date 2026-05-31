@@ -32,6 +32,77 @@ function scMeta(name: string) {
   return { c: "#1463F3", bg: "rgba(20,99,243,0.05)" };
 }
 
+/* Risk maddesi — (admin) kullanıcının gireceği araştırma/yöntemle AI değerlendirir → Giderildi/Azaltıldı/Açık */
+function RiskItem({ ideaId, risk, logged, isAdmin, onDone }: {
+  ideaId: number; risk: string; logged?: any; isAdmin: boolean; onDone: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(logged || null);
+
+  const submit = async () => {
+    if (!text.trim()) return;
+    setBusy(true); setErr(null);
+    try {
+      const res = await fetch(`${API_ORIGIN}/api/ideas/${ideaId}/mitigate-risk`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include",
+        body: JSON.stringify({ risk, mitigation: text, scope: "financial" }),
+      });
+      const j = await res.json();
+      if (!res.ok) throw new Error(j?.error || "Değerlendirilemedi");
+      setResult(j); setOpen(false); setText(""); onDone();
+    } catch (e) { setErr(e instanceof Error ? e.message : "Bir hata oluştu"); }
+    finally { setBusy(false); }
+  };
+
+  const VB: Record<string, { label: string; color: string; bg: string }> = {
+    resolved: { label: "Giderildi", color: "#0F8C66", bg: "rgba(22,163,74,0.12)" },
+    reduced: { label: "Azaltıldı", color: "#8A5A00", bg: "rgba(255,176,32,0.18)" },
+    open: { label: "Açık", color: "#B0292B", bg: "rgba(239,68,68,0.10)" },
+  };
+  const v = result ? VB[result.verdict] : null;
+
+  return (
+    <li className="rounded-xl border border-[#FFE2AE] bg-white/70 p-3">
+      <div className="flex items-start gap-2.5 text-[13px] leading-relaxed text-on-surface">
+        <Icon name="error" size={15} className="mt-0.5 shrink-0" style={{ color: result?.verdict === "resolved" ? "#0F8C66" : "#FFB020" }} filled />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <span style={result?.verdict === "resolved" ? { textDecoration: "line-through", opacity: 0.7 } : undefined}>{risk}</span>
+            {v && <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold" style={{ color: v.color, background: v.bg }}>{v.label}</span>}
+          </div>
+          {result?.rationale && (
+            <p className="mt-1.5 text-[12px] leading-relaxed text-on-surface-variant">
+              <b style={{ color: v?.color }}>AI:</b> {result.rationale}{result.residualRisk ? ` · Kalan: ${result.residualRisk}` : ""}
+            </p>
+          )}
+          {isAdmin && !open && (
+            <button onClick={() => setOpen(true)} className="mt-2 inline-flex items-center gap-1 text-[11.5px] font-semibold text-primary hover:underline">
+              <Icon name="science" size={13} />{result ? "Yeniden araştırma/yöntem gir" : "Araştırma/yöntemle gider"}
+            </button>
+          )}
+          {isAdmin && open && (
+            <div className="mt-2">
+              <textarea value={text} onChange={(e) => setText(e.target.value)} rows={2} autoFocus
+                placeholder="Bu riski azaltacak araştırma / yöntem / önlem… (örn. 'KVKK için hukuk görüşü + anonimleştirme + pilot denetim')"
+                className="w-full resize-none rounded-lg border border-outline-variant bg-white px-3 py-2 text-[12.5px] text-on-surface outline-none focus:border-primary/40 focus:ring-2 focus:ring-primary/15" />
+              {err && <p className="mt-1 text-[11.5px] text-error">{err}</p>}
+              <div className="mt-1.5 flex gap-2">
+                <button onClick={submit} disabled={busy || !text.trim()} className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[12px] font-semibold text-white transition-all hover:bg-[#0e54d8] disabled:opacity-60">
+                  {busy ? <Icon name="progress_activity" size={13} className="animate-spin" /> : <Icon name="science" size={13} />}{busy ? "Değerlendiriliyor…" : "AI ile Değerlendir"}
+                </button>
+                <button onClick={() => { setOpen(false); setText(""); setErr(null); }} className="rounded-lg px-3 py-1.5 text-[12px] font-semibold text-on-surface-variant hover:bg-background">İptal</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
 export default function FinancialPage() {
   const [, navigate] = useLocation();
   const searchStr = useSearch();
@@ -43,6 +114,7 @@ export default function FinancialPage() {
   const id = useMemo(() => Number(new URLSearchParams(searchStr).get("id")), [searchStr]);
   const idea = (ideaList ?? []).find((i) => i.id === id) as Idea | undefined;
   const fin = (idea as any)?.architecturalAnalysis?.financial as Financial | undefined;
+  const riskLog = (((idea as any)?.architecturalAnalysis?.riskLog as any[]) ?? []);
 
   const [generating, setGenerating] = useState(false);
   const [err, setErr] = useState(false);
@@ -181,12 +253,25 @@ export default function FinancialPage() {
                 <div className="rounded-[16px] border p-5" style={{ borderColor: "rgba(255,176,32,0.30)", background: "rgba(255,176,32,0.05)" }}>
                   <div className="mb-3 flex items-center gap-2" style={{ color: "#8A5A00" }}><Icon name="warning" size={16} /><span className="font-heading text-[14px] font-bold text-on-surface">Finansal Riskler</span></div>
                   <ul className="space-y-2">
-                    {fin.keyRisks.map((r, i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-[13px] leading-relaxed text-on-surface">
-                        <Icon name="error" size={15} className="mt-0.5 shrink-0" style={{ color: "#FFB020" }} filled /> {r}
-                      </li>
-                    ))}
+                    {fin.keyRisks.map((r, i) => {
+                      const logged = riskLog.filter((e: any) => e?.risk === r).pop();
+                      return (
+                        <RiskItem
+                          key={i}
+                          ideaId={idea!.id}
+                          risk={r}
+                          logged={logged}
+                          isAdmin={isAdmin}
+                          onDone={() => qc.invalidateQueries({ queryKey: ["/api/ideas"] })}
+                        />
+                      );
+                    })}
                   </ul>
+                  {isAdmin && (
+                    <p className="mt-2.5 text-[11px] leading-relaxed text-on-surface-variant">
+                      Bir riski araştırma veya yöntemle ele al; AI önlemini değerlendirip "Giderildi / Azaltıldı / Açık" olarak işaretler.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

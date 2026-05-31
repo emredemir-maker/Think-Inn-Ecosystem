@@ -444,6 +444,122 @@ router.post("/:id/generate-linkedin", async (req, res) => {
   }
 });
 
+// POST /api/ideas/:id/revise-analysis — fonksiyonel/teknik/mimari analizi kullanıcı yönlendirmesiyle yeniden üretir (senkron).
+router.post("/:id/revise-analysis", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, id));
+    if (!idea) return res.status(404).json({ error: "Idea not found" });
+    const aa = idea.architecturalAnalysis as any;
+    if (!aa) return res.status(400).json({ error: "Önce mimari analizi üretin." });
+
+    const keyMap: Record<string, string> = { functional: "functionalAnalysis", technical: "technicalAnalysis", architecturalPlan: "architecturalPlan" };
+    const labelMap: Record<string, string> = { functional: "fonksiyonel analiz", technical: "teknik analiz", architecturalPlan: "mimari plan" };
+    const section = String(req.body?.section || "");
+    const key = keyMap[section];
+    const guidance = String(req.body?.guidance || "").trim();
+    if (!key) return res.status(400).json({ error: "Geçersiz bölüm." });
+    if (!guidance) return res.status(400).json({ error: "Yönlendirme metni gerekli." });
+
+    const current = String(aa[key] || "");
+    const prompt = `Sen kurumsal bir ürün/teknik analiz revizyon ajanısın. Aşağıdaki ${labelMap[section]} metnini, KULLANICININ YÖNLENDİRMESİNE göre revize et.
+
+PROJE: ${idea.title}
+Açıklama: ${idea.description}
+${idea.category ? `Kategori: ${idea.category}\n` : ""}
+MEVCUT ${labelMap[section].toUpperCase()}:
+${current.slice(0, 6000)}
+
+KULLANICI YÖNLENDİRMESİ: ${guidance}
+
+Kurallar:
+- Yönlendirmeyi uygula; ilgili bölümleri güncelle, gerisini tutarlı koru.
+- Markdown yapısını ve kalitesini koru (başlıklar ##, alt-maddeler, kalın etiketler).
+- Türkçe yaz. SADECE revize edilmiş markdown metni döndür (açıklama/önsöz YOK).`;
+
+    let revised = "";
+    try {
+      const r = await ai.models.generateContent({
+        model: GEMINI_MODELS.analysis,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { maxOutputTokens: 4096, thinkingConfig: { thinkingBudget: 0 } } as any,
+      });
+      revised = (r.text || "").trim();
+    } catch (e) {
+      req.log.error({ err: e }, "revise-analysis gemini failed");
+    }
+    if (!revised) return res.status(502).json({ error: "Revizyon üretilemedi. Tekrar deneyin." });
+
+    aa[key] = revised;
+    aa.revisedAt = new Date().toISOString();
+    await db.update(ideasTable).set({ architecturalAnalysis: aa as any, updatedAt: new Date() }).where(eq(ideasTable.id, id));
+    res.json({ section, content: revised });
+  } catch (err) {
+    req.log.error({ err }, "Failed to revise analysis");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// POST /api/ideas/:id/mitigate-risk — bir risk maddesini kullanıcının girdiği araştırma/yöntemle AI değerlendirir (senkron).
+router.post("/:id/mitigate-risk", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [idea] = await db.select().from(ideasTable).where(eq(ideasTable.id, id));
+    if (!idea) return res.status(404).json({ error: "Idea not found" });
+
+    const risk = String(req.body?.risk || "").trim();
+    const mitigation = String(req.body?.mitigation || "").trim();
+    const scope = String(req.body?.scope || "financial");
+    if (!risk) return res.status(400).json({ error: "Risk metni gerekli." });
+    if (!mitigation) return res.status(400).json({ error: "Araştırma/yöntem girişi gerekli." });
+
+    const prompt = `Sen kurumsal bir RİSK YÖNETİM ajanısın. Aşağıdaki riski, kullanıcının önerdiği araştırma/yöntem/önlem ışığında değerlendir.
+
+PROJE: ${idea.title} — ${idea.description?.slice(0, 300)}
+RİSK (${scope}): ${risk}
+KULLANICININ ÖNERDİĞİ ARAŞTIRMA/YÖNTEM/ÖNLEM: ${mitigation}
+
+Bu önlem riski ne ölçüde gideriyor? SADECE şu JSON'u döndür:
+{
+  "verdict": "resolved | reduced | open",
+  "residualRisk": "önlemden sonra kalan risk (1 cümle; tamamen gideriliyorsa boş)",
+  "rationale": "2-3 cümle gerekçe (Türkçe, somut)"
+}`;
+
+    let raw = "";
+    try {
+      const r = await ai.models.generateContent({
+        model: GEMINI_MODELS.analysis,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: { maxOutputTokens: 1024, responseMimeType: "application/json", thinkingConfig: { thinkingBudget: 0 } } as any,
+      });
+      raw = (r.text || "").trim();
+    } catch (e) {
+      req.log.error({ err: e }, "mitigate-risk gemini failed");
+    }
+    let parsed: any = null;
+    try { parsed = JSON.parse(raw); } catch { const m = raw.match(/\{[\s\S]*\}/); if (m) { try { parsed = JSON.parse(m[0]); } catch {} } }
+    if (!parsed || !["resolved", "reduced", "open"].includes(parsed.verdict)) {
+      return res.status(502).json({ error: "Risk değerlendirmesi üretilemedi. Tekrar deneyin." });
+    }
+
+    const entry = {
+      risk, mitigation, scope,
+      verdict: parsed.verdict,
+      residualRisk: typeof parsed.residualRisk === "string" ? parsed.residualRisk : "",
+      rationale: typeof parsed.rationale === "string" ? parsed.rationale : "",
+      at: new Date().toISOString(),
+    };
+    const aa = (idea.architecturalAnalysis as any) || {};
+    aa.riskLog = Array.isArray(aa.riskLog) ? [...aa.riskLog, entry] : [entry];
+    await db.update(ideasTable).set({ architecturalAnalysis: aa as any, updatedAt: new Date() }).where(eq(ideasTable.id, id));
+    res.json(entry);
+  } catch (err) {
+    req.log.error({ err }, "Failed to mitigate risk");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // PATCH /api/ideas/:id/project — update project management fields
 router.patch("/:id/project", async (req, res) => {
   try {
