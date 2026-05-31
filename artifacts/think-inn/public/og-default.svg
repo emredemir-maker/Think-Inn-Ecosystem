@@ -1,0 +1,31 @@
+<svg width="1200" height="627" viewBox="0 0 1200 627" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="627" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#071B3A"/>
+      <stop offset="1" stop-color="#0B254E"/>
+    </linearGradient>
+    <linearGradient id="g" x1="520" y1="190" x2="690" y2="360" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#18C9E8"/>
+      <stop offset="0.52" stop-color="#1463F3"/>
+      <stop offset="1" stop-color="#7A5CFF"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="627" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="240" fill="#1463F3" opacity="0.12"/>
+  <circle cx="160" cy="540" r="200" fill="#7A5CFF" opacity="0.12"/>
+
+  <!-- hexagon mark -->
+  <g transform="translate(525,205) scale(2.6)">
+    <polygon points="32,5 55.4,18.5 55.4,45.5 32,59 8.6,45.5 8.6,18.5" stroke="url(#g)" stroke-width="2.6" stroke-linejoin="round" opacity="0.55" fill="none"/>
+    <g stroke="url(#g)" stroke-width="3" stroke-linecap="round" opacity="0.65">
+      <line x1="32" y1="32" x2="32" y2="5"/><line x1="32" y1="32" x2="8.6" y2="45.5"/><line x1="32" y1="32" x2="55.4" y2="45.5"/>
+    </g>
+    <circle cx="32" cy="5" r="5.4" fill="#071B3A" stroke="#18C9E8" stroke-width="3.2"/>
+    <circle cx="8.6" cy="45.5" r="5.4" fill="#071B3A" stroke="#1463F3" stroke-width="3.2"/>
+    <circle cx="55.4" cy="45.5" r="5.4" fill="#071B3A" stroke="#7A5CFF" stroke-width="3.2"/>
+    <circle cx="32" cy="32" r="6.4" fill="url(#g)"/>
+  </g>
+
+  <text x="600" y="430" text-anchor="middle" font-family="Poppins, Manrope, Arial, sans-serif" font-size="76" font-weight="700" fill="#FFFFFF" letter-spacing="-1">think-Inn</text>
+  <text x="600" y="486" text-anchor="middle" font-family="Manrope, Arial, sans-serif" font-size="26" font-weight="700" fill="#9DB2D8" letter-spacing="6">AI INNOVATION ECOSYSTEM</text>
+</svg>

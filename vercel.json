@@ -5,6 +5,9 @@
   "outputDirectory": "artifacts/think-inn/dist/public",
   "framework": null,
   "rewrites": [
+    { "source": "/r/:id", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(linkedinbot|facebookexternalhit|twitterbot|slackbot|whatsapp|telegrambot|discordbot|googlebot|bingbot|applebot|embedly|redditbot|pinterest|whatsapp).*" }], "destination": "/api/og?type=research&id=:id" },
+    { "source": "/p/:id", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(linkedinbot|facebookexternalhit|twitterbot|slackbot|whatsapp|telegrambot|discordbot|googlebot|bingbot|applebot|embedly|redditbot|pinterest|whatsapp).*" }], "destination": "/api/og?type=project&id=:id" },
+    { "source": "/i/:id", "has": [{ "type": "header", "key": "user-agent", "value": "(?i).*(linkedinbot|facebookexternalhit|twitterbot|slackbot|whatsapp|telegrambot|discordbot|googlebot|bingbot|applebot|embedly|redditbot|pinterest|whatsapp).*" }], "destination": "/api/og?type=idea&id=:id" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
