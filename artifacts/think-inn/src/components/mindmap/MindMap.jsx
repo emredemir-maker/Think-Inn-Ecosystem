@@ -24,9 +24,21 @@ const NODE_COLORS = {
   center: "#1463F3", // Primary Blue
 };
 
-const SPIN_SPEED = 0.0016; // otomatik dönüş hızı (rad/kare) — sakin tempo
-const R = 230; // fibonacci küre yarıçapı
+const SPIN_SPEED = 0.00022; // sahne otomatik dönüşü — ÇOK yavaş, dingin (sürükleyince devralınır)
+const R = 250; // derinlik normalizasyonu için referans yarıçap (alpha/fade hesapları)
 const FOV = 720; // perspektif odak uzaklığı
+
+// ── Konsantrik küresel kabuklar — düğüm tipine göre yarıçap (YALNIZ yerleşim) ──
+//   project → çekirdek (en küçük) · idea → orta · research → dış (en büyük). AYRIK kabuklar.
+const RING_R = { project: 48, idea: 140, research: 232, community: 186, center: 0 }; // daha AYRIK kabuklar
+// Katman dönüş tempoları { speed: rad/kare, dir: yön } — DÜŞÜK tempo (sakin, kurumsal)
+const RING_ORBIT = {
+  research: { speed: 0.0012, dir: 1 },    // dış kabuk: yavaş, saat yönü (~87 sn/tur)
+  idea: { speed: 0.0008, dir: -1 },       // orta kabuk: daha yavaş, ters yön (~131 sn)
+  project: { speed: 0.00035, dir: 1 },    // çekirdek: çok hafif (~5 dk)
+  community: { speed: 0.0009, dir: -1 },  // (haritada genelde yok; güvenli varsayılan)
+  center: { speed: 0, dir: 1 },
+};
 
 const LEGEND = [
   ["Fikir", "#1463F3"],
@@ -93,9 +105,14 @@ export default function MindMap({ data }) {
   const canvasRef = useRef(null);
   const wrapRef = useRef(null);
   const projRef = useRef({}); // id -> {sx,sy,rad,depth,s}
-  const rot = useRef({ ax: -0.35, ay: 0.4, vy: SPIN_SPEED, vx: 0 });
+  // Başlangıç bakış açısı: küresel kabukları doğal "küre" gibi göster (hafif eğim)
+  // (sürükleyince kullanıcı serbestçe çevirir; tepeden bakınca iç içe halkalar da görünür)
+  const rot = useRef({ ax: -0.45, ay: 0.4, vy: SPIN_SPEED, vx: 0 });
   const drag = useRef({ on: false, lx: 0, ly: 0, moved: 0 });
-  const zoom = useRef(1);
+  // Zoom: fitRef = otomatik sığdırma (W/H + worldRadius'tan her frame hesaplanır),
+  // userMulRef = kullanıcının tekerlek/buton zoom çarpanı. Etkin zoom = fitRef × userMulRef.
+  const fitRef = useRef(0.8);
+  const userMulRef = useRef(1);
   const hover = useRef(null);
 
   const [selected, setSelected] = useState(null);
@@ -105,21 +122,44 @@ export default function MindMap({ data }) {
 
   // ── Sahne grafiğini hazırla: sentetik merkez + gerçek düğümler ────────────
   // useRef ile sakla ki her frame'de yeniden hesaplanmasın; data değişince güncellenir.
-  const sceneRef = useRef({ nodes: [], edges: [], pos: {}, flow: [] });
+  const sceneRef = useRef({ nodes: [], edges: [], orbit: {}, flow: [], worldRadius: 260 });
   useEffect(() => {
     const dataNodes = data?.nodes ?? [];
     const dataLinks = data?.links ?? [];
 
-    // Fibonacci küre — tüm gerçek düğümler yüzeyde. Sentetik merkez "hub" düğümü YOK
-    // (referans PageMap.jsx gibi); düğümler yalnızca gerçek bağlantılarıyla bağlanır.
-    const N = Math.max(1, dataNodes.length);
-    const golden = Math.PI * (3 - Math.sqrt(5));
-    const pos = {};
-    dataNodes.forEach((n, i) => {
-      const y = N === 1 ? 0 : 1 - (i / (N - 1)) * 2;
-      const r = Math.sqrt(Math.max(0, 1 - y * y));
-      const theta = golden * i;
-      pos[n.id] = { x: Math.cos(theta) * r * R, y: y * R * 0.92, z: Math.sin(theta) * r * R };
+    // Konsantrik küresel kabuklar — düğümler tipine göre 3 iç içe küreye yerleşir
+    // (project → çekirdek, idea → orta, research → dış). Force YOK; her düğüme sabit
+    // yarıçap + enlem/boylam + salınım fazı atanır, konum her frame'de boylamı döndürerek
+    // hesaplanır. (Renkler/şema/etkileşim DEĞİŞMEZ — yalnız yerleşim.)
+    const layerCount = {};
+    dataNodes.forEach((n) => { layerCount[n.type] = (layerCount[n.type] || 0) + 1; });
+    // OTOMATİK SIĞDIRMA #1 — yoğunluk: en kalabalık katmandaki düğüm sayısına göre kabukları
+    // büyüt (daha çok düğüm → daha geniş küre → düğümler üst üste binmez). Üst sınır var.
+    const counts = Object.values(layerCount);
+    const maxLayer = counts.length ? Math.max(...counts) : 1;
+    const spread = Math.min(1.6, Math.max(1, Math.sqrt(maxLayer / 9)));
+    const layerSeen = {};
+    const golden = Math.PI * (3 - Math.sqrt(5)); // altın açı — küre yüzeyine düzgün dağılım
+    const orbit = {};
+    dataNodes.forEach((n) => {
+      const ringR = (RING_R[n.type] ?? RING_R.idea) * spread; // tip yarıçapı × yoğunluk
+      const k = layerSeen[n.type] || 0;                       // bu düğümün katmandaki sırası
+      layerSeen[n.type] = k + 1;
+      const cnt = Math.max(1, layerCount[n.type] || 1);
+      // Katmanın düğümleri KENDİ küresel kabuğuna (yarıçap ringR) Fibonacci ile yayılır
+      const yNorm = cnt === 1 ? 0 : 1 - (k / (cnt - 1)) * 2;
+      const latR = Math.sqrt(Math.max(0, 1 - yNorm * yNorm));
+      const phi0 = golden * k;
+      const cfg = RING_ORBIT[n.type] || { speed: 0.0012, dir: 1 };
+      orbit[n.id] = {
+        ringR,
+        yNorm,                                // enlem (sabit)
+        latR,                                 // enlem çemberi yarıçap oranı (sabit)
+        phi0,                                 // başlangıç boylamı
+        dir: cfg.dir,
+        speed: cfg.speed,
+        oscPhase: (k * 1.37) % (Math.PI * 2), // mikro-salınım fazı (deterministik)
+      };
     });
 
     // Kenarlar: yalnızca gerçek links (merkeze ışın/spoke yok)
@@ -127,17 +167,23 @@ export default function MindMap({ data }) {
     for (const l of dataLinks) {
       const s = typeof l.source === "object" ? l.source.id : l.source;
       const t = typeof l.target === "object" ? l.target.id : l.target;
-      if (pos[s] && pos[t]) edges.push([s, t]);
+      if (orbit[s] && orbit[t]) edges.push([s, t]);
     }
 
     // AI akışı: gerçek kenarlardan ilk 2'si (varsa) — açık cyan parçacık
     const flow = edges.slice(0, 2);
 
-    sceneRef.current = { nodes: dataNodes, edges, pos, flow };
+    // OTOMATİK SIĞDIRMA #2 — sahnenin dünya yarıçapı (en dış mevcut kabuk × spread + pay).
+    // frame() bunu kullanıp zoom'u tuvale otomatik sığdırır (aşağıda fitZoom).
+    const presentBase = dataNodes.length ? Math.max(...dataNodes.map((n) => RING_R[n.type] ?? RING_R.idea)) : RING_R.research;
+    const worldRadius = presentBase * spread + 30;
+
+    sceneRef.current = { nodes: dataNodes, edges, orbit, flow, worldRadius };
   }, [data]);
 
   const setZoom = (d) => {
-    zoom.current = Math.min(1.9, Math.max(0.55, zoom.current + d));
+    // Otomatik fit'in üstüne biner: 0.4× (uzak) .. 3.5× (yakın)
+    userMulRef.current = Math.min(3.5, Math.max(0.4, userMulRef.current + d));
   };
 
   // ── Canvas çizim döngüsü + etkileşim ─────────────────────────────────────
@@ -163,7 +209,7 @@ export default function MindMap({ data }) {
     let t = 0;
     const frame = () => {
       t += 1;
-      const { nodes, edges, pos, flow } = sceneRef.current;
+      const { nodes, edges, orbit, flow, worldRadius } = sceneRef.current;
       const r = rot.current;
       // Boştayken sürekli sakin dönüş; momentum yumuşakça SPIN_SPEED'e oturur
       if (!drag.current.on) {
@@ -172,14 +218,36 @@ export default function MindMap({ data }) {
       }
       const cx = W / 2, cy = H / 2 + 8;
 
+      // OTOMATİK SIĞDIRMA — dünya küresini her zaman tuvale oturt (W/H veya veri değişince
+      // kendiliğinden yeniden hesaplanır). Kullanıcı zoom'u (userMul) bunun üstüne çarpan biner.
+      const wr = Math.max(60, Math.min(FOV * 0.6, worldRadius || 260)); // FOV singülaritesinden kaçın
+      const frontPersp = FOV / (FOV - wr);                              // en yakın düğümdeki perspektif büyümesi
+      fitRef.current = (Math.min(W, H) * 0.5 * 0.9) / (wr * frontPersp);
+      const zEff = fitRef.current * userMulRef.current;                 // etkin zoom
+
       ctx.clearRect(0, 0, W, H);
       if (nodes.length === 0) { raf = requestAnimationFrame(frame); return; }
 
-      // Tüm düğümleri projekte et
+      // Tüm düğümleri projekte et — KONUM küresel kabuktan: boylam (phi) katmana göre
+      // zamanla yavaşça döner; enlem (yNorm) sabit. Üstüne çok hafif yarıçap salınımı (dingin his).
       const proj = {};
       nodes.forEach((n) => {
-        const p = rotate(pos[n.id] || { x: 0, y: 0, z: 0 }, r.ax, r.ay);
-        const s = (FOV / (FOV + p.z)) * zoom.current;
+        const o = orbit[n.id];
+        let local;
+        if (o) {
+          const phi = o.phi0 + o.dir * o.speed * t;            // boylam döner → kabuk dönüşü (katmana özgü yön/hız)
+          const rr = o.ringR + Math.sin(t * 0.018 + o.oscPhase) * 4; // hafif yarıçap salınımı (±4px)
+          local = {
+            x: rr * o.latR * Math.cos(phi),
+            y: rr * o.yNorm,
+            z: rr * o.latR * Math.sin(phi),
+          };
+        } else {
+          local = { x: 0, y: 0, z: 0 };
+        }
+        // Sahne eğimi + sürükleme + çok yavaş otomatik dönüş — mevcut rotate() AYNEN korunur
+        const p = rotate(local, r.ax, r.ay);
+        const s = (FOV / (FOV + p.z)) * zEff;
         const baseR = n.type === "center" ? 30 : 17;
         proj[n.id] = { sx: cx + p.x * s, sy: cy + p.y * s, depth: p.z, rad: baseR * s, s };
       });
@@ -237,9 +305,10 @@ export default function MindMap({ data }) {
       order.forEach((n) => {
         const P = proj[n.id];
         const col = NODE_COLORS[n.type] || "#1463F3";
-        const dimmed = sel && !isLit(n.id);
+        const dimmed = sel && !isLit(n.id);                 // seçim var + bu düğüm komşu değil → sönük
+        const litNeighbor = sel && n.id !== sel.id && isLit(n.id); // seçilenin BAĞLI komşusu → belirgin
         const depthFade = 0.45 + 0.55 * (1 - (P.depth + R) / (2 * R));
-        const a = depthFade * (dimmed ? 0.35 : 1);
+        const a = depthFade * (dimmed ? 0.22 : 1);          // komşu olmayanı daha çok söndür (odak)
 
         // glow
         const glowR = P.rad * (n.type === "center" ? 3.4 : 2.6);
@@ -272,42 +341,50 @@ export default function MindMap({ data }) {
           ctx.beginPath(); ctx.arc(P.sx, P.sy, P.rad * 0.32, 0, Math.PI * 2); ctx.fill();
         }
 
-        // seçim / hover halkası
-        if ((sel && n.id === sel.id) || hov === n.id) {
+        // seçim / hover / BAĞLI KOMŞU halkası — seçilen fikir/araştırmanın bağlı düğümleri belirginleşir
+        if ((sel && n.id === sel.id) || hov === n.id || litNeighbor) {
           ctx.globalAlpha = 1;
-          ctx.lineWidth = 2;
+          ctx.lineWidth = litNeighbor ? 1.6 : 2;
           ctx.strokeStyle = col;
-          const pr = P.rad + 6 + (sel && n.id === sel.id ? 2 * Math.sin(t * 0.08) + 2 : 0);
+          const pr = P.rad + (litNeighbor ? 4 : 6) + (sel && n.id === sel.id ? 2 * Math.sin(t * 0.08) + 2 : 0);
           ctx.beginPath(); ctx.arc(P.sx, P.sy, pr, 0, Math.PI * 2); ctx.stroke();
         }
         ctx.globalAlpha = 1;
 
-        // etiket (merkez / seçili / hover her zaman; diğerleri uzaklaşsa da görünür → daha düşük eşik)
+        // etiket — uzaklaşsa da KAYBOLMAZ: uzak düğümde hafif bulanıklaşır + soluklaşır (yakınsa net)
         const emphasized = n.type === "center" || (sel && n.id === sel.id) || hov === n.id;
-        const showLabel = emphasized || P.s > 0.82;
-        if (showLabel) {
-          // Yazı boyu sınırlı: yakınlaşınca çok büyümesin, uzaklaşınca okunur kalsın
-          const fs = Math.max(8.5, Math.min(emphasized ? 14 : 12, 10.5 * P.s));
-          ctx.font = "600 " + fs + "px Inter, Manrope, system-ui, sans-serif";
-          // Tek uzun satır yerine sözcük bazlı sar (wrap). Yakın/seçili düğümde daha çok satır → başlığın çoğu görünür
-          const big = emphasized || P.s > 1.2;
-          const maxW = big ? 152 : 128;
-          const lines = wrapLabel(ctx, n.name || "", maxW, big ? 3 : 2);
-          const lh = fs + 3;
-          const padX = 8, padY = 5;
+        {
+          // farT: 0 (yakın) → 1 (uzak), perspektif ölçeği P.s'e göre
+          const farT = Math.max(0, Math.min(1, (0.95 - P.s) / 0.5));
+          // Yazı uzaklaştıkça KÜÇÜLÜR (yakın ~10px, uzak ~5.5px) ve İNCE (bold değil = 500) → sadelik
+          const fs = Math.max(5.5, Math.min(emphasized ? 12 : 10, 9 * P.s));
+          ctx.font = "500 " + fs.toFixed(1) + "px Inter, Manrope, system-ui, sans-serif";
+          // Uzak/küçük düğüm → TEK satır (karmaşıklığı azaltır); yakın/komşu → 2, vurgulu → 3
+          const maxLines = emphasized ? 3 : (litNeighbor || P.s > 1.0 ? 2 : 1);
+          const maxW = emphasized ? 150 : (litNeighbor || P.s > 1.0 ? 120 : 98);
+          const lines = wrapLabel(ctx, n.name || "", maxW, maxLines);
+          const lh = fs + 2.5;
+          const padX = 7, padY = 4;
           const boxW = Math.max(...lines.map((l) => ctx.measureText(l).width));
           const boxH = lines.length * lh + padY * 2;
-          const ly = P.sy + P.rad + 9; // kutunun üst kenarı
-          // Uzaklaşan düğümlerde etiket de sönükleşir ama kaybolmaz (en az ~0.5 opaklık)
-          ctx.globalAlpha = Math.min(1, Math.max(emphasized ? 1 : 0.5, a + 0.15));
-          roundRect(ctx, P.sx - boxW / 2 - padX, ly, boxW + padX * 2, boxH, 11);
-          ctx.fillStyle = "rgba(255,255,255,0.95)";
+          const ly = P.sy + P.rad + 8; // kutunun üst kenarı
+          // Uzakta: hafif blur + soluklaşma. Vurgulu/bağlı komşu → net (blur yok, tam opaklık).
+          // Seçim varken komşu olmayan düğüm (dimmed) odak için yine sönük kalır.
+          const blurPx = emphasized || litNeighbor || dimmed ? 0 : farT * 1.4;
+          const labelAlpha = emphasized || litNeighbor ? 1
+            : dimmed ? Math.max(0, a)
+            : Math.max(0.42, Math.min(1, a + 0.2 - farT * 0.3));
+          if (blurPx > 0.05) ctx.filter = "blur(" + blurPx.toFixed(2) + "px)";
+          ctx.globalAlpha = labelAlpha;
+          roundRect(ctx, P.sx - boxW / 2 - padX, ly, boxW + padX * 2, boxH, 10);
+          ctx.fillStyle = "rgba(255,255,255,0.94)";
           ctx.fill();
           ctx.strokeStyle = "rgba(232,238,249,1)"; ctx.lineWidth = 1; ctx.stroke();
           ctx.fillStyle = "#071B3A";
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           lines.forEach((l, li) => ctx.fillText(l, P.sx, ly + padY + lh * li + lh / 2));
           ctx.globalAlpha = 1;
+          ctx.filter = "none"; // sonraki düğümün çizimini etkilemesin
         }
       });
 

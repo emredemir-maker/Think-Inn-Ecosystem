@@ -103,25 +103,24 @@ export default function MapPage() {
 
   return (
     <div className="relative flex h-full w-full flex-col overflow-hidden bg-background">
-      {/* Page header — BİLGİ GRAFİ */}
-      <header className="relative z-10 flex shrink-0 items-start justify-between gap-6 px-10 pb-4 pt-7">
-        <div className="flex flex-col gap-2">
-          <span className="eyebrow">Bilgi Grafı</span>
-          <h1 className="font-display text-[36px] font-bold leading-[1.1] tracking-[-0.02em] text-on-surface">
+      {/* Page header — BİLGİ GRAFİ (kompakt: harita alanına yer açmak için tek satır + küçük font) */}
+      <header className="relative z-10 flex shrink-0 items-center justify-between gap-4 px-5 pb-2 pt-3">
+        <div className="flex min-w-0 items-baseline gap-2.5">
+          <span className="eyebrow hidden sm:inline">Bilgi Grafı</span>
+          <h1 className="font-display text-[20px] font-bold leading-tight tracking-[-0.01em] text-on-surface">
             Ekosistem Haritası
           </h1>
-          <p className="max-w-[640px] text-[14px] leading-[1.5] text-on-surface-variant">
-            Araştırmalar → Fikirler → Projeler. Üç katmanlı bilgi grafiği, aralarındaki
-            çok-çoğa bağlantıları gerçek zamanlı gösterir.
-            {usingSample && (
-              <span className="ml-2 rounded-full bg-risk/15 px-2 py-0.5 text-[11px] font-bold text-[#8A5A00]">
-                örnek veri
-              </span>
-            )}
-          </p>
+          <span className="hidden truncate text-[12px] leading-[1.4] text-on-surface-variant md:inline">
+            Araştırmalar → Fikirler → Projeler
+          </span>
+          {usingSample && (
+            <span className="shrink-0 rounded-full bg-risk/15 px-2 py-0.5 text-[10px] font-bold text-[#8A5A00]">
+              örnek veri
+            </span>
+          )}
         </div>
-        {/* Aksiyonlar — referans PageHead: zoom +/− · tam ekran · geri */}
-        <div className="flex items-center gap-2">
+        {/* Aksiyonlar — zoom +/− · tam ekran · geri */}
+        <div className="flex shrink-0 items-center gap-2">
           <button
             className="icon-btn"
             title="Yakınlaştır"
@@ -157,8 +156,8 @@ export default function MapPage() {
         </div>
       </header>
 
-      {/* 3D Mind map — kalan tüm alan, koyu kart içinde */}
-      <div className="relative mx-10 mb-7 flex-1 overflow-hidden rounded-[18px] border border-outline-variant">
+      {/* 3D Mind map — kalan tüm alan (yan/alt boşluklar daraltıldı → daha geniş kullanım) */}
+      <div className="relative mx-4 mb-4 flex-1 overflow-hidden rounded-[16px] border border-outline-variant">
         <MindMap data={graphData} />
       </div>
     </div>
