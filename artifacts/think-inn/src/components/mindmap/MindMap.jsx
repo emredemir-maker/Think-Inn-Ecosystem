@@ -351,7 +351,7 @@ export default function MindMap({ data }) {
         }
         ctx.globalAlpha = 1;
 
-        // etiket — uzaklaşsa da KAYBOLMAZ: uzak düğümde hafif bulanıklaşır + soluklaşır (yakınsa net)
+        // etiket — uzaklaşsa da KAYBOLMAZ: uzak düğümde yalnız KÜÇÜLÜR + hafif soluklaşır (BLUR YOK)
         const emphasized = n.type === "center" || (sel && n.id === sel.id) || hov === n.id;
         {
           // farT: 0 (yakın) → 1 (uzak), perspektif ölçeği P.s'e göre
@@ -368,13 +368,11 @@ export default function MindMap({ data }) {
           const boxW = Math.max(...lines.map((l) => ctx.measureText(l).width));
           const boxH = lines.length * lh + padY * 2;
           const ly = P.sy + P.rad + 8; // kutunun üst kenarı
-          // Uzakta: hafif blur + soluklaşma. Vurgulu/bağlı komşu → net (blur yok, tam opaklık).
+          // Yalnız opaklık ile sönükleşir (blur yok). Vurgulu/bağlı komşu → tam opak.
           // Seçim varken komşu olmayan düğüm (dimmed) odak için yine sönük kalır.
-          const blurPx = emphasized || litNeighbor || dimmed ? 0 : farT * 1.4;
           const labelAlpha = emphasized || litNeighbor ? 1
             : dimmed ? Math.max(0, a)
             : Math.max(0.42, Math.min(1, a + 0.2 - farT * 0.3));
-          if (blurPx > 0.05) ctx.filter = "blur(" + blurPx.toFixed(2) + "px)";
           ctx.globalAlpha = labelAlpha;
           roundRect(ctx, P.sx - boxW / 2 - padX, ly, boxW + padX * 2, boxH, 10);
           ctx.fillStyle = "rgba(255,255,255,0.94)";
@@ -384,7 +382,6 @@ export default function MindMap({ data }) {
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           lines.forEach((l, li) => ctx.fillText(l, P.sx, ly + padY + lh * li + lh / 2));
           ctx.globalAlpha = 1;
-          ctx.filter = "none"; // sonraki düğümün çizimini etkilemesin
         }
       });
 
