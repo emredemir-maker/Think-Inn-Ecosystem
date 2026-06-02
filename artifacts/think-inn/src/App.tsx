@@ -19,10 +19,13 @@ import DepartmentManagementPage from "@/pages/admin/DepartmentManagementPage";
 import AuthPage from "@/pages/AuthPage";
 import { CardDetailView } from "@/components/modals/CardDetailView";
 import { useEffect } from "react";
-import { setBaseUrl } from "@workspace/api-client-react";
+import { setBaseUrl, setAuthTokenGetter } from "@workspace/api-client-react";
 import { API_ORIGIN } from "@/lib/api-config";
 
 setBaseUrl(API_ORIGIN || null);
+// Girişli kullanıcının TÜM veri hook'ları (useListIdeas vb.) Authorization Bearer taşısın.
+// Böylece backend admin'i tanır ve korumalı alanları (FA/teknik/skor) tam döner; girişsiz → kısıtlı.
+setAuthTokenGetter(() => (typeof localStorage !== "undefined" ? localStorage.getItem("think_inn_token") : null));
 
 const queryClient = new QueryClient({
   defaultOptions: {

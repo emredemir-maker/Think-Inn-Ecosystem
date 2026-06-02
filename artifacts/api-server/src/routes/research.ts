@@ -12,6 +12,12 @@ import { generateLinkedInContent, type LinkedInAngle } from "../utils/linkedin-c
 
 const router = Router();
 
+// Public (girişsiz) yanıtta korumalı alanı gizle: teknik analiz (AI üretimi).
+// Vizyon alanları (başlık, özet, bulgular, etiket) herkese açık kalır — araştırma vizyon dokümanının parçası.
+function stripResearchForPublic(r: any) {
+  return { ...r, technicalAnalysis: null };
+}
+
 router.get("/", async (req, res) => {
   try {
     const { category } = req.query;
@@ -40,7 +46,7 @@ router.get("/", async (req, res) => {
       .from(researchTable)
       .where(conditions.length ? and(...conditions) : undefined)
       .orderBy(desc(researchTable.createdAt));
-    res.json(research);
+    res.json(req.user ? research : research.map(stripResearchForPublic));
   } catch (err) {
     req.log.error({ err }, "Failed to list research");
     res.status(500).json({ error: "Internal server error" });
@@ -128,7 +134,7 @@ router.get("/:id", async (req, res) => {
     const id = parseInt(req.params.id);
     const [item] = await db.select().from(researchTable).where(eq(researchTable.id, id));
     if (!item) return res.status(404).json({ error: "Research not found" });
-    res.json(item);
+    res.json(req.user ? item : stripResearchForPublic(item));
   } catch (err) {
     req.log.error({ err }, "Failed to get research");
     res.status(500).json({ error: "Internal server error" });

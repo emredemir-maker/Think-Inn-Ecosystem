@@ -7,7 +7,7 @@ import {
   Gauge, BarChart3, BookOpen, Lightbulb, Tags, Info, ExternalLink, Plus,
   Route, GitBranch, Activity, UserPlus, Check, PenLine, Banknote,
   CheckCircle2, AlertTriangle, Circle, Lock, FlaskConical, Loader2,
-  ChevronDown, ChevronRight, RefreshCw, Workflow, MonitorPlay, ImagePlus, X, Linkedin,
+  ChevronDown, ChevronRight, ChevronUp, RefreshCw, Workflow, MonitorPlay, ImagePlus, X, Linkedin, Copy,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -164,10 +164,14 @@ function NotFound({ onClose, label }: { onClose: () => void; label: string }) {
 }
 
 /* Katlanabilir analiz bölümü — uzun fonksiyonel/teknik analiz "proje kapağı altında" tutulur */
-function CollapsibleSection({ icon, title, children, defaultOpen = false }: {
+function CollapsibleSection({ icon, title, children, defaultOpen = false, signal }: {
   icon: React.ReactNode; title: string; children: React.ReactNode; defaultOpen?: boolean;
+  // signal: dışarıdan "tümünü aç/kapat" — nonce değişince open = signal.open uygulanır,
+  // aralarda kullanıcı tek tek yine açıp kapatabilir.
+  signal?: { open: boolean; nonce: number };
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => { if (signal) setOpen(signal.open); }, [signal?.nonce]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <section className="dp-section">
       <button
@@ -179,6 +183,72 @@ function CollapsibleSection({ icon, title, children, defaultOpen = false }: {
       </button>
       {open && <div style={{ marginTop: 14 }}>{children}</div>}
     </section>
+  );
+}
+
+/* Erişim modeli: PUBLIC (girişsiz) = vizyon (fikir + araştırma + süreç akışı). Backend,
+   girişsiz isteklere FA/teknik/skor GÖNDERMEZ. EKİP/ADMIN = giriş yapınca tam sayfa.
+   Yani gizli alanların güvenliği backend'de zorlanır; arayüz `fullView = isAdmin` ile hizalı. */
+
+/* Permalink — iki paylaşım bağlantısı: Vizyon (herkese açık, fikir) + Ekip (proje, giriş ile tam).
+   Buton tıklanınca URL'ler gösterilir, tek tıkla kopyalanır. */
+function PermalinkButton({ visionPath, teamPath }: { visionPath: string; teamPath: string }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState<"vision" | "team" | null>(null);
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const visionUrl = origin + visionPath;  // herkese açık vizyon (genelde FİKİR)
+  const teamUrl = origin + teamPath;       // ekip tam erişim (genelde PROJE — giriş yapınca tüm sayfa)
+  const copy = async (which: "vision" | "team", text: string) => {
+    try { await navigator.clipboard.writeText(text); setCopied(which); setTimeout(() => setCopied(null), 1600); }
+    catch { /* pano erişimi yoksa sessiz geç */ }
+  };
+  const Row = ({ label, hint, url, which }: { label: string; hint: string; url: string; which: "vision" | "team" }) => (
+    <div>
+      <div className="overline mb-1 flex flex-wrap items-center gap-1.5 px-0.5 text-on-surface-variant">
+        {label}<span className="text-[11px] font-normal normal-case tracking-normal text-outline">· {hint}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <input readOnly value={url} onFocus={(e) => e.currentTarget.select()}
+          className="min-w-0 flex-1 rounded-lg border border-outline-variant bg-background px-2.5 py-1.5 text-[12.5px] text-on-surface outline-none" />
+        <button onClick={() => copy(which, url)}
+          className="flex shrink-0 items-center gap-1 rounded-lg bg-primary px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#0e54d8]">
+          {copied === which ? <Check size={13} /> : <Copy size={13} />}{copied === which ? "Kopyalandı" : "Kopyala"}
+        </button>
+      </div>
+    </div>
+  );
+  return (
+    <div style={{ position: "relative" }}>
+      <button className="btn-link" onClick={() => setOpen((o) => !o)} title="Paylaşım bağlantısı">
+        <Link2 size={14} color="#1463F3" />Bağlantı
+      </button>
+      {open && (
+        <>
+          <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setOpen(false)} />
+          <div
+            className="rounded-xl border border-outline-variant bg-white p-3 shadow-[0_12px_32px_rgba(7,27,58,0.16)]"
+            style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", zIndex: 50, width: 360, maxWidth: "calc(100vw - 32px)" }}
+          >
+            <div className="flex flex-col gap-2.5">
+              <Row label="Vizyon (herkese açık)" hint="Fikir + araştırma + akış · LinkedIn" url={visionUrl} which="vision" />
+              <div className="h-px bg-outline-variant" />
+              <Row label="Ekip (tam erişim)" hint="Proje · giriş ile FA + teknik · Confluence" url={teamUrl} which="team" />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* Üst bar — geri butonu (sol) + permalink (sağ). Tüm detay görünümlerinde ortak.
+   visionPath: herkese açık vizyon (genelde fikir) · teamPath: ekip tam erişim (genelde proje). */
+function DetailTopBar({ backLabel, onBack, visionPath, teamPath }: { backLabel: string; onBack: () => void; visionPath: string; teamPath: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <button className="dp-back" onClick={onBack}><ArrowLeft size={14} /> {backLabel}</button>
+      <PermalinkButton visionPath={visionPath} teamPath={teamPath} />
+    </div>
   );
 }
 
@@ -231,6 +301,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
 }) {
   const { user } = useAuth();
   const isAdmin = !!user;
+  const fullView = isAdmin; // tam görünüm = girişli (admin/ekip). Korumalı alanları backend zaten gizliyor.
   const [showLink, setShowLink] = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
@@ -340,7 +411,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-6 pt-7 md:px-10">
       <div className="detail-page">
-        <button className="dp-back" onClick={onClose}><ArrowLeft size={14} /> Fikirlere dön</button>
+        <DetailTopBar backLabel="Fikirlere dön" onBack={onClose} visionPath={`/i/${idea.id}`} teamPath={hasAnalysis ? `/p/${idea.id}` : `/i/${idea.id}`} />
 
         {/* Banner */}
         <div className="idea-banner">
@@ -368,7 +439,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               </span>
             </div>
           </div>
-          {isAdmin && (
+          {fullView && (
           <div className="maturity-big" style={{ ["--p" as any]: maturity + "%" }}>
             <div className="center">
               <div className="label">Olgunluk</div>
@@ -424,8 +495,9 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
               )}
             </section>
 
-            {/* Kullanım Akışı — AI üretimi (public görmez) */}
-            {isAdmin && (
+            {/* Kullanım/Süreç Akışı — vizyon dokümanının parçası: akış ÜRETİLMİŞSE herkese
+                görünür (LinkedIn/public vizyon). Üretme/Yenile butonu yalnız admin. */}
+            {(isAdmin || usageSteps.length > 0) && (
             <section className="dp-section">
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 14 }}>
                 <h3 style={{ margin: 0 }}><Workflow size={16} color="#1463F3" />Kullanım Akışı</h3>
@@ -489,7 +561,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 )}
 
                 {/* Zorunlu (eksik) konular */}
-                {isAdmin && requiredTopics.length > 0 && (
+                {fullView && requiredTopics.length > 0 && (
                   <div>
                     <div className="req-gh"><AlertTriangle size={12} color="#B0292B" />Gerekli Araştırma Konuları ({requiredTopics.length})</div>
                     {requiredTopics.map((t, i) => (
@@ -499,7 +571,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                 )}
 
                 {/* Opsiyonel konular */}
-                {isAdmin && optionalTopics.length > 0 && (
+                {fullView && optionalTopics.length > 0 && (
                   <div>
                     <div className="req-gh"><BookOpen size={12} color="#0E54D8" />Opsiyonel Konular ({optionalTopics.length})</div>
                     {optionalTopics.map((t, i) => (
@@ -595,7 +667,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
 
           {/* Sağ kolon — public: yalnız Bağlı içerikler (dokümanlar). AI değerlendirme/aşamalar admin'e özel. */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-            {isAdmin && (<>
+            {fullView && (<>
             <section className="dp-section">
               <h3><Gauge size={16} color="#1463F3" />Fikir Değerlendirmesi</h3>
               {evaluating && !scores ? (
@@ -640,7 +712,7 @@ function IdeaDetailView({ idea, allResearch, allIdeas, onClose }: {
                       <p className="text-[12.5px] leading-relaxed text-on-surface">{scores.summary}</p>
                     </div>
                   )}
-                  {isAdmin && scores.pivotSuggestion && (
+                  {fullView && scores.pivotSuggestion && (
                     <div className="mt-2.5 rounded-[12px] border px-4 py-3" style={{ background: "rgba(255,176,32,0.06)", borderColor: "rgba(255,176,32,0.25)" }}>
                       <div className="overline mb-1.5 flex items-center gap-1.5" style={{ color: "#8A5A00" }}><Lightbulb size={12} />Pivot Önerisi</div>
                       <p className="text-[12.5px] leading-relaxed text-on-surface">{scores.pivotSuggestion}</p>
@@ -721,6 +793,7 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
 }) {
   const { user } = useAuth();
   const isAdmin = !!user;
+  const fullView = isAdmin; // tam görünüm = girişli (admin/ekip). Korumalı alanları backend zaten gizliyor.
   const [showLinkedIn, setShowLinkedIn] = useState(false);
 
   const linkedIdeas = allIdeas.filter((i) => (i.researchIds ?? []).includes(research.id));
@@ -736,7 +809,7 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-6 pt-7 md:px-10">
       <div className="detail-page">
-        <button className="dp-back" onClick={onClose}><ArrowLeft size={14} /> Araştırmalara dön</button>
+        <DetailTopBar backLabel="Araştırmalara dön" onBack={onClose} visionPath={`/r/${research.id}`} teamPath={`/r/${research.id}`} />
 
         {imageSrc && (
           <div className="research-hero"><img src={imageSrc} alt={research.title} /></div>
@@ -801,7 +874,7 @@ function ResearchDetailView({ research, allIdeas, onClose }: {
                 <AnalysisDoc markdown={research.findings} accent="cyan" />
               </section>
             )}
-            {isAdmin && (research as any).technicalAnalysis && (
+            {fullView && (research as any).technicalAnalysis && (
               <section className="dp-section">
                 <h3><Cpu size={16} color="#1463F3" />Teknik Analiz</h3>
                 <AnalysisDoc markdown={(research as any).technicalAnalysis} accent="violet" />
@@ -900,6 +973,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
 }) {
   const { user } = useAuth();
   const isAdmin = !!user;
+  const fullView = isAdmin; // tam görünüm = girişli (admin/ekip). Korumalı alanları backend zaten gizliyor.
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
 
@@ -955,6 +1029,10 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
   // Bu projeyi BESLEYEN fikirler (many-to-one): relatedTo'sunda bu projenin id'si olanlar
   // + projenin kendi relatedTo'su (dedup, self hariç). Birden fazla fikir bağlanabilir.
   const [showLinkIdea, setShowLinkIdea] = useState(false);
+  // Akordeon "tümünü aç/kapat" — nonce değişince tüm CollapsibleSection'lar senkronlanır
+  const [accOpen, setAccOpen] = useState(false);
+  const [accNonce, setAccNonce] = useState(0);
+  const toggleAllAcc = () => { setAccOpen((o) => !o); setAccNonce((n) => n + 1); };
   const [showLinkedIn, setShowLinkedIn] = useState(false);
 
   // Prototip / Demo — sistem "prototip var mı"yı architecturalAnalysis.prototype.url'den anlar.
@@ -1012,12 +1090,12 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
   return (
     <div className="mx-auto w-full max-w-[1280px] px-6 pt-7 md:px-10">
       <div className="detail-page">
-        <button className="dp-back" onClick={onClose}><ArrowLeft size={14} /> Projelere dön</button>
+        <DetailTopBar backLabel="Projelere dön" onBack={onClose} visionPath={`/i/${idea.id}`} teamPath={`/p/${idea.id}`} />
 
         <div className="project-banner">
           <div className="row">
             <span className="tag-pill project-t">PROJE</span>
-            {isAdmin && <span className={"status-pill-select " + stage.cls}>{stage.label}</span>}
+            {fullView && <span className={"status-pill-select " + stage.cls}>{stage.label}</span>}
             <span style={{ marginLeft: "auto", display: "flex", gap: 8, flexWrap: "wrap" }}>
               {isAdmin && (<>
                 <button className="btn-link" onClick={() => navigate(`/feasibility?id=${idea.id}`)}><BarChart3 size={14} color="#1463F3" />Fizibilite Raporu</button>
@@ -1072,7 +1150,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             <p className="lede">{(idea as any).category ? (idea as any).category + " · " : ""}{t.length > 220 ? t.slice(0, 220) + "…" : t}</p>
           ); })()}
 
-          {isAdmin && (
+          {fullView && (
           <div style={{ position: "relative", marginTop: 18 }}>
             <div className="project-progress-bar">
               <span style={{ width: progress + "%" }} />
@@ -1089,7 +1167,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
           {/* Sol kolon */}
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
             {/* Proje Aşamaları — AI yaşam-döngüsü (public görmez) */}
-            {isAdmin && (
+            {fullView && (
             <section className="dp-section">
               <h3><Route size={16} color="#1463F3" />Proje Aşamaları</h3>
               <div className="timeline">
@@ -1219,7 +1297,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             </section>
 
             {/* Sistem mimarisi — AI üretimi şema (public görmez) */}
-            {isAdmin && ((flowDiagram && Array.isArray(flowDiagram.nodes) && flowDiagram.nodes.length > 0) || regenerating) && (
+            {fullView && ((flowDiagram && Array.isArray(flowDiagram.nodes) && flowDiagram.nodes.length > 0) || regenerating) && (
               <section className="dp-section">
                 <h3><GitBranch size={16} color="#1463F3" />Sistem Mimarisi Şeması</h3>
                 {flowDiagram && Array.isArray(flowDiagram.nodes) && flowDiagram.nodes.length > 0 ? (
@@ -1237,17 +1315,26 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
 
             {/* AI Derin Analiz — uzun fonksiyonel/teknik/mimari METİN içeriği proje kapağı altında,
                 katlanabilir bölümler (varsayılan kapalı) içinde. Sayfayı uzun uzun doldurmaz. */}
-            {isAdmin && (analysis?.functionalAnalysis || analysis?.technicalAnalysis || analysis?.architecturalPlan) && (
+            {fullView && (analysis?.functionalAnalysis || analysis?.technicalAnalysis || analysis?.architecturalPlan) && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <p className="overline" style={{ margin: "4px 2px 0" }}>AI Derin Analiz · Detaylı Açıklama</p>
+                <div className="flex items-center justify-between" style={{ margin: "4px 2px 0" }}>
+                  <p className="overline" style={{ margin: 0 }}>AI Derin Analiz · Detaylı Açıklama</p>
+                  <button
+                    onClick={toggleAllAcc}
+                    className="flex items-center gap-1 rounded-lg border border-outline-variant bg-white px-2.5 py-1 text-[12px] font-semibold text-on-surface-variant transition-colors hover:border-outline-strong hover:text-on-surface"
+                    title={accOpen ? "Tüm bölümleri kapat" : "Tüm bölümleri aç"}
+                  >
+                    {accOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}{accOpen ? "Tümünü Kapat" : "Tümünü Aç"}
+                  </button>
+                </div>
                 {analysis?.functionalAnalysis && (
-                  <CollapsibleSection icon={<Activity size={16} color="#1463F3" />} title="Fonksiyonel Analiz"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="functional" markdown={analysis.functionalAnalysis} accent="blue" /></CollapsibleSection>
+                  <CollapsibleSection signal={{ open: accOpen, nonce: accNonce }} icon={<Activity size={16} color="#1463F3" />} title="Fonksiyonel Analiz"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="functional" markdown={analysis.functionalAnalysis} accent="blue" /></CollapsibleSection>
                 )}
                 {analysis?.technicalAnalysis && (
-                  <CollapsibleSection icon={<Cpu size={16} color="#1463F3" />} title="Teknik Analiz"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="technical" markdown={analysis.technicalAnalysis} accent="cyan" /></CollapsibleSection>
+                  <CollapsibleSection signal={{ open: accOpen, nonce: accNonce }} icon={<Cpu size={16} color="#1463F3" />} title="Teknik Analiz"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="technical" markdown={analysis.technicalAnalysis} accent="cyan" /></CollapsibleSection>
                 )}
                 {analysis?.architecturalPlan && (
-                  <CollapsibleSection icon={<MapIcon size={16} color="#1463F3" />} title="Mimari Plan (Açıklama)"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="architecturalPlan" markdown={analysis.architecturalPlan} accent="violet" /></CollapsibleSection>
+                  <CollapsibleSection signal={{ open: accOpen, nonce: accNonce }} icon={<MapIcon size={16} color="#1463F3" />} title="Mimari Plan (Açıklama)"><RevisableAnalysis ideaId={idea.id} title={idea.title} section="architecturalPlan" markdown={analysis.architecturalPlan} accent="violet" /></CollapsibleSection>
                 )}
               </div>
             )}
@@ -1256,7 +1343,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
 
           {/* Sağ kolon — public: yalnız bağlı içerikler (dokümanlar). Proje durumu/ekip admin'e özel. */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-            {isAdmin && (
+            {fullView && (
             <section className="dp-section">
               <h3><Activity size={16} color="#1463F3" />Proje durumu</h3>
               <div className="dp-eval-stack">
@@ -1282,7 +1369,7 @@ function ProjectDetailView({ idea, allResearch, allIdeas, onClose }: {
             </section>
             )}
 
-            {isAdmin && (
+            {fullView && (
             <section className="dp-section">
               <h3><Users size={16} color="#1463F3" />Ekip · {team.length}</h3>
               {team.length > 0 ? (

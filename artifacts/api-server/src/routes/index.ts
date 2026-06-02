@@ -21,8 +21,10 @@ const router: IRouter = Router();
 router.use(healthRouter);
 router.use("/gemini/conversations", geminiConversationsRouter);
 router.use("/gemini", geminiImageRouter);
-router.use("/research", researchRouter);
-router.use("/ideas", ideasRouter);
+// authMiddleware OPSİYONEL: girişliyse req.user dolar, değilse devam.
+// GET handler'ları buna göre korumalı alanları (FA/teknik/skor) gizler (public vizyon).
+router.use("/research", authMiddleware, researchRouter);
+router.use("/ideas", authMiddleware, ideasRouter);
 router.use("/comments", commentsRouter);
 router.use("/votes", votesRouter);
 router.use("/diagrams", diagramsRouter);

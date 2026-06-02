@@ -76,6 +76,8 @@ export function HUDLayout({ children }: { children: ReactNode }) {
   // Asistan revize bağlamı — "AI ile Revize Et" / "Düzenle" butonları context taşır.
   // OrchestratorChat mount gecikmesi nedeniyle event yerine PROP ile geçilir.
   const [assistantContext, setAssistantContext] = useState<AssistantContext | null>(null);
+  // Aşağı kaydırınca beliren "başa dön" butonu (ana içerik scroll'una bağlı)
+  const [showTop, setShowTop] = useState(false);
   // Tam-sayfa detay (kart tıklanınca .main içeriğini devralır — referans davranışı)
   // view: hangi listeden açıldı → "idea" (Fikirler) fikir yüzü, "project" (Projeler) proje yüzü
   const [cardDetail, setCardDetail] = useState<{ type: "research" | "idea"; id: number; view?: "idea" | "project" } | null>(null);
@@ -118,9 +120,11 @@ export function HUDLayout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("think-inn:open-card", handler);
   }, []);
 
-  // Sidebar'dan başka sayfaya gidilince detay kapanır
+  // Sidebar'dan başka sayfaya gidilince detay kapanır + başa dön butonu sıfırlanır
   useEffect(() => {
     setCardDetail(null);
+    setShowTop(false);
+    mainRef.current?.scrollTo({ top: 0 });
   }, [location]);
 
   const roleMeta = user ? ROLE_META[user.role as UserRole] : null;
@@ -327,7 +331,11 @@ export function HUDLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* Main content — kart detayı açıksa içeriği devralır (sidebar + topbar kalır) */}
-        <main ref={mainRef} className="flex-1 overflow-y-auto pb-16 md:pb-0">
+        <main
+          ref={mainRef}
+          onScroll={(e) => setShowTop(e.currentTarget.scrollTop > 320)}
+          className="flex-1 overflow-y-auto pb-16 md:pb-0"
+        >
           {cardDetail ? (
             <CardDetailView key={`${cardDetail.type}-${cardDetail.id}-${cardDetail.view ?? "auto"}`} detail={cardDetail} onClose={() => setCardDetail(null)} />
           ) : (
@@ -345,6 +353,28 @@ export function HUDLayout({ children }: { children: ReactNode }) {
         context={assistantContext}
         onClose={() => { setAssistantOpen(false); setAssistantContext(null); }}
       />
+
+      {/* Başa dön — aşağı kaydırınca belirir; asistan FAB varsa onun üstüne yığılır */}
+      <AnimatePresence>
+        {showTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 8 }}
+            transition={{ duration: 0.18 }}
+            onClick={() => mainRef.current?.scrollTo({ top: 0, behavior: "smooth" })}
+            className={[
+              "fixed right-6 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-outline-variant bg-white text-on-surface shadow-[0_8px_24px_rgba(7,27,58,0.16)] transition-colors hover:text-primary",
+              "bottom-20",
+              showAssistantFab ? "md:bottom-[88px]" : "md:bottom-6",
+            ].join(" ")}
+            aria-label="Başa dön"
+            title="Başa dön"
+          >
+            <Icon name="arrow_upward" size={20} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-0 left-0 z-40 flex h-16 w-full items-center justify-around bg-surface-container-lowest px-4 shadow-[0_-4px_20px_rgba(7,27,58,0.08)] md:hidden border-t border-outline-variant/30">

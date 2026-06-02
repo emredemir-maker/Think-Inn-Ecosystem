@@ -10,6 +10,22 @@ import { generateLinkedInContent, type LinkedInAngle } from "../utils/linkedin-c
 
 const router = Router();
 
+// Public (girişsiz) yanıtlarda korumalı AI alanlarını gizle — yalnız vizyon alanları kalır.
+// Vizyon: başlık, açıklama, etiket, KULLANIM/SÜREÇ AKIŞI (roadmap), bağlı id'ler, prototip.
+// Gizli: fonksiyonel/teknik/mimari analiz, akış şeması, finansal, skorlar, araştırma konuları.
+// (architecturalAnalysis truthy KALIR → harita/"proje" sınıflaması bozulmaz; içinden yalnız prototype tutulur.)
+function stripIdeaForPublic(idea: any) {
+  const aa = idea?.architecturalAnalysis;
+  return {
+    ...idea,
+    architecturalAnalysis: aa ? { prototype: aa.prototype ?? null } : null,
+    evaluationScores: null,
+    neededResearchTopics: [],
+    optionalResearchTopics: [],
+    researchTopicMappings: [],
+  };
+}
+
 router.get("/", async (req, res) => {
   try {
     const { category } = req.query;
@@ -22,7 +38,7 @@ router.get("/", async (req, res) => {
           : undefined,
       )
       .orderBy(desc(ideasTable.createdAt));
-    res.json(ideas);
+    res.json(req.user ? ideas : ideas.map(stripIdeaForPublic));
   } catch (err) {
     req.log.error({ err }, "Failed to list ideas");
     res.status(500).json({ error: "Internal server error" });
@@ -108,7 +124,7 @@ router.get("/:id", async (req, res) => {
     if (!item) {
       return res.status(404).json({ error: "Idea not found" });
     }
-    res.json(item);
+    res.json(req.user ? item : stripIdeaForPublic(item));
   } catch (err) {
     req.log.error({ err }, "Failed to get idea");
     res.status(500).json({ error: "Internal server error" });
